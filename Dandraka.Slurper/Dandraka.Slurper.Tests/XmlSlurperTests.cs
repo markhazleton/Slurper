@@ -15,6 +15,18 @@ public class XmlSlurperTests
     private TestUtility utility = new TestUtility();
 
     [SkippableFact]
+    public void WPM_ObjectNotNullTest()
+    {
+        var site = XmlSlurper.ParseText(utility.getFile("localhost-site-file.xml"));
+        var locations = site.Locations.LocationList;
+
+        Assert.NotNull(locations);
+        Assert.NotNull(site);
+
+
+    }
+
+    [SkippableFact]
     public void T01_ObjectNotNullTest()
     {
         var city1 = XmlSlurper.ParseText(utility.getFile("City.xml"));
