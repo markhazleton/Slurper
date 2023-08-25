@@ -1,30 +1,83 @@
-﻿using System;
+﻿using ControlSpark.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Xunit;
 
 namespace Dandraka.Slurper.Tests;
 
 public class XmlSlurperTests
 {
-    private TestUtility utility = new TestUtility();
+    private readonly TestUtility utility = new();
 
-    [SkippableFact]
-    public void WPM_ObjectNotNullTest()
+    private static Menu Create(dynamic location)
     {
-        var site = XmlSlurper.ParseText(utility.getFile("localhost-site-file.xml"));
-        var locations = site.Locations.LocationList;
-
-        Assert.NotNull(locations);
-        Assert.NotNull(site);
-
-
+        WebSite domain = new()
+        {
+            Id = 3,
+            Name = "ProjectMechanics",
+        };
+        return new Menu()
+        {
+            Action = "Index",
+            Controller = "Page",
+            Title = location.LocationTitle,
+            Description = location.LocationDescription,
+            Url = RemoveLeadingSlash(location.BreadCrumbURL),
+            Argument = RemoveLeadingSlash(location.BreadCrumbURL),
+            PageContent = location.LocationBody,
+            Domain = domain,
+            DisplayOrder = location.DefaultOrder,
+            CreatedDate = ConvertToDateTime(location.ModifiedDT)
+        };
     }
+
+    public static DateTime ConvertToDateTime(string input)
+    {
+        DateTime result;
+        if (DateTime.TryParse(input, out result))
+        {
+            return result;
+        }
+        else
+        {
+            return DateTime.Now;
+        }
+    }
+    public static string RemoveLeadingSlash(string input)
+    {
+        if (!string.IsNullOrEmpty(input) && input.StartsWith("/"))
+        {
+            input = input[1..];
+        }
+        return input;
+    }
+
+
+    public static bool SerializeObjectToFile<T>(T data, string fileName)
+    {
+        try
+        {
+            // Serialize the object to a JSON string
+            string jsonData = JsonSerializer.Serialize(data);
+
+            // Write the JSON string to a file
+            File.WriteAllText(fileName, jsonData);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Handle any exceptions that occur during serialization
+            Console.WriteLine("Error serializing object to JSON: " + ex.Message);
+            return false;
+        }
+    }
+
+
+
 
     [SkippableFact]
     public void T01_ObjectNotNullTest()
@@ -334,5 +387,26 @@ public class XmlSlurperTests
             Decimal speed = Math.Round(timeMs / fileSizeMb, 0);
             Console.WriteLine($"X-T13 Parsed {fileSizeMb} MB in {timeMs} ms (approx. {speed} ms/MB)");
         }
+    }
+
+    [SkippableFact]
+    public void WPM_ObjectNotNullTest()
+    {
+        var site = XmlSlurper.ParseText(utility.getFile("localhost-site-file.xml"));
+        var locations = site.Locations.LocationList;
+
+        var menulist = new List<Menu>();
+
+        foreach (var location in locations)
+        {
+            menulist.Add(Create(location));
+        }
+
+        SerializeObjectToFile<List<Menu>>(menulist, "menu.json");
+
+        Assert.NotNull(locations);
+        Assert.NotNull(site);
+
+
     }
 }

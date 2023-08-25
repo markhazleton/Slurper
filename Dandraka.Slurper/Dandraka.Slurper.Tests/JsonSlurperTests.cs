@@ -8,7 +8,7 @@ namespace Dandraka.Slurper.Tests;
 public class JsonSlurperTests
 {
 
-    private TestUtility utility = new TestUtility();
+    private TestUtility utility = new();
 
     [SkippableFact]
     public void T01_ObjectNotNullTest()
@@ -29,14 +29,14 @@ public class JsonSlurperTests
     public void T02_BaseJsonElementsTest()
     {
         var person1 = JsonSlurper.ParseText(utility.getFile("BaseJson.json"));
-        
+
         // assert simple elements
         Assert.Equal("Joe", person1.Name);
         Assert.Equal(22, person1.Age);
         Assert.Equal(true, person1.CanDrive);
 
         Assert.Null(person1.ContactDetails.ToString());
-        
+
         // assert object
         Assert.Equal("joe@hotmail.com", person1.ContactDetails.Email);
         Assert.Equal("07738277382", person1.ContactDetails.Mobile);
@@ -54,9 +54,9 @@ public class JsonSlurperTests
         // assert array        
         Assert.Equal("15 Beer Bottle Street", person2.Addresses.AddressesList[0].Line1);
         Assert.Equal("Shell Cottage", person2.Addresses.AddressesList[1].Line1);
-    } 
+    }
 
-        [SkippableFact]
+    [SkippableFact]
     public void T03b_BareJsonArrayTest()
     {
         // Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!)
@@ -64,7 +64,7 @@ public class JsonSlurperTests
 
         Assert.Equal(10, jsonObj.List.Count);
         Assert.Equal(4862, jsonObj.List[9]);
-    }    
+    }
 
     [SkippableFact]
     public void T04_SimpleJsonElementsTest()
@@ -187,7 +187,7 @@ public class JsonSlurperTests
 
             // note that the underscore ("_name" in the file) gets removed
             Assert.Equal("Wolleraustrasse", cityInfo.City.Street.StreetList[0].name);
-            Assert.Equal("8832", cityInfo.City.Street.StreetList[2].PostCode);            
+            Assert.Equal("8832", cityInfo.City.Street.StreetList[2].PostCode);
             Assert.Equal(3, cityInfo.City.Street.StreetList[2].HouseNumber.HouseNumberList.Count);
         }
     }
@@ -198,7 +198,7 @@ public class JsonSlurperTests
     [SkippableFact]
     public void T10_Usage_PrintJsonContents1_Simple()
     {
-        string json = 
+        string json =
 @"{
   'id': 'bk101',
   'isbn': '123456789',
@@ -220,7 +220,7 @@ public class JsonSlurperTests
     [SkippableFact]
     public void T11_Usage_PrintJsonContents2_Array()
     {
-        string json = 
+        string json =
 @"{
 'Groceries': 
     [
@@ -256,7 +256,7 @@ public class JsonSlurperTests
         // so the list name will become GroceriesInventory.
         Console.WriteLine("J-T11 name1 = " + nutrition.Groceries.GroceriesInventory[0].name);
         Console.WriteLine("J-T11 name2 = " + nutrition.Groceries.GroceriesInventory[1].name);
-    }    
+    }
 
     /// <summary>
     /// Usage showcase 3
@@ -264,7 +264,7 @@ public class JsonSlurperTests
     [SkippableFact]
     public void T12_Usage_PrintJsonContents3_TopLevelArray()
     {
-        string json = 
+        string json =
 @"[
   {
     'name': 'Avocado Dip',
@@ -287,7 +287,7 @@ public class JsonSlurperTests
     'fiber': '0',
     'protein': '13'
   }
-]".Replace("'", "\"");        
+]".Replace("'", "\"");
         var nutrition = JsonSlurper.ParseText(json);
 
         // Since many nodes were found, a list was generated and named List. 

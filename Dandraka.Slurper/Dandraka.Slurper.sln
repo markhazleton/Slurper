@@ -3,17 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dandraka.Slurper", "Dandraka.Slurper\Dandraka.Slurper.csproj", "{D42ECAC1-A393-4E80-B09A-38785312B0F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dandraka.Slurper", "Dandraka.Slurper\Dandraka.Slurper.csproj", "{D42ECAC1-A393-4E80-B09A-38785312B0F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dandraka.Slurper.Tests", "Dandraka.Slurper.Tests\Dandraka.Slurper.Tests.csproj", "{C2389741-BF48-464E-B0E3-6C262BF0F52C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Dandraka.Slurper.Tests", "Dandraka.Slurper.Tests\Dandraka.Slurper.Tests.csproj", "{C2389741-BF48-464E-B0E3-6C262BF0F52C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ControlSpark.Domain", "..\..\..\ControlOrigins\ControlSpark\ControlSpark.Domain\ControlSpark.Domain.csproj", "{B419444B-C793-425C-B762-FCBF98E22E37}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ControlSpark.Bootswatch", "..\..\..\ControlOrigins\ControlSpark.Bootswatch\ControlSpark.Bootswatch\ControlSpark.Bootswatch.csproj", "{E36B4809-6F96-4456-9935-5D739DB07E7A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{D42ECAC1-A393-4E80-B09A-38785312B0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -24,5 +25,16 @@ Global
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B419444B-C793-425C-B762-FCBF98E22E37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B419444B-C793-425C-B762-FCBF98E22E37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B419444B-C793-425C-B762-FCBF98E22E37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B419444B-C793-425C-B762-FCBF98E22E37}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E36B4809-6F96-4456-9935-5D739DB07E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E36B4809-6F96-4456-9935-5D739DB07E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E36B4809-6F96-4456-9935-5D739DB07E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E36B4809-6F96-4456-9935-5D739DB07E7A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 EndGlobal

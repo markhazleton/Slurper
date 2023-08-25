@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Text.Json;
-using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Dandraka.Slurper;
 
@@ -111,7 +111,7 @@ public static class JsonSlurper
                     if (jsonChild is JsonElement)
                     {
                         string parentType = obj.GetType().Name;
-                        switch(parentType)
+                        switch (parentType)
                         {
                             case "JsonElement":
                                 // parent is nameless
@@ -122,7 +122,7 @@ public static class JsonSlurper
                                 break;
                             default:
                                 throw new NotSupportedException($"Unsupported parent type '{obj.GetType().FullName}' of node:\r\n{jsonChild}");
-                        }                        
+                        }
                     }
                     if (jsonChild is JsonProperty)
                     {
@@ -147,8 +147,7 @@ public static class JsonSlurper
                 newMember.__value = getJsonPropertyValue(jsonObjChild);
                 newMember.ToString = (ToStringFunc)(() => newMember.__value);
                 string newMemberName = group.Key;
-
-                ((IDictionary<string, Object>)parent.Members).Add(newMemberName, newMember);
+                parent.Members.Add(newMemberName, newMember);
                 AddRecursive(newMember, jsonObjChild);
             }
             else
@@ -156,14 +155,14 @@ public static class JsonSlurper
                 // lists
                 string listName = $"{group.Key}{ListSuffix}";
                 List<ToStringExpandoObject> newList;
-                if (!((IDictionary<string, Object>)parent.Members).ContainsKey(listName))
+                if (!parent.Members.ContainsKey(listName))
                 {
                     newList = new List<ToStringExpandoObject>();
-                    ((IDictionary<string, Object>)parent.Members).Add(listName, newList);
+                    parent.Members.Add(listName, newList);
                 }
                 else
                 {
-                    newList = ((IDictionary<string, Object>)parent.Members)[listName] as List<ToStringExpandoObject>;
+                    newList = parent.Members[listName] as List<ToStringExpandoObject>;
                 }
                 foreach (var listNode in group.ToList())
                 {
@@ -238,8 +237,8 @@ public static class JsonSlurper
 
     private static string getValidName(string nodeName)
     {
-        Regex rgx = new Regex("[^0-9a-zA-Z]+");
-        string res = rgx.Replace(nodeName, "");
+        Regex rgx = new("[^0-9a-zA-Z]+");
+        string res = rgx.Replace(nodeName, string.Empty);
         return res;
     }
 }

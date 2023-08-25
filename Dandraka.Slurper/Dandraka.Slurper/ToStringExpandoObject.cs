@@ -32,7 +32,7 @@ public sealed class ToStringExpandoObject : DynamicObject
 
     public static implicit operator string(ToStringExpandoObject e) => e.ToString();
 
-    public static implicit operator bool? (ToStringExpandoObject e)
+    public static implicit operator bool?(ToStringExpandoObject e)
     {
         if (bool.TryParse(e.ToString(), out bool b))
         {
@@ -41,7 +41,7 @@ public sealed class ToStringExpandoObject : DynamicObject
         return null;
     }
 
-    public static implicit operator int? (ToStringExpandoObject e)
+    public static implicit operator int?(ToStringExpandoObject e)
     {
         if (int.TryParse(e.ToString(), out int b))
         {
@@ -50,7 +50,7 @@ public sealed class ToStringExpandoObject : DynamicObject
         return null;
     }
 
-    public static implicit operator decimal? (ToStringExpandoObject e)
+    public static implicit operator decimal?(ToStringExpandoObject e)
     {
         if (decimal.TryParse(e.ToString(), out decimal b))
         {
@@ -59,7 +59,7 @@ public sealed class ToStringExpandoObject : DynamicObject
         return null;
     }
 
-    public static implicit operator double? (ToStringExpandoObject e)
+    public static implicit operator double?(ToStringExpandoObject e)
     {
         if (double.TryParse(e.ToString(), out double b))
         {
@@ -68,7 +68,7 @@ public sealed class ToStringExpandoObject : DynamicObject
         return null;
     }
 
-    public static implicit operator bool (ToStringExpandoObject e)
+    public static implicit operator bool(ToStringExpandoObject e)
     {
         var b = (bool?)e;
         if (b.HasValue)
