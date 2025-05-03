@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  build:
+    image: slurper-build
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./output:/app/output
+
+  test:
+    image: slurper-test
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: test
+    volumes:
+      - ./output:/app/output

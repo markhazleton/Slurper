@@ -23,7 +23,7 @@ public static class JsonSlurper
     /// Default value is "List", so for repeated nodes
     /// named "Customer", the generated property
     /// will be named "CustomerList".
-    /// <summary>
+    /// </summary>
     public static string ListSuffix { get; set; } = "List";
 
     /// <summary>
@@ -62,7 +62,15 @@ public static class JsonSlurper
         object jsonObj = null;
         if (obj is JsonProperty)
         {
-            var jsonValue = ((JsonProperty)obj).Value;
+            var jsonProperty = (JsonProperty)obj;
+            var jsonValue = jsonProperty.Value;
+
+            // Handle null values directly
+            if (jsonValue.ValueKind == JsonValueKind.Null)
+            {
+                parent.Members[jsonProperty.Name] = null;
+                return parent;
+            }
 
             // here we only care about ValueKind that
             // may have nested elements
@@ -126,7 +134,16 @@ public static class JsonSlurper
                     }
                     if (jsonChild is JsonProperty)
                     {
-                        jsonName = ((JsonProperty)jsonChild).Name;
+                        JsonProperty prop = (JsonProperty)jsonChild;
+                        jsonName = prop.Name;
+
+                        // Handle null values for properties directly
+                        if (prop.Value.ValueKind == JsonValueKind.Null)
+                        {
+                            string propertyName = getValidName(jsonName);
+                            parent.Members[propertyName] = null;
+                            continue;
+                        }
                     }
                     string name = getValidName(jsonName);
                     Debug.WriteLine($"{jsonName} = {name}");
@@ -203,6 +220,9 @@ public static class JsonSlurper
                     // ToStringExpandoObject takes care about conversion
                     rawText = ((JsonElement)jsonObj).GetRawText();
                     break;
+                case JsonValueKind.Null:
+                    // Explicitly handle null values
+                    return null;
                 default:
                     return null;
             }
@@ -221,10 +241,12 @@ public static class JsonSlurper
                     // ToStringExpandoObject takes care about conversion
                     rawText = ((JsonProperty)jsonObj).Value.GetRawText();
                     break;
+                case JsonValueKind.Null:
+                    // Explicitly return null for null values
+                    return null;
                 case JsonValueKind.Undefined:
                 case JsonValueKind.Object:
                 case JsonValueKind.Array:
-                case JsonValueKind.Null:
                     // stays null
                     break;
                 default:

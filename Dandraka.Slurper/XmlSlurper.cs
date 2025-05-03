@@ -22,7 +22,7 @@ public static class XmlSlurper
     /// Default value is "List", so for repeated nodes
     /// named "Customer", the generated property
     /// will be named "CustomerList".
-    /// <summary>
+    /// </summary>
     public static string ListSuffix { get; set; } = "List";
 
     /// <summary>
@@ -149,6 +149,11 @@ public static class XmlSlurper
         if (node is XmlCDataSection)
         {
             var e = (node as XmlCDataSection);
+            return e.Value;
+        }
+        if (node is XmlSignificantWhitespace)
+        {
+            var e = (node as XmlSignificantWhitespace);
             return e.Value;
         }
         throw new NotSupportedException($"Type {node.GetType().FullName} is not supported");

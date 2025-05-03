@@ -1,11 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <LangVersion>10.0</LangVersion>
     <Authors>Jim (Dimitrios) Andrakakis</Authors>
     <Company>dandraka.com</Company>
-    <Description>An XmlSlurper implementation in .Net for Xml and Json.</Description>
+    <Description>A flexible data extraction and transformation library for XML, JSON, CSV, and HTML.</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -13,23 +12,29 @@
     <RepositoryUrl>https://github.com/dandraka/Slurper/</RepositoryUrl>
     <Copyright>Copyright (c) 2017 Jim (Dimitrios) Andrakakis</Copyright>
     <PackageIcon>icon.png</PackageIcon>
-    <Version>2.0.2</Version>
-    <PackageReleaseNotes>Release 2.0 is fully backwards compatible with all previous ones, the only change needed is to change the namespace from Dandraka.XmlUtilities to Dandraka.Slurper.
-In addition to XmlSlurper, a JsonSlurper is now implemented.
+    <Version>3.0.0</Version>
+    <PackageReleaseNotes>Release 3.0 adds the following improvements:
+      - Dependency injection support
+      - Async methods for better performance
+      - Enhanced error handling
+      - Logging support
+      - Performance optimizations with streaming and caching
+      - Support for CSV and HTML extraction
     </PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageTags>xml json parsing dynamic</PackageTags>
+    <PackageTags>xml json csv html parsing dynamic extraction</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.4" />
+    <PackageReference Include="System.Text.Json" Version="9.0.4" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="LICENSE.txt" Pack="true" PackagePath="LICENSE.txt" />
     <None Include="icon.png" Pack="true" PackagePath="icon.png" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
-
 </Project>
