@@ -1,21 +1,52 @@
-# Slurper
-An XmlSlurper implementation in .Net, both for Xml and Json. The idea came from [Groovy's XmlSlurper](http://groovy-lang.org/processing-xml.html) which is hugely useful.
+# 🚀 Slurper: The Magical Data Extractor for .NET
 
-What this does, is convert a piece of xml, e.g.
+[![NuGet](https://img.shields.io/nuget/v/Dandraka.Slurper.svg)](https://www.nuget.org/packages/Dandraka.Slurper/)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/dandraka/Slurper)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration! Slurper is your Swiss Army knife for data extraction that makes working with structured data a breeze.
+
+Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurper, you can dive straight into the data you care about using simple, intuitive property access.
+
+> "It's like having dynamic objects for all your data formats!" - Happy Developer
+
+## ✨ Features
+
+- **Multiple Data Formats**: Extract data from XML, JSON, CSV, and HTML sources
+- **Unified API**: Consistent interface for all supported formats
+- **Dynamic Object Support**: Access extracted data using dynamic properties
+- **No Type Declaration Required**: Use data without defining model classes first
+- **Async Support**: All extraction methods have asynchronous versions
+- **Dependency Injection**: Full integration with .NET DI container
+- **Error Handling**: Comprehensive exception types for better error handling
+- **Logging**: Built-in logging support for diagnostics
+- **Extensibility**: Plugin system for adding custom data extractors
+- **Performance Options**: Streaming, parallel processing, and caching options
+- **Docker Support**: Containerization for easy deployment and CI/CD
+
+## 📦 Installation
+
+```bash
+dotnet add package Dandraka.Slurper
 ```
+
+## 🧙 How It Works
+
+Slurper converts structured data like XML:
+
+```xml
 <card xmlns="http://businesscard.org">
-   <name>John Doe</name>
+   <n>John Doe</n>
    <title>CEO, Widget Inc.</title>
    <email>john.doe@widget.com</email>
    <phone>(202) 456-1414</phone>
    <logo url="widget.gif"/>
- </card>
+</card>
 ```
 
-or json, e.g.
+or JSON:
 
-```
+```json
 {
   "card": {
     "name": "John Doe",
@@ -23,15 +54,15 @@ or json, e.g.
     "email": "john.doe@widget.com",
     "phone": "(202) 456-1414",
     "logo": {
-      "url": "widget.gif",
+      "url": "widget.gif"
     }
   }
 }
 ```
 
-to a C# object, e.g.
+into a C# object that you can navigate with simple property access:
 
-```
+```csharp
 card.name
 card.title
 card.email
@@ -39,254 +70,356 @@ card.phone
 card.logo.url
 ```
 
-This is done ***without any need to declare the type***. Behind the scenes it uses a class similar to System.Dynamic.ExpandoObject, named [ToStringExpandoObject](https://gist.github.com/kcuzner/3670e78ae1707a0e959d).
+This is done **without any need to declare the type**. Behind the scenes it uses a class similar to System.Dynamic.ExpandoObject, named [ToStringExpandoObject](https://gist.github.com/kcuzner/3670e78ae1707a0e959d).
 
-## Downloading:
-Under the Release tab you can find the binaries to download, but the ***recommended*** way is to use it as a nuget dependency. The nuget package is named Dandraka.Slurper, here: https://www.nuget.org/packages/Dandraka.Slurper .
+## 🚀 Quick Start
 
-## Usage:
+### Modern API (v3.0.0+)
 
-The library contains two classes, XmlSlurper and JsonSlurper. Both of them are static and contain two methods: ```ParseFile(string path)``` which accepts a filename and ```ParseText(string text)``` which accepts xml and json text respectively.
+```csharp
+// Create a factory
+var factory = new SlurperFactory();
 
-Both of them have a settable string property ```ListSuffix``` which has the default value of List. This is used when encountering arrays; a property is generated that is named as ```<commonName><ListSuffix>```. For example, parsing the following xml:
+// Get an extractor
+var xmlExtractor = factory.CreateXmlExtractor();
 
-```
-<?xml version="1.0" encoding="UTF-8"?>
-  <Groceries>
-    <name>Avocado Dip</name>
-    <mfr>Sunnydale</mfr>
-    <carb>2</carb>
-    <fiber>0</fiber>
-    <protein>1</protein>
-  </Groceries>
-  <Groceries>
-    <name>Bagels, New York Style</name>
-    <mfr>Thompson</mfr>
-    <carb>54</carb>
-    <fiber>3</fiber>
-    <protein>11</protein>
-  </Groceries>
-  <Groceries>
-    <name>Beef Frankfurter, Quarter Pound</name>
-    <mfr>Armitage</mfr>
-    <carb>8</carb>
-    <fiber>0</fiber>
-    <protein>13</protein>
-  </Groceries>
+// Extract data from a string
+string xml = "<book id=\"bk101\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
+var books = xmlExtractor.Extract(xml);
+var book = books.First();
+
+// Access data with dynamic properties
+Console.WriteLine($"Author: {book.author}, Title: {book.title}");
+
+// Extract from file or URL
+var booksFromFile = xmlExtractor.ExtractFromFile("books.xml");
+var booksFromUrl = await xmlExtractor.ExtractFromUrlAsync("https://example.com/books.xml");
 ```
 
-will return _Bagels, New York Style_ under ```xmlObj.GroceriesList[1].name```.
+### Legacy API (Still Supported)
 
-In a similar way, parsing the following json:
-
-```
-{
-'Groceries': 
-    [
-        {
-            'name': 'Avocado Dip',
-            'mfr': 'Sunnydale',
-            'carb': '2',
-            'fiber': '0',
-            'protein': '1'
-        },
-        {
-            'name': 'Bagels, New York Style',
-            'mfr': 'Thompson',
-            'carb': '54',
-            'fiber': '3',
-            'protein': '11'
-        },
-        {
-            'name': 'Beef Frankfurter, Quarter Pound',
-            'mfr': 'Armitage',
-            'carb': '8',
-            'fiber': '0',
-            'protein': '13'
-        }
-    ]
-}
-```
-
-will return _Bagels, New York Style_ under ```jsonObj.Groceries.GroceriesList[1].name```.
-
-If the value of ```ListSuffix``` is changed to, say, 'Catalogue', the above object with be ```jsonObj.Groceries.GroceriesCatalogue[1].name```.
-
-## Examples:
-
-```
+```csharp
 using Dandraka.Slurper;
 
-public void PrintXmlContents1()
-{
-	string xml = "<book id=\"bk101\" isbn=\"123456789\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
-	var book = XmlSlurper.ParseText(xml);
+// XML Example
+string xml = "<book id=\"bk101\" isbn=\"123456789\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
+var book = XmlSlurper.ParseText(xml);
 
-	// that's it, now we have everything
-	Console.WriteLine("id = " + book.id);
-	Console.WriteLine("isbn = " + book.isbn);
-	Console.WriteLine("author = " + book.author);
-	Console.WriteLine("title = " + book.title);
-}
+// Access properties
+Console.WriteLine("id = " + book.id);
+Console.WriteLine("isbn = " + book.isbn);
+Console.WriteLine("author = " + book.author);
+Console.WriteLine("title = " + book.title);
 
-public void PrintXmlContents2()
-{
-	string xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
-				 "<nutrition>" +
-				 "	<food>" +
-				 "		<name>Avocado Dip</name>" +
-				 "		<mfr>Sunnydale</mfr>" +
-				 "		<carb>2</carb>" +
-				 "		<fiber>0</fiber>" +
-				 "		<protein>1</protein>" +
-				 "	</food>" +
-				 "	<food>" +
-				 "		<name>Bagels, New York Style </name>" +
-				 "		<mfr>Thompson</mfr>" +
-				 "		<carb>54</carb>" +
-				 "		<fiber>3</fiber>" +
-				 "		<protein>11</protein>" +
-				 "	</food>" +
-				 "	<food>" +
-				 "		<name>Beef Frankfurter, Quarter Pound </name>" +
-				 "		<mfr>Armitage</mfr>" +
-				 "		<carb>8</carb>" +
-				 "		<fiber>0</fiber>" +
-				 "		<protein>13</protein>" +
-				 "	</food>" +
-				 "</nutrition>";
-	var nutrition = XmlSlurper.ParseText(xml);
-
-	// since many food nodes were found, a list was generated and named foodList (common name + "List")
-	Console.WriteLine("name1 = " + nutrition.foodList[0].name);
-	Console.WriteLine("name2 = " + nutrition.foodList[1].name);
-}
-
-public void ReadSettings()
-{
-	var settings = XmlSlurper.ParseText(getFile("HardwareSettings.xml"));
-            
-	if (!settings.view.displayIcons)
-	{
-		DoWhatever();
-	}
-	    
-	int? minFreeSpace = settings.performance.additionalChecks.disk.minFreeSpace;
-
-	// Implicit type conversion works for string, bool?, int?, double?, decimal?, 
-	// bool, int, double and decimal.
-	// Note that if the xml content cannot be parsed (e.g. you try to use 
-	// an xml node as bool but it contains "lalala") then for bool? you get null, 
-	// and for bool you get a ValueConversionException.
-}
-```
-
-```
-using Dandraka.Slurper;
-
-public void PrintJsonContents1_Simple()
-{
-	string json = 
+// JSON Example
+string json = 
 @"{
   'id': 'bk101',
   'isbn': '123456789',
   'author': 'Gambardella, Matthew',
   'title': 'XML Developer Guide'
 }".Replace("'", "\"");
-	var book = JsonSlurper.ParseText(json);
+var jsonBook = JsonSlurper.ParseText(json);
 
-	// that's it, now we have everything            
-	Console.WriteLine("id = " + book.id);
-	Console.WriteLine("isbn = " + book.isbn);
-	Console.WriteLine("author = " + book.author);
-	Console.WriteLine("title = " + book.title);
-}
+// Access properties
+Console.WriteLine("id = " + jsonBook.id);
+Console.WriteLine("isbn = " + jsonBook.isbn);
+Console.WriteLine("author = " + jsonBook.author);
+Console.WriteLine("title = " + jsonBook.title);
+```
 
-public void PrintJsonContents2_Array()
-{
-	string json = 
+## 📚 Working with Arrays
+
+Both slurpers have a settable string property `ListSuffix` which has the default value of "List". This is used when encountering arrays; a property is generated that is named as `<commonName><ListSuffix>`.
+
+### XML Array Example
+
+```csharp
+string xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
+             "<nutrition>" +
+             " <food>" +
+             "  <n>Avocado Dip</n>" +
+             "  <mfr>Sunnydale</mfr>" +
+             "  <carb>2</carb>" +
+             "  <fiber>0</fiber>" +
+             "  <protein>1</protein>" +
+             " </food>" +
+             " <food>" +
+             "  <n>Bagels, New York Style </n>" +
+             "  <mfr>Thompson</mfr>" +
+             "  <carb>54</carb>" +
+             "  <fiber>3</fiber>" +
+             "  <protein>11</protein>" +
+             " </food>" +
+             "</nutrition>";
+var nutrition = XmlSlurper.ParseText(xml);
+
+// Since many food nodes were found, a list was generated and named foodList (common name + "List")
+Console.WriteLine("name1 = " + nutrition.foodList[0].n);
+Console.WriteLine("name2 = " + nutrition.foodList[1].n);
+```
+
+### JSON Array Example
+
+```csharp
+string json = 
 @"{
 'Groceries': 
 [
-	{
-		'name': 'Avocado Dip',
-		'mfr': 'Sunnydale',
-		'carb': '2',
-		'fiber': '0',
-		'protein': '1'
-	},
-	{
-		'name': 'Bagels, New York Style',
-		'mfr': 'Thompson',
-		'carb': '54',
-		'fiber': '3',
-		'protein': '11'
-	},
-	{
-		'name': 'Beef Frankfurter, Quarter Pound',
-		'mfr': 'Armitage',
-		'carb': '8',
-		'fiber': '0',
-		'protein': '13'
-	}
+    {
+        'name': 'Avocado Dip',
+        'mfr': 'Sunnydale',
+        'carb': '2',
+        'fiber': '0',
+        'protein': '1'
+    },
+    {
+        'name': 'Bagels, New York Style',
+        'mfr': 'Thompson',
+        'carb': '54',
+        'fiber': '3',
+        'protein': '11'
+    }
 ]
 }".Replace("'", "\"");
-	JsonSlurper.ListSuffix = "Inventory";
-	var nutrition = JsonSlurper.ParseText(json);
+JsonSlurper.ListSuffix = "Inventory";
+var nutrition = JsonSlurper.ParseText(json);
 
-	// Since many nodes were found, a list was generated. 
-	// It's named common name + "List", so in this case GroceriesList.
-	// But note that we've changed the value of ListSuffix to Inventory,
-	// so the list name will become GroceriesInventory.
-	Console.WriteLine("name1 = " + nutrition.Groceries.GroceriesInventory[0].name);
-	Console.WriteLine("name2 = " + nutrition.Groceries.GroceriesInventory[1].name);
-}    
+// List name will become GroceriesInventory (because we changed ListSuffix)
+Console.WriteLine("name1 = " + nutrition.Groceries.GroceriesInventory[0].name);
+Console.WriteLine("name2 = " + nutrition.Groceries.GroceriesInventory[1].name);
+```
 
-public void PrintJsonContents3_TopLevelArray()
+## Advanced Features
+
+### Using Configuration Options
+
+```csharp
+var options = new SlurperOptions
 {
-	string json = 
-@"[
-	{
-		'name': 'Avocado Dip',
-		'mfr': 'Sunnydale',
-		'carb': '2',
-		'fiber': '0',
-		'protein': '1'
-	},
-	{
-		'name': 'Bagels, New York Style',
-		'mfr': 'Thompson',
-		'carb': '54',
-		'fiber': '3',
-		'protein': '11'
-	},
-	{
-		'name': 'Beef Frankfurter, Quarter Pound',
-		'mfr': 'Armitage',
-		'carb': '8',
-		'fiber': '0',
-		'protein': '13'
-	}
-]".Replace("'", "\"");
-	var nutrition = JsonSlurper.ParseText(json);
+    UseStreaming = true,
+    EnableParallelProcessing = true,
+    EnableCaching = true
+};
 
-	// Since many nodes were found, a list was generated and named List. 
-	// Normally it's named common name + "List" (e.g. GroceriesList) 
-	// but in this case the parent of the array is nameless 
-	// (it's the root) ergo just "List".
-	Console.WriteLine("name1 = " + nutrition.List[0].name);
-	Console.WriteLine("name2 = " + nutrition.List[1].name);
+var result = await extractor.ExtractFromFileAsync("large-data.xml", options);
+```
+
+### Dependency Injection
+
+```csharp
+// In Startup.cs or Program.cs
+services.AddSlurper();
+
+// In your service class constructor
+public MyService(IXmlExtractor xmlExtractor, IJsonExtractor jsonExtractor)
+{
+    _xmlExtractor = xmlExtractor;
+    _jsonExtractor = jsonExtractor;
 }
 ```
 
-## Releases: 
-Release 2.0 is renamed, from XmlUtilities to Slurper (since it's more than Xml now, duh 😊). It implements JsonSlurper alongside XmlSlurper and is fully backwards compatible with all previous versions; the only change needed is to change the using clauses, from:
+### Custom Plugins
 
-```using Dandraka.XmlUtilities;``` 
+```csharp
+// Create and register a plugin
+var factory = new SlurperFactory();
+var yamlPlugin = new YamlExtractorPlugin();
+factory.RegisterPlugin(yamlPlugin);
 
-to:
+// Use the plugin
+var plugin = factory.GetPluginForSourceType("yaml");
+var data = plugin.Extract<dynamic>("yaml-content");
+```
 
-```using Dandraka.Slurper;```
+### CSV Extraction
 
-## Note: 
-Although not required by the license, the author kindly asks that you share any improvements you make.
+```csharp
+// Using factory pattern
+var factory = new SlurperFactory();
+var csvExtractor = factory.CreateCsvExtractor();
+
+// Extract from string
+string csv = "id,title,author\nbk101,XML Developer Guide,Gambardella Matthew";
+var books = csvExtractor.Extract(csv);
+var book = books.First();
+
+Console.WriteLine($"ID: {book.id}, Author: {book.author}, Title: {book.title}");
+```
+
+### HTML Extraction
+
+```csharp
+// Using factory pattern
+var factory = new SlurperFactory();
+var htmlExtractor = factory.CreateHtmlExtractor();
+
+// Extract from string
+string html = "<html><body><div class='book'><h1>XML Developer Guide</h1><p>By Gambardella, Matthew</p></div></body></html>";
+var pages = htmlExtractor.Extract(html);
+var page = pages.First();
+
+Console.WriteLine($"Title: {page.html.body.div.h1}");
+```
+
+### Error Handling
+
+```csharp
+try
+{
+    var factory = new SlurperFactory();
+    var xmlExtractor = factory.CreateXmlExtractor();
+    var books = await xmlExtractor.ExtractFromFileAsync("non-existent-file.xml");
+}
+catch (DataExtractionException ex)
+{
+    Console.WriteLine($"Extraction error: {ex.Message}");
+    if (ex.InnerException is FileNotFoundException)
+    {
+        Console.WriteLine("The file could not be found, please check the path.");
+    }
+}
+```
+
+### Working with Logging
+
+```csharp
+// Create a logger factory
+using var loggerFactory = LoggerFactory.Create(builder =>
+{
+    builder
+        .AddFilter("Microsoft", LogLevel.Warning)
+        .AddFilter("System", LogLevel.Warning)
+        .AddFilter("Dandraka.Slurper", LogLevel.Debug)
+        .AddConsole();
+});
+
+// Create a factory with logging
+var factory = new SlurperFactory(loggerFactory);
+var xmlExtractor = factory.CreateXmlExtractor();
+
+// Now all operations will be logged
+var books = await xmlExtractor.ExtractFromFileAsync("books.xml");
+```
+
+## Docker Support
+
+```bash
+# Build the Docker image
+docker-compose build
+
+# Run tests
+docker-compose run test
+
+# Build the package
+docker-compose run build
+```
+
+## Requirements
+
+- .NET 9.0 or later (for version 3.0.0+)
+- .NET Standard 2.1 (for earlier versions)
+
+## Version History
+
+### 3.0.0
+
+- Added support for CSV and HTML extraction
+- Added async methods for better performance
+- Added dependency injection support
+- Added error handling improvements
+- Added Docker support
+- Added plugin system
+- Added logging support
+
+### 2.0.2
+
+- Fixed issues with XML and JSON parsing
+- Improved error handling
+
+### 2.0.1
+
+- Performance improvements
+- Bug fixes
+
+### 2.0.0
+
+- Initial public release with XML and JSON support
+- Renamed from XmlUtilities to Slurper
+- Implements JsonSlurper alongside XmlSlurper
+- Backwards compatible with all previous versions
+- Only change needed is to update the using clause from `using Dandraka.XmlUtilities;` to `using Dandraka.Slurper;`
+
+## 🤝 Contributing
+
+Contributions are welcome and greatly appreciated! Here's how you can contribute:
+
+### Reporting Issues
+
+If you encounter a bug or have a feature request:
+
+1. Check if your issue has already been reported in the [Issues](https://github.com/dandraka/Slurper/issues) section.
+2. If not, open a new issue with a clear title and detailed description. For bugs, include:
+   - Steps to reproduce
+   - Expected behavior
+   - Actual behavior
+   - Code samples and/or error messages
+   - Slurper version and .NET version
+
+### Pull Request Process
+
+1. Fork the repository and create your branch from `main`.
+2. Make your changes, adding new tests as appropriate.
+3. Update the documentation to reflect your changes.
+4. Run tests locally to ensure they pass.
+5. Submit a pull request with a clear description of the changes.
+6. Link any relevant issues in your pull request description.
+
+### Development Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/Slurper.git
+cd Slurper
+
+# Restore dependencies
+dotnet restore
+
+# Build the solution
+dotnet build
+
+# Run tests
+dotnet test
+```
+
+### Coding Style
+
+- Follow the existing code style and patterns
+- Include XML documentation for public APIs
+- Ensure code passes the existing test suite
+- Add new tests for new functionality
+
+## 📝 Code of Conduct
+
+Please be respectful and considerate of others when contributing to this project. Any form of harassment or inappropriate behavior will not be tolerated.
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Inspired by [Groovy's XmlSlurper](http://groovy-lang.org/processing-xml.html)
+- Thanks to all contributors who have helped improve this library
+
+## 📊 Project Stats
+
+![GitHub stars](https://img.shields.io/github/stars/dandraka/Slurper?style=social)
+![GitHub forks](https://img.shields.io/github/forks/dandraka/Slurper?style=social)
+![GitHub issues](https://img.shields.io/github/issues/dandraka/Slurper)
+
+---
+
+⭐ **Love Slurper?** [Star the repo on GitHub](https://github.com/dandraka/Slurper) to show your support!
+
+*Although not required by the license, the author kindly asks that you share any improvements you make.*
