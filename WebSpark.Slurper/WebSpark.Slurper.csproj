@@ -19,19 +19,11 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <Copyright>Copyright (c) 2025 Mark Hazleton, based on work by Jim (Dimitrios) Andrakakis</Copyright>
         <PackageIcon>icon.png</PackageIcon>
-        <Version>3.1.0</Version>
+        <!-- Version is now managed by GitVersion -->
         <AssemblyName>WebSpark.Slurper</AssemblyName>
         <PackageId>WebSpark.Slurper</PackageId>
         <RootNamespace>WebSpark.Slurper</RootNamespace>
-        <PackageReleaseNotes>Release 3.1.0 adds the following improvements:
-            - Dependency injection support
-            - Async methods for better performance
-            - Enhanced error handling
-            - Logging support
-            - Performance optimizations with streaming and caching
-            - Support for CSV and HTML extraction
-            - Removed Docker and containerization dependencies
-        </PackageReleaseNotes>
+        <PackageReleaseNotes>Release notes are now managed by GitVersion based on commit messages</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageTags>xml json csv html parsing dynamic extraction</PackageTags>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
