@@ -60,6 +60,7 @@ BenchmarkDotNet.Artifacts/
 project.lock.json
 project.fragment.lock.json
 artifacts/
+**/*.dotnet-tools.json
 
 # StyleCop
 StyleCopReport.xml
@@ -348,3 +349,57 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.DotSettings
+
+# VS Code directories
+.vscode/
+.devcontainer/
+
+# macOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# NuGet packages output for local builds
+**/*.nupkg
+**/*.snupkg
+**/output/*.nupkg
+**/output/*.snupkg
+
+# SonarQube/SonarScanner working directories
+.sonarqube/
+.sonarscanner/
+
+# Test coverage results
+coverage*/
+*.lcov
+.coverage
+coverage/
+
+# Performance profiling results
+*.diagsession
+*.speedscope.json
+
+# Specific to .NET libraries
+# Generated XML documentation files (if not included in release packages)
+[Dd]oc/api/
+**/*.xml.md
+
+# GitHub Actions
+.github/workflows/local-*.yml
+
+# Local environment configurations
+**/.env
+**/*.local.json
+**/appsettings.*.json
+!**/appsettings.example.json
+
+# Force include certain files even if they match a pattern above
+!.gitattributes

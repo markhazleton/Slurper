@@ -1,7 +1,6 @@
 # 🚀 Slurper: The Magical Data Extractor for .NET
 
-[![NuGet](https://img.shields.io/nuget/v/Dandraka.Slurper.svg)](https://www.nuget.org/packages/Dandraka.Slurper/)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/dandraka/Slurper)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MarkHazleton/Slurper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration! Slurper is your Swiss Army knife for data extraction that makes working with structured data a breeze.
@@ -23,12 +22,6 @@ Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurp
 - **Extensibility**: Plugin system for adding custom data extractors
 - **Performance Options**: Streaming, parallel processing, and caching options
 - **Docker Support**: Containerization for easy deployment and CI/CD
-
-## 📦 Installation
-
-```bash
-dotnet add package Dandraka.Slurper
-```
 
 ## 🧙 How It Works
 
@@ -99,7 +92,7 @@ var booksFromUrl = await xmlExtractor.ExtractFromUrlAsync("https://example.com/b
 ### Legacy API (Still Supported)
 
 ```csharp
-using Dandraka.Slurper;
+using WebSpark.Slurper;
 
 // XML Example
 string xml = "<book id=\"bk101\" isbn=\"123456789\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
@@ -290,7 +283,7 @@ using var loggerFactory = LoggerFactory.Create(builder =>
     builder
         .AddFilter("Microsoft", LogLevel.Warning)
         .AddFilter("System", LogLevel.Warning)
-        .AddFilter("Dandraka.Slurper", LogLevel.Debug)
+        .AddFilter("WebSpark.Slurper", LogLevel.Debug)
         .AddConsole();
 });
 
@@ -302,53 +295,9 @@ var xmlExtractor = factory.CreateXmlExtractor();
 var books = await xmlExtractor.ExtractFromFileAsync("books.xml");
 ```
 
-## Docker Support
-
-```bash
-# Build the Docker image
-docker-compose build
-
-# Run tests
-docker-compose run test
-
-# Build the package
-docker-compose run build
-```
-
 ## Requirements
 
-- .NET 9.0 or later (for version 3.0.0+)
-- .NET Standard 2.1 (for earlier versions)
-
-## Version History
-
-### 3.0.0
-
-- Added support for CSV and HTML extraction
-- Added async methods for better performance
-- Added dependency injection support
-- Added error handling improvements
-- Added Docker support
-- Added plugin system
-- Added logging support
-
-### 2.0.2
-
-- Fixed issues with XML and JSON parsing
-- Improved error handling
-
-### 2.0.1
-
-- Performance improvements
-- Bug fixes
-
-### 2.0.0
-
-- Initial public release with XML and JSON support
-- Renamed from XmlUtilities to Slurper
-- Implements JsonSlurper alongside XmlSlurper
-- Backwards compatible with all previous versions
-- Only change needed is to update the using clause from `using Dandraka.XmlUtilities;` to `using Dandraka.Slurper;`
+- .NET 9.0 or later
 
 ## 🤝 Contributing
 
@@ -358,7 +307,7 @@ Contributions are welcome and greatly appreciated! Here's how you can contribute
 
 If you encounter a bug or have a feature request:
 
-1. Check if your issue has already been reported in the [Issues](https://github.com/dandraka/Slurper/issues) section.
+1. Check if your issue has already been reported in the Issues section.
 2. If not, open a new issue with a clear title and detailed description. For bugs, include:
    - Steps to reproduce
    - Expected behavior
@@ -412,14 +361,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by [Groovy's XmlSlurper](http://groovy-lang.org/processing-xml.html)
 - Thanks to all contributors who have helped improve this library
 
-## 📊 Project Stats
-
-![GitHub stars](https://img.shields.io/github/stars/dandraka/Slurper?style=social)
-![GitHub forks](https://img.shields.io/github/forks/dandraka/Slurper?style=social)
-![GitHub issues](https://img.shields.io/github/issues/dandraka/Slurper)
-
 ---
-
-⭐ **Love Slurper?** [Star the repo on GitHub](https://github.com/dandraka/Slurper) to show your support!
 
 *Although not required by the license, the author kindly asks that you share any improvements you make.*

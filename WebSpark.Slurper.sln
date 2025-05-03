@@ -1,0 +1,32 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSpark.Slurper", "WebSpark.Slurper\WebSpark.Slurper.csproj", "{D42ECAC1-A393-4E80-B09A-38785312B0F1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebSpark.Slurper.Tests", "WebSpark.Slurper.Tests\WebSpark.Slurper.Tests.csproj", "{C2389741-BF48-464E-B0E3-6C262BF0F52C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{30953324-F100-44D7-9C13-BD8FEAF294C5}"
+	ProjectSection(SolutionItems) = preProject
+		..\README.md = ..\README.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D42ECAC1-A393-4E80-B09A-38785312B0F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D42ECAC1-A393-4E80-B09A-38785312B0F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D42ECAC1-A393-4E80-B09A-38785312B0F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D42ECAC1-A393-4E80-B09A-38785312B0F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
