@@ -68,4 +68,5 @@ jobs:
       # Only publish to NuGet when pushing to main (not on PR)
       - name: Publish to NuGet
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: dotnet nuget push "WebSpark.Slurper/bin/Release/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: |
+          find WebSpark.Slurper/bin/Release -name "*.nupkg" -type f | xargs -I {} dotnet nuget push {} --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
