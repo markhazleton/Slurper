@@ -44,18 +44,28 @@ jobs:
           echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore WebSpark.Slurper/WebSpark.Slurper.csproj
 
       - name: Build with version
-        run: dotnet build --no-restore -p:Version=${{ steps.gitversion.outputs.nuGetVersion }}
+        run: dotnet build WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release -p:Version=${{ steps.gitversion.outputs.nuGetVersion }}
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test WebSpark.Slurper.Tests/WebSpark.Slurper.Tests.csproj --configuration Release --verbosity normal
 
       - name: Pack with version
-        run: dotnet pack --no-build --configuration Release -p:Version=${{ steps.gitversion.outputs.nuGetVersion }} -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
+        run: dotnet pack WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release -p:Version=${{ steps.gitversion.outputs.nuGetVersion }} -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
+
+      # List output directories for debugging
+      - name: List output directories
+        run: |
+          echo "Listing WebSpark.Slurper/bin/Release directory:"
+          ls -la WebSpark.Slurper/bin/Release || echo "Directory not found"
+          echo "Listing WebSpark.Slurper/bin/Release/net8.0 directory:"
+          ls -la WebSpark.Slurper/bin/Release/net8.0 || echo "Directory not found"
+          echo "Listing WebSpark.Slurper/bin/Release/net9.0 directory:"
+          ls -la WebSpark.Slurper/bin/Release/net9.0 || echo "Directory not found"
 
       # Only publish to NuGet when pushing to main (not on PR)
       - name: Publish to NuGet
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: dotnet nuget push "**/Release/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push "WebSpark.Slurper/bin/Release/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
