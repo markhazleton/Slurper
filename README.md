@@ -23,7 +23,6 @@ Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurp
 - **Logging**: Built-in logging support for diagnostics
 - **Extensibility**: Plugin system for adding custom data extractors
 - **Performance Options**: Streaming, parallel processing, and caching options
-- **Docker Support**: Containerization for easy deployment and CI/CD
 
 ## 🧙 How It Works
 
@@ -67,9 +66,95 @@ card.logo.url
 
 This is done **without any need to declare the type**. Behind the scenes it uses a class similar to System.Dynamic.ExpandoObject, named [ToStringExpandoObject](https://gist.github.com/kcuzner/3670e78ae1707a0e959d).
 
-## 🚀 Quick Start
+## NuGet Package Information
 
-### Modern API (v3.0.0+)
+[![NuGet](https://img.shields.io/nuget/v/WebSpark.Slurper.svg)](https://www.nuget.org/packages/WebSpark.Slurper)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/WebSpark.Slurper.svg)](https://www.nuget.org/packages/WebSpark.Slurper)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+WebSpark.Slurper is available as a NuGet package with the following target frameworks:
+
+- .NET 8.0
+- .NET 9.0
+
+### Installation
+
+```bash
+# Using the .NET CLI
+dotnet add package WebSpark.Slurper
+
+# Using the Package Manager Console in Visual Studio
+Install-Package WebSpark.Slurper
+
+# Using PackageReference in your project file
+<PackageReference Include="WebSpark.Slurper" Version="1.0.0" />
+```
+
+### Package Version History
+
+| Version | Release Date | Changes |
+|---------|-------------|---------|
+| 3.1.1   | 2025-04-01  | Initial public release with support for XML, JSON, CSV, and HTML data extraction |
+
+### Dependencies
+
+This package has the following dependencies:
+
+- None for the core functionality
+- Optional dependencies for specific extractors may be included in future versions
+
+### Package Contents
+
+The NuGet package includes:
+
+- Core slurper functionality for XML and JSON
+- Extractors for CSV and HTML
+- Dependency injection extensions
+- Plugin system for extensibility
+
+### Package Versioning Policy
+
+WebSpark.Slurper follows [Semantic Versioning](https://semver.org/) principles:
+
+- **Major versions** (1.0.0 → 2.0.0): Contain breaking changes
+- **Minor versions** (1.0.0 → 1.1.0): Add new features in a backward-compatible manner
+- **Patch versions** (1.0.0 → 1.0.1): Include backward-compatible bug fixes
+
+### Security and Code Signing
+
+The WebSpark.Slurper NuGet package is:
+
+- Code signed with a trusted certificate
+- Built with deterministic builds for verification
+- Scanned for vulnerabilities before each release
+
+### Package Compatibility
+
+| Framework       | Supported Versions | Notes                                     |
+|-----------------|-------------------|-------------------------------------------|
+| .NET Core       | ✅ 8.0, 9.0       | Fully supported                           |
+| .NET Framework  | ❌                | Not supported, use alternative libraries  |
+| Xamarin/MAUI    | ✅                | Supported via .NET 8.0+ compatibility     |
+| Blazor          | ✅                | Fully compatible                          |
+
+### Getting Help
+
+If you need help with WebSpark.Slurper:
+
+- Check the [GitHub Discussions](https://github.com/MarkHazleton/Slurper/discussions) for community support
+- Open an issue on [GitHub](https://github.com/MarkHazleton/Slurper/issues) for bugs or feature requests
+- See the [Wiki](https://github.com/MarkHazleton/Slurper/wiki) for additional documentation
+- Review the [Samples Repository](https://github.com/MarkHazleton/Slurper-Samples) for example projects
+
+### Source Repository
+
+This package is open source and maintained at [GitHub](https://github.com/MarkHazleton/Slurper). Contributions are welcome!
+
+### Release Notes
+
+Release notes for each version are available on the [NuGet package page](https://www.nuget.org/packages/WebSpark.Slurper).
+
+## 🚀 Quick Start
 
 ```csharp
 // Create a factory
@@ -91,7 +176,31 @@ var booksFromFile = xmlExtractor.ExtractFromFile("books.xml");
 var booksFromUrl = await xmlExtractor.ExtractFromUrlAsync("https://example.com/books.xml");
 ```
 
-### Legacy API (Still Supported)
+### API Reference
+
+WebSpark.Slurper provides two API styles:
+
+#### Modern API (Factory Pattern)
+
+The recommended approach for new projects:
+
+```csharp
+// Create a factory
+var factory = new SlurperFactory();
+
+// Get an extractor for your data format
+var xmlExtractor = factory.CreateXmlExtractor();
+var jsonExtractor = factory.CreateJsonExtractor();
+var csvExtractor = factory.CreateCsvExtractor();
+var htmlExtractor = factory.CreateHtmlExtractor();
+
+// Extract data using a consistent API
+var result = extractor.Extract(sourceData);
+```
+
+#### Legacy API (Static Methods)
+
+Still supported for backward compatibility:
 
 ```csharp
 using WebSpark.Slurper;
@@ -99,12 +208,6 @@ using WebSpark.Slurper;
 // XML Example
 string xml = "<book id=\"bk101\" isbn=\"123456789\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
 var book = XmlSlurper.ParseText(xml);
-
-// Access properties
-Console.WriteLine("id = " + book.id);
-Console.WriteLine("isbn = " + book.isbn);
-Console.WriteLine("author = " + book.author);
-Console.WriteLine("title = " + book.title);
 
 // JSON Example
 string json = 
@@ -115,12 +218,6 @@ string json =
   'title': 'XML Developer Guide'
 }".Replace("'", "\"");
 var jsonBook = JsonSlurper.ParseText(json);
-
-// Access properties
-Console.WriteLine("id = " + jsonBook.id);
-Console.WriteLine("isbn = " + jsonBook.isbn);
-Console.WriteLine("author = " + jsonBook.author);
-Console.WriteLine("title = " + jsonBook.title);
 ```
 
 ## 📚 Working with Arrays
