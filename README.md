@@ -1,5 +1,7 @@
 # 🚀 Slurper: The Magical Data Extractor for .NET
 
+<img src="icon.png" alt="Slurper Logo" width="120" align="right" />
+
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MarkHazleton/Slurper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
