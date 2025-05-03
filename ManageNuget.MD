@@ -328,6 +328,42 @@ dotnet build YourProject/YourProject.csproj --configuration Release
 - [ ] Validate package before publishing with `dotnet pack --no-build`
 - [ ] Test installation in a clean project
 
+## NuGet Package Publishing Timeline
+
+After publishing your package to NuGet.org, it takes time to become fully available:
+
+- **Initial Processing**: 1-10 minutes for submission and validation
+- **Indexing and Search**: 15-30 minutes to appear in search results
+- **Complete CDN Propagation**: Up to 2 hours for worldwide availability
+
+### Understanding the Process
+
+1. **Validation Phase**
+   - Package undergoes virus scanning
+   - Metadata and integrity checks are performed
+   - License verification takes place
+
+2. **Indexing Phase**
+   - Package enters the NuGet.org search index
+   - Becomes discoverable through search and package manager UI
+
+3. **Distribution Phase**
+   - Package is distributed to global CDN endpoints
+   - Becomes available for download worldwide
+
+### Monitoring Package Status
+
+- Check your package status on the NuGet.org account dashboard
+- Look for the "Validating" status immediately after upload
+- Refresh the gallery periodically to see when your package appears
+
+### Troubleshooting Publishing Issues
+
+- If your package doesn't appear after 2 hours, check for validation errors
+- Review package details for compliance issues
+- First-time publishers may experience additional verification delays
+- High traffic periods on NuGet.org can extend processing times
+
 ---
 
 By following these best practices, you'll have a reliable, automated pipeline for building, versioning, and publishing your NuGet packages.
