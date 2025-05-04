@@ -3,11 +3,12 @@
         <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <LangVersion>10.0</LangVersion>
         <Nullable>enable</Nullable>
-        <Version>3.1.4</Version>
-        <PackageVersion>3.1.4</PackageVersion>
+        <Version>3.1.5</Version>
+        <PackageVersion>3.1.5</PackageVersion>
         <Authors>Mark Hazleton, Jim (Dimitrios) Andrakakis</Authors>
         <Company>Mark Hazleton</Company>
-        <Description>A flexible data extraction and transformation library for XML, JSON, CSV, and HTML.</Description>
+        <Description>A flexible data extraction and transformation library for XML, JSON, CSV, and
+            HTML.</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -20,11 +21,11 @@
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <Copyright>Copyright (c) 2025 Mark Hazleton, based on work by Jim (Dimitrios) Andrakakis</Copyright>
         <PackageIcon>icon.png</PackageIcon>
-        <!-- Version is now managed by GitVersion -->
+        <!-- Version is now managed in csproj file -->
         <AssemblyName>WebSpark.Slurper</AssemblyName>
         <PackageId>WebSpark.Slurper</PackageId>
         <RootNamespace>WebSpark.Slurper</RootNamespace>
-        <PackageReleaseNotes>Release notes are now managed by GitVersion based on commit messages</PackageReleaseNotes>
+        <PackageReleaseNotes>See https://github.com/MarkHazleton/Slurper/releases for release notes</PackageReleaseNotes>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageTags>xml json csv html parsing dynamic extraction</PackageTags>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>

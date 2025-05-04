@@ -2,60 +2,52 @@ name: WebSpark.Slurper CI/CD
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [main]
+    tags: ["v*"]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       forceVersion:
-        description: 'Force version (leave empty to use GitVersion)'
+        description: "Force version (leave empty to use version from csproj)"
         required: false
         type: string
       publishPackages:
-        description: 'Publish packages to NuGet.org and GitHub Packages'
+        description: "Publish packages to NuGet.org and GitHub Packages"
         type: boolean
         default: false
         required: false
+
+# Enhanced permissions block for better visibility in GitHub UI
+permissions:
+  contents: write  # Changed from 'read' to 'write' to allow creating releases
+  packages: write  # Needed for GitHub Packages
+  discussions: write  # Allow linking releases to discussions for better visibility
 
 jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # GitVersion needs the git history
-          
+          fetch-depth: 0  # Get all history for proper versioning
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.11.0
-        with:
-          versionSpec: '5.x'
-          
-      - name: Determine Version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.11.0
-        with:
-          useConfigFile: true
-          configFilePath: './GitVersion.json'
-      
-      - name: Display GitVersion outputs
+          dotnet-version: "9.0.x"
+          cache: 'nuget'  # Add caching for better performance
+
+      - name: Extract version from csproj
+        id: extract_version
         run: |
-          echo "Major: ${{ steps.gitversion.outputs.major }}"
-          echo "Minor: ${{ steps.gitversion.outputs.minor }}"
-          echo "Patch: ${{ steps.gitversion.outputs.patch }}"
-          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
-          echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
-          echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
-          echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
-      
+          VERSION=$(grep -oP '<Version>\K[^<]+' WebSpark.Slurper/WebSpark.Slurper.csproj)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
       - name: Set Version
         id: setversion
         run: |
@@ -63,26 +55,25 @@ jobs:
             echo "VERSION=${{ github.event.inputs.forceVersion }}" >> $GITHUB_ENV
             echo "Using manually provided version: ${{ github.event.inputs.forceVersion }}"
           else
-            echo "VERSION=${{ steps.gitversion.outputs.nuGetVersionV2 }}" >> $GITHUB_ENV
-            echo "Using GitVersion generated version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+            echo "Using version from csproj: ${{ env.VERSION }}"
           fi
-      
+
       - name: Restore dependencies
         run: dotnet restore
-      
+
       - name: Build
         run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }} /p:PackageVersion=${{ env.VERSION }}
-      
+
       - name: Test
         run: dotnet test --configuration Release --no-build --verbosity normal
-      
+
       - name: Pack
         run: dotnet pack WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release --no-build --output nupkgs /p:Version=${{ env.VERSION }} /p:PackageVersion=${{ env.VERSION }}
-      
+
       # List output directories for debugging
       - name: List generated packages
         run: ls -la nupkgs/
-      
+
       # Upload artifacts for use in other jobs
       - name: Upload NuGet packages as artifacts
         uses: actions/upload-artifact@v4
@@ -100,23 +91,20 @@ jobs:
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publishPackages == 'true')
     runs-on: ubuntu-latest
     
+    # Add environment for added security
+    environment: production
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      # Get GitVersion again to ensure we have the version info in this job
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.11.0
-        with:
-          versionSpec: '5.x'
-          
-      - name: Determine Version
-        id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.11.0
-        with:
-          useConfigFile: true
-          configFilePath: './GitVersion.json'
-      
+
+      - name: Extract version from csproj
+        id: extract_version
+        run: |
+          VERSION=$(grep -oP '<Version>\K[^<]+' WebSpark.Slurper/WebSpark.Slurper.csproj)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
       - name: Set Version
         id: setversion
         run: |
@@ -124,51 +112,63 @@ jobs:
             echo "VERSION=${{ github.event.inputs.forceVersion }}" >> $GITHUB_ENV
             echo "Using manually provided version: ${{ github.event.inputs.forceVersion }}"
           else
-            echo "VERSION=${{ steps.gitversion.outputs.nuGetVersionV2 }}" >> $GITHUB_ENV
-            echo "Using GitVersion generated version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+            echo "Using version from csproj: ${{ env.VERSION }}"
           fi
-      
+
       # Download artifacts from build job
       - name: Download NuGet packages
         uses: actions/download-artifact@v4
         with:
           name: nuget-packages
           path: nupkgs
-      
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-      
+          dotnet-version: "9.0.x"
+
       # Configure GitHub Packages source
       - name: Setup GitHub Packages source
         run: |
           dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
-      
+
       - name: Push to NuGet.org
         run: |
           dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
           dotnet nuget push "nupkgs/*.snupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-      
+
       - name: Push to GitHub Packages
         # Use a specific command format for GitHub Packages
         run: |
           find nupkgs -name "*.nupkg" -type f | xargs -I {} dotnet nuget push {} --source "github" --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}}
-      
+          echo "::notice::Published package to GitHub Packages - Check https://github.com/${{ github.repository }}/packages"
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           name: WebSpark.Slurper ${{ env.VERSION }}
           generate_release_notes: true
+          draft: false  # Ensure the release is not created as a draft
+          prerelease: false  # Ensure the release is not marked as prerelease unless it's a prerelease version
+          discussion_category_name: "Releases"  # Link to discussions for better visibility
           body: |
-            WebSpark.Slurper ${{ env.VERSION }}
-            
-            [Package on NuGet.org](https://www.nuget.org/packages/WebSpark.Slurper/${{ env.VERSION }})
-            [Package on GitHub Packages](https://github.com/${{ github.repository }}/packages)
-            
+            # WebSpark.Slurper ${{ env.VERSION }}
+
+            ## Installation
+            ```
+            dotnet add package WebSpark.Slurper --version ${{ env.VERSION }}
+            ```
+
+            ## Links
+            - [Package on NuGet.org](https://www.nuget.org/packages/WebSpark.Slurper/${{ env.VERSION }})
+            - [Package on GitHub Packages](https://github.com/${{ github.repository }}/packages)
+            - [Documentation](https://github.com/${{ github.repository }}/blob/main/README.md)
+
             ## Changes in this release
-            <!-- Add your release notes here -->
+            <!-- Release notes will be generated automatically -->
           files: |
             nupkgs/*.nupkg
             nupkgs/*.snupkg

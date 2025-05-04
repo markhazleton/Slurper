@@ -5,7 +5,7 @@ This document outlines best practices for managing NuGet packages, including ver
 ## Table of Contents
 
 - [Setting Up GitHub Actions for NuGet Publishing](#setting-up-github-actions-for-nuget-publishing)
-- [Automated Versioning with GitVersion](#automated-versioning-with-gitversion)
+- [Version Management with Project Files](#version-management-with-project-files)
 - [Secure API Key Management](#secure-api-key-management)
 - [Release Process](#release-process)
 - [Common Issues and Solutions](#common-issues-and-solutions)
@@ -23,178 +23,113 @@ Place your GitHub workflow files in the `.github/workflows` directory at the **r
 Repository Root
 ├── .github
 │   └── workflows
-│       └── build-and-test.yml
+│       └── slurper-ci-cd.yml
 ├── src
 └── ...
 ```
 
 ### Sample Workflow
 
-A comprehensive workflow for building, testing, and publishing a NuGet package:
+Our current workflow for building, testing, and publishing a NuGet package:
 
 ```yaml
-name: Build, Test, and Publish
+name: WebSpark.Slurper CI/CD
 
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      forceVersion:
+        description: "Force version (leave empty to use version from csproj)"
+        required: false
+        type: string
+      publishPackages:
+        description: "Publish packages to NuGet.org and GitHub Packages"
+        type: boolean
+        default: false
+        required: false
+
+# Add permissions block for better security
+permissions:
+  contents: read
+  packages: write  # Needed for GitHub Packages
 
 jobs:
-  build:
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for GitVersion to work properly
+          fetch-depth: 0  # Get all history for proper versioning
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: "9.0.x"
+          cache: 'nuget'  # Add caching for better performance
 
-      # Use GitVersion for automated versioning
-      - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.10.2
-        with:
-          versionSpec: "5.x"
-
-      - name: Determine Version
-        uses: gittools/actions/gitversion/execute@v0.10.2
-        id: gitversion
-        with:
-          useConfigFile: true
-          configFilePath: GitVersion.json
-
-      - name: Restore dependencies
-        run: dotnet restore YourProject/YourProject.csproj
-
-      - name: Build with version
-        run: dotnet build YourProject/YourProject.csproj --configuration Release -p:Version=${{ steps.gitversion.outputs.nuGetVersion }}
-
-      - name: Test
-        run: dotnet test YourProject.Tests/YourProject.Tests.csproj --configuration Release --verbosity normal
-
-      - name: Pack with version
-        run: dotnet pack YourProject/YourProject.csproj --configuration Release -p:Version=${{ steps.gitversion.outputs.nuGetVersion }} -p:PackageVersion=${{ steps.gitversion.outputs.nuGetVersion }}
-
-      # Only publish to NuGet when pushing to main (not on PR)
-      - name: Publish to NuGet
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Extract version from csproj
+        id: extract_version
         run: |
-          find YourProject/bin/Release -name "*.nupkg" -type f | xargs -I {} dotnet nuget push {} --api-key ${{ secrets.NUGET_API_KEY }} --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+          VERSION=$(grep -oP '<Version>\K[^<]+' WebSpark.Slurper/WebSpark.Slurper.csproj)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
+
+      # ... more steps ...
 ```
 
-## Automated Versioning with GitVersion
+## Version Management with Project Files
 
-GitVersion is a powerful tool that determines a semantic version number based on your Git history.
+We manage our package versioning directly in the project file, which is simpler and more straightforward than using external versioning tools.
 
-### GitVersion Setup
+### Setting Version in .csproj
 
-1. Create a `GitVersion.json` file at the root of your repository:
+The version is defined in the .csproj file with the `<Version>` tag:
 
-```json
-{
-  "mode": "ContinuousDelivery",
-  "next-version": "3.1.1",
-  "major-version-bump-message": "^(breaking|major):",
-  "minor-version-bump-message": "^(feature|minor):",
-  "patch-version-bump-message": "^(fix|patch):",
-  "no-bump-message": "^(none|skip):",
-  "legacy-semver-padding": 0,
-  "build-metadata-padding": 0,
-  "commits-since-version-source-padding": 0,
-  "tag-pre-release-weight": 0,
-  "increment": "Patch",
-  "continuous-delivery-fallback-tag": "ci",
-  "tag-prefix": "v",
-  "branches": {
-    "main": {
-      "regex": "^master$|^main$",
-      "tag": "",
-      "increment": "Patch",
-      "prevent-increment-of-merged-branch-version": true,
-      "track-merge-target": false,
-      "tracks-release-branches": false,
-      "is-release-branch": true
-    },
-    "develop": {
-      "regex": "^dev(elop)?(ment)?$",
-      "tag": "beta",
-      "increment": "Minor",
-      "prevent-increment-of-merged-branch-version": false,
-      "track-merge-target": true,
-      "tracks-release-branches": true,
-      "is-release-branch": false
-    },
-    "feature": {
-      "regex": "^features?[/-]",
-      "tag": "alpha.{BranchName}",
-      "increment": "Inherit",
-      "prevent-increment-of-merged-branch-version": false,
-      "track-merge-target": false,
-      "tracks-release-branches": false,
-      "is-release-branch": false
-    },
-    "release": {
-      "regex": "^releases?[/-]",
-      "tag": "rc",
-      "increment": "None",
-      "prevent-increment-of-merged-branch-version": true,
-      "track-merge-target": false,
-      "tracks-release-branches": false,
-      "is-release-branch": true
-    },
-    "hotfix": {
-      "regex": "^hotfix(es)?[/-]",
-      "tag": "hotfix",
-      "increment": "Patch",
-      "prevent-increment-of-merged-branch-version": false,
-      "track-merge-target": false,
-      "tracks-release-branches": false,
-      "is-release-branch": false
-    }
-  },
-  "ignore": {
-    "sha": []
-  }
-}
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Version>3.1.4</Version>
+    <!-- Other properties -->
+  </PropertyGroup>
+  <!-- Rest of the project file -->
+</Project>
 ```
 
-2. Remove hardcoded version numbers from your `.csproj` file.
+### Semantic Versioning Principles
 
-### Semantic Versioning with Commit Messages
+We follow semantic versioning (SemVer) principles:
 
-GitVersion can automatically update your version based on commit messages:
+- **Patch version** (3.1.0 → 3.1.1): For backward-compatible bug fixes
+- **Minor version** (3.1.0 → 3.2.0): For backward-compatible new features
+- **Major version** (3.1.0 → 4.0.0): For breaking changes
 
-- **Patch version** (3.1.0 → 3.1.1): Start commit messages with `fix:` or `patch:`
-- **Minor version** (3.1.0 → 3.2.0): Start commit messages with `feature:` or `minor:`
-- **Major version** (3.1.0 → 4.0.0): Start commit messages with `breaking:` or `major:`
+### Manual Version Updates
 
-Example:
+To update the version:
 
-```
-fix: Resolve issue with XML parsing
-```
-
-### Manual Version Control
-
-For explicit version control, update the `next-version` in your GitVersion.json file:
-
-```json
-"next-version": "3.1.1",
-```
+1. Edit the `<Version>` element in the .csproj file
+2. Commit and push the change
+3. The CI/CD pipeline will use this version for building and packaging
 
 ### Git Tags for Version Control
 
 After a successful release, create a git tag to mark the version:
 
 ```
-git tag v3.1.1
+git tag v3.1.4
 git push --tags
 ```
+
+This will trigger the release workflow in GitHub Actions.
 
 ## Secure API Key Management
 
@@ -227,37 +162,38 @@ git push --tags
 ### Automated Release Process
 
 1. Make code changes in a feature or fix branch
-2. Use conventional commit messages (`fix:`, `feature:`, `breaking:`)
+2. Update the version in the .csproj file if needed
 3. Create a pull request to merge into main
 4. After approval and merge, GitHub Actions will:
    - Build the project
    - Run all tests
-   - Determine the version number with GitVersion
+   - Extract the version from the .csproj file
    - Create the NuGet package
-   - Publish to NuGet.org
+   - Publish to NuGet.org and GitHub Packages
 
 ### Manual Release Steps (if needed)
 
-1. Update GitVersion.json with the new version number
+1. Update the version in the .csproj file
 2. Commit and push the change
 3. Create a tag for the release:
 
    ```
-   git tag v3.1.1
+   git tag v3.1.4
    git push --tags
    ```
 
 4. Watch the GitHub Actions workflow to ensure successful publishing
+5. Alternatively, use the workflow_dispatch trigger with the "publishPackages" option set to true
 
 ## Common Issues and Solutions
 
 ### Versioning Issues
 
-**Problem**: Version not incrementing automatically.
-**Solution**: Ensure commits follow the conventional format or manually update the `next-version` in GitVersion.json.
-
 **Problem**: "Package already exists" error.
-**Solution**: Ensure your version number is incremented before publishing again.
+**Solution**: Ensure your version number is incremented in the .csproj file before publishing again.
+
+**Problem**: Version not updating in the built package.
+**Solution**: Make sure the version is correctly set in the .csproj file and the CI/CD is extracting it properly.
 
 ### GitHub Actions Issues
 
@@ -307,10 +243,10 @@ dotnet build YourProject/YourProject.csproj --configuration Release
 
 ### Version Management
 
-- [ ] Use GitVersion for automated versioning
+- [ ] Define version in the .csproj file
 - [ ] Follow semantic versioning principles
-- [ ] Use conventional commit messages
 - [ ] Create Git tags for released versions
+- [ ] Consider using descriptive commit messages to track changes
 
 ### CI/CD Workflow
 
@@ -318,7 +254,7 @@ dotnet build YourProject/YourProject.csproj --configuration Release
 - [ ] Build in Release configuration
 - [ ] Run comprehensive tests
 - [ ] Use GitHub Secrets for API keys
-- [ ] Only publish on main branch updates
+- [ ] Only publish on main branch updates or tags
 - [ ] Include verbose logging for debugging
 
 ### Quality Assurance
