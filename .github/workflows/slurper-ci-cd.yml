@@ -12,6 +12,11 @@ on:
         description: 'Force version (leave empty to use GitVersion)'
         required: false
         type: string
+      publishPackages:
+        description: 'Publish packages to NuGet.org and GitHub Packages'
+        type: boolean
+        default: false
+        required: false
 
 jobs:
   build-and-test:
@@ -20,23 +25,23 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0 # GitVersion needs the git history
           
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
           
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.10.2
+        uses: gittools/actions/gitversion/setup@v0.11.0
         with:
           versionSpec: '5.x'
           
       - name: Determine Version
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.10.2
+        uses: gittools/actions/gitversion/execute@v0.11.0
         with:
           useConfigFile: true
           configFilePath: './GitVersion.json'
@@ -80,32 +85,34 @@ jobs:
       
       # Upload artifacts for use in other jobs
       - name: Upload NuGet packages as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nuget-packages
-          path: nupkgs/*.nupkg
+          path: |
+            nupkgs/*.nupkg
+            nupkgs/*.snupkg
           retention-days: 7
 
   publish:
     name: Publish Packages
     needs: build-and-test
-    # Only run on main branch or tags, not on PRs
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    # Only run on main branch, tags, or when manually triggered with publishPackages=true
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publishPackages == 'true')
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         
       # Get GitVersion again to ensure we have the version info in this job
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v0.10.2
+        uses: gittools/actions/gitversion/setup@v0.11.0
         with:
           versionSpec: '5.x'
           
       - name: Determine Version
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v0.10.2
+        uses: gittools/actions/gitversion/execute@v0.11.0
         with:
           useConfigFile: true
           configFilePath: './GitVersion.json'
@@ -123,34 +130,37 @@ jobs:
       
       # Download artifacts from build job
       - name: Download NuGet packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: nuget-packages
           path: nupkgs
       
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
       
+      # Configure GitHub Packages source
+      - name: Setup GitHub Packages source
+        run: |
+          dotnet nuget add source --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+      
       - name: Push to NuGet.org
-        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: |
+          dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "nupkgs/*.snupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       
       - name: Push to GitHub Packages
-        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
+        # Use a specific command format for GitHub Packages
+        run: |
+          find nupkgs -name "*.nupkg" -type f | xargs -I {} dotnet nuget push {} --source "github" --skip-duplicate --api-key ${{secrets.GITHUB_TOKEN}}
       
       - name: Create GitHub Release
-        id: create_release
-        # Only create release when a tag is pushed
         if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: WebSpark.Slurper ${{ env.VERSION }}
-          draft: false
-          prerelease: false
+          name: WebSpark.Slurper ${{ env.VERSION }}
+          generate_release_notes: true
           body: |
             WebSpark.Slurper ${{ env.VERSION }}
             
@@ -158,15 +168,7 @@ jobs:
             [Package on GitHub Packages](https://github.com/${{ github.repository }}/packages)
             
             ## Changes in this release
-            <!-- Add your release notes here or leave blank to use the commit messages -->
-      
-      - name: Upload Release Asset
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./nupkgs/WebSpark.Slurper.${{ env.VERSION }}.nupkg
-          asset_name: WebSpark.Slurper.${{ env.VERSION }}.nupkg
-          asset_content_type: application/octet-stream
+            <!-- Add your release notes here -->
+          files: |
+            nupkgs/*.nupkg
+            nupkgs/*.snupkg
