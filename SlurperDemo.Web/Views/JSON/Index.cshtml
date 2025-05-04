@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "JSON Extraction Demo";
+}
+
+<div class="container">
+    <h1 class="mb-4">JSON Extraction Demo</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3>How Slurper Works with JSON</h3>
+        </div>
+        <div class="card-body">
+            <p class="lead">This demo demonstrates extracting book data from a JSON file using WebSpark.Slurper's JSON
+                extractor. It shows both the before (raw JSON) and after (processed data) states.</p>
+
+            @if (ViewBag.SlurperExplanation != null)
+            {
+                <div class="alert alert-info">
+                    @Html.Raw(ViewBag.SlurperExplanation)
+                </div>
+            }
+
+            @if (ViewBag.Success)
+            {
+                <div class="alert alert-success">
+                    @ViewBag.Message
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4>Processing Steps</h4>
+                        <div class="alert alert-secondary">
+                            <ol>
+                                @foreach (var step in ViewBag.ProcessingSteps)
+                                {
+                                    <li>@step</li>
+                                }
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h4>Before: Raw JSON</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>This is what the raw JSON data looks like:</p>
+                                <pre class="bg-light p-3"
+                                    style="max-height: 400px; overflow-y: auto;"><code>@ViewBag.FormattedJson</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-success text-white">
+                                <h4>After: Processed with Slurper</h4>
+                            </div>
+                            <div class="card-body">
+                                <p>Slurper extracted <strong>@ViewBag.BookCount books</strong> from the JSON and converted
+                                    them to a collection of dynamic objects:</p>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    @foreach (var book in ViewBag.BookList)
+                                    {
+                                        <partial name="_BookDisplay" model="book" />
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4>Benefits of Using Slurper</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Without Slurper</h5>
+                                <pre class="bg-light p-3"><code>// Manual JSON parsing
+    var json = File.ReadAllText("data.json");
+    var bookData = JsonSerializer.Deserialize&lt;BookCatalog&gt;(json);
+    var books = bookData.Catalog.Book;
+
+    // Need custom classes for each data structure:
+    public class BookCatalog {
+        public Catalog Catalog { get; set; }
+    }
+
+    public class Catalog {
+        public Book[] Book { get; set; }
+    }
+
+    public class Book {
+        public string Id { get; set; }
+        public string Author { get; set; }
+        // etc...
+    }</code></pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>With Slurper</h5>
+                                <pre class="bg-light p-3"><code>// Unified API for any data format
+    var books = jsonExtractor.ExtractFromFile("data.json");
+
+    // Access data with simple dot notation
+    dynamic firstItem = books.First();
+    var bookList = firstItem.catalog.book;
+
+    // Iterate through books
+    foreach (var book in bookList) {
+        Console.WriteLine($"{book.title} by {book.author}");
+    }
+
+    // No need for custom classes!
+    </code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Message
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to Demo List</a>
+    </div>
+</div>
+                                   
+                                                                                                                                       

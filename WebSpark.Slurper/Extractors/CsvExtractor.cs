@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -10,6 +11,42 @@ using WebSpark.Slurper.Exceptions;
 
 namespace WebSpark.Slurper.Extractors
 {
+    /// <summary>
+    /// CSV dialect configuration
+    /// </summary>
+    public class CsvDialect
+    {
+        /// <summary>
+        /// Gets or sets the delimiter character
+        /// </summary>
+        public char Delimiter { get; set; } = ',';
+
+        /// <summary>
+        /// Gets or sets the quote character
+        /// </summary>
+        public char QuoteChar { get; set; } = '"';
+
+        /// <summary>
+        /// Gets or sets whether the CSV has a header row
+        /// </summary>
+        public bool HasHeaderRow { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to skip empty lines
+        /// </summary>
+        public bool SkipEmptyLines { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to trim whitespace from values
+        /// </summary>
+        public bool TrimValues { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets custom column names to use instead of headers
+        /// </summary>
+        public string[] CustomHeaders { get; set; }
+    }
+
     /// <summary>
     /// Implementation of CSV data extraction
     /// </summary>
@@ -41,40 +78,100 @@ namespace WebSpark.Slurper.Extractors
             {
                 _logger?.LogInformation("Extracting CSV data from source");
 
-                var results = new List<ToStringExpandoObject>();
-                var lines = source.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                // Get CSV dialect configuration
+                var dialect = GetCsvDialect(options);
+
+                // Configure line splitting based on options
+                var lineOptions = dialect.SkipEmptyLines
+                    ? StringSplitOptions.RemoveEmptyEntries
+                    : StringSplitOptions.None;
+
+                var lines = source.Split(new[] { "\r\n", "\n" }, lineOptions);
 
                 if (lines.Length == 0)
                 {
                     _logger?.LogWarning("CSV source contains no data");
-                    return results;
+                    return new List<ToStringExpandoObject>();
                 }
 
-                // Parse header
-                var headers = lines[0].Split(',')
-                    .Select(h => h.Trim())
-                    .ToArray();
+                // Determine headers
+                string[] headers;
+                int dataStartIndex;
+
+                if (dialect.CustomHeaders != null && dialect.CustomHeaders.Length > 0)
+                {
+                    headers = dialect.CustomHeaders;
+                    dataStartIndex = dialect.HasHeaderRow ? 1 : 0;
+                }
+                else if (dialect.HasHeaderRow)
+                {
+                    headers = ParseCsvLine(lines[0], dialect)
+                        .Select(h => dialect.TrimValues ? h.Trim() : h)
+                        .ToArray();
+                    dataStartIndex = 1;
+                }
+                else
+                {
+                    // If no headers and no custom headers, generate column names
+                    var firstLine = ParseCsvLine(lines[0], dialect);
+                    headers = Enumerable.Range(1, firstLine.Length)
+                        .Select(i => $"Column{i}")
+                        .ToArray();
+                    dataStartIndex = 0;
+                }
+
+                // Process options for parallel execution
+                bool useParallel = options?.EnableParallelProcessing ?? false;
+                int maxDegree = options?.MaxDegreeOfParallelism ?? 4;
 
                 // Parse data rows
-                for (int i = 1; i < lines.Length; i++)
+                List<ToStringExpandoObject> results;
+
+                if (useParallel)
                 {
-                    var values = lines[i].Split(',');
+                    var dataLines = lines.Skip(dataStartIndex).ToArray();
 
-                    if (values.Length != headers.Length)
+                    results = new List<ToStringExpandoObject>(dataLines.Length);
+
+                    var partitioner = System.Collections.Concurrent.Partitioner.Create(0, dataLines.Length);
+
+                    Parallel.ForEach(partitioner, new ParallelOptions { MaxDegreeOfParallelism = maxDegree }, (range, loopState) =>
                     {
-                        _logger?.LogWarning("CSV row {RowNumber} has {ValueCount} values but header has {HeaderCount} columns - skipping row",
-                            i, values.Length, headers.Length);
-                        continue;
-                    }
+                        var localResults = new List<ToStringExpandoObject>();
 
-                    dynamic row = new ToStringExpandoObject();
+                        for (int i = range.Item1; i < range.Item2; i++)
+                        {
+                            if (TryParseRow(dataLines[i], headers, dialect, out ToStringExpandoObject row))
+                            {
+                                localResults.Add(row);
+                            }
+                            else
+                            {
+                                _logger?.LogWarning("Failed to parse CSV row {RowNumber}", dataStartIndex + i);
+                            }
+                        }
 
-                    for (int j = 0; j < headers.Length; j++)
+                        lock (results)
+                        {
+                            results.AddRange(localResults);
+                        }
+                    });
+                }
+                else
+                {
+                    results = new List<ToStringExpandoObject>();
+
+                    for (int i = dataStartIndex; i < lines.Length; i++)
                     {
-                        ((IDictionary<string, object>)row.Members).Add(headers[j], values[j].Trim());
+                        if (TryParseRow(lines[i], headers, dialect, out ToStringExpandoObject row))
+                        {
+                            results.Add(row);
+                        }
+                        else
+                        {
+                            _logger?.LogWarning("Failed to parse CSV row {RowNumber}", i);
+                        }
                     }
-
-                    results.Add(row);
                 }
 
                 _logger?.LogInformation("Successfully extracted {RowCount} rows from CSV data", results.Count);
@@ -85,6 +182,147 @@ namespace WebSpark.Slurper.Extractors
                 _logger?.LogError(ex, "Error extracting CSV data from source");
                 throw new DataExtractionException("Error extracting CSV data from source", ex);
             }
+        }
+
+        /// <summary>
+        /// Tries to parse a CSV row into a ToStringExpandoObject
+        /// </summary>
+        private bool TryParseRow(string line, string[] headers, CsvDialect dialect, out ToStringExpandoObject row)
+        {
+            row = null;
+
+            try
+            {
+                var values = ParseCsvLine(line, dialect);
+
+                if (values.Length != headers.Length)
+                {
+                    _logger?.LogWarning("CSV row has {ValueCount} values but header has {HeaderCount} columns",
+                        values.Length, headers.Length);
+                    return false;
+                }
+
+                row = new ToStringExpandoObject();
+
+                for (int j = 0; j < headers.Length; j++)
+                {
+                    string value = dialect.TrimValues ? values[j].Trim() : values[j];
+
+                    // Try to auto-detect and convert value types if needed
+                    object convertedValue = ConvertValueType(value);
+
+                    ((IDictionary<string, object>)row.Members).Add(headers[j], convertedValue);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Error parsing CSV row: {Line}", line);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to convert a string value to its appropriate type
+        /// </summary>
+        private object ConvertValueType(string value)
+        {
+            // Handle empty or null values
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+
+            // Try to parse as integer
+            if (int.TryParse(value, out int intValue))
+            {
+                return intValue;
+            }
+
+            // Try to parse as double
+            if (double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out double doubleValue))
+            {
+                return doubleValue;
+            }
+
+            // Try to parse as DateTime
+            if (DateTime.TryParse(value, out DateTime dateValue))
+            {
+                return dateValue;
+            }
+
+            // Try to parse as boolean
+            if (bool.TryParse(value, out bool boolValue))
+            {
+                return boolValue;
+            }
+
+            // If no conversion was possible, return the string value
+            return value;
+        }
+
+        /// <summary>
+        /// Gets the CSV dialect configuration from options
+        /// </summary>
+        private CsvDialect GetCsvDialect(SlurperOptions options)
+        {
+            if (options?.ExtractorOptions != null &&
+                options.ExtractorOptions.TryGetValue("CsvDialect", out object dialectObj) &&
+                dialectObj is CsvDialect dialect)
+            {
+                return dialect;
+            }
+
+            return new CsvDialect(); // Return default dialect
+        }
+
+        /// <summary>
+        /// Parses a CSV line, properly handling quoted values and custom delimiters
+        /// </summary>
+        private string[] ParseCsvLine(string line, CsvDialect dialect)
+        {
+            var result = new List<string>();
+            var inQuotes = false;
+            var currentValue = new System.Text.StringBuilder();
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                char c = line[i];
+
+                // Handle quote character
+                if (c == dialect.QuoteChar)
+                {
+                    // If the next character is also a quote, it's an escaped quote
+                    if (i + 1 < line.Length && line[i + 1] == dialect.QuoteChar)
+                    {
+                        currentValue.Append(dialect.QuoteChar);
+                        i++; // Skip the next quote
+                    }
+                    else
+                    {
+                        // Toggle quotes state
+                        inQuotes = !inQuotes;
+                    }
+                    continue;
+                }
+
+                // If we hit a delimiter and we're not in quotes, end the current value
+                if (c == dialect.Delimiter && !inQuotes)
+                {
+                    result.Add(currentValue.ToString());
+                    currentValue.Clear();
+                    continue;
+                }
+
+                // Otherwise, append the character to the current value
+                currentValue.Append(c);
+            }
+
+            // Add the last value
+            result.Add(currentValue.ToString());
+
+            return result.ToArray();
         }
 
         /// <inheritdoc/>
@@ -101,11 +339,21 @@ namespace WebSpark.Slurper.Extractors
                     throw new DataExtractionException($"CSV file not found: {filePath}", ex);
                 }
 
-                string content = File.ReadAllText(filePath);
-                var result = Extract(content, options);
+                // Check if streaming should be used
+                bool useStreaming = options?.UseStreaming ?? false;
 
-                _logger?.LogInformation("Successfully extracted CSV data from file");
-                return result;
+                if (useStreaming)
+                {
+                    return ExtractFromFileStreaming(filePath, options);
+                }
+                else
+                {
+                    string content = File.ReadAllText(filePath);
+                    var result = Extract(content, options);
+
+                    _logger?.LogInformation("Successfully extracted CSV data from file");
+                    return result;
+                }
             }
             catch (FileNotFoundException ex)
             {
@@ -118,6 +366,80 @@ namespace WebSpark.Slurper.Extractors
             }
         }
 
+        /// <summary>
+        /// Extracts data from a CSV file using streaming to reduce memory consumption
+        /// </summary>
+        private IEnumerable<ToStringExpandoObject> ExtractFromFileStreaming(string filePath, SlurperOptions options)
+        {
+            _logger?.LogInformation("Using streaming mode to extract CSV data from file: {FilePath}", filePath);
+
+            // Get CSV dialect
+            var dialect = GetCsvDialect(options);
+
+            // Process the file line by line
+            using (var reader = new StreamReader(filePath))
+            {
+                string[] headers;
+
+                // Handle headers
+                if (dialect.CustomHeaders != null && dialect.CustomHeaders.Length > 0)
+                {
+                    headers = dialect.CustomHeaders;
+
+                    // Skip header row if needed
+                    if (dialect.HasHeaderRow)
+                    {
+                        reader.ReadLine();
+                    }
+                }
+                else if (dialect.HasHeaderRow)
+                {
+                    string headerLine = reader.ReadLine();
+                    headers = ParseCsvLine(headerLine, dialect)
+                        .Select(h => dialect.TrimValues ? h.Trim() : h)
+                        .ToArray();
+                }
+                else
+                {
+                    // Read first line to determine column count
+                    string firstLine = reader.ReadLine();
+                    var firstLineValues = ParseCsvLine(firstLine, dialect);
+                    headers = Enumerable.Range(1, firstLineValues.Length)
+                        .Select(i => $"Column{i}")
+                        .ToArray();
+
+                    // Reset position if we need to process this line as data
+                    reader.BaseStream.Position = 0;
+                    reader.DiscardBufferedData();
+                }
+
+                // Process data rows
+                string line;
+                int rowNumber = dialect.HasHeaderRow ? 1 : 0;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    rowNumber++;
+
+                    if (string.IsNullOrWhiteSpace(line) && dialect.SkipEmptyLines)
+                    {
+                        continue;
+                    }
+
+                    if (TryParseRow(line, headers, dialect, out ToStringExpandoObject row))
+                    {
+                        yield return row;
+                    }
+                    else
+                    {
+                        _logger?.LogWarning("Failed to parse CSV row {RowNumber}", rowNumber);
+                    }
+                }
+            }
+
+            _logger?.LogInformation("Successfully streamed CSV data from file");
+        }
+
         /// <inheritdoc/>
         public IEnumerable<ToStringExpandoObject> ExtractFromUrl(string url, SlurperOptions options = null)
         {
@@ -125,11 +447,18 @@ namespace WebSpark.Slurper.Extractors
             {
                 _logger?.LogInformation("Extracting CSV data from URL: {Url}", url);
 
-                string content = _httpClient.GetStringAsync(url).GetAwaiter().GetResult();
-                var result = Extract(content, options);
+                // Set timeout from options
+                int timeout = options?.HttpTimeoutMilliseconds ?? 30000;
 
-                _logger?.LogInformation("Successfully extracted CSV data from URL");
-                return result;
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromMilliseconds(timeout);
+                    string content = client.GetStringAsync(url).GetAwaiter().GetResult();
+                    var result = Extract(content, options);
+
+                    _logger?.LogInformation("Successfully extracted CSV data from URL");
+                    return result;
+                }
             }
             catch (Exception ex)
             {
@@ -171,11 +500,21 @@ namespace WebSpark.Slurper.Extractors
                     throw new DataExtractionException($"CSV file not found: {filePath}", ex);
                 }
 
-                string content = await File.ReadAllTextAsync(filePath);
-                var result = await ExtractAsync(content, options);
+                // Check if streaming should be used
+                bool useStreaming = options?.UseStreaming ?? false;
 
-                _logger?.LogInformation("Successfully extracted CSV data from file asynchronously");
-                return result;
+                if (useStreaming)
+                {
+                    return await Task.Run(() => ExtractFromFileStreaming(filePath, options));
+                }
+                else
+                {
+                    string content = await File.ReadAllTextAsync(filePath);
+                    var result = await ExtractAsync(content, options);
+
+                    _logger?.LogInformation("Successfully extracted CSV data from file asynchronously");
+                    return result;
+                }
             }
             catch (FileNotFoundException ex)
             {
@@ -195,11 +534,18 @@ namespace WebSpark.Slurper.Extractors
             {
                 _logger?.LogInformation("Asynchronously extracting CSV data from URL: {Url}", url);
 
-                string content = await _httpClient.GetStringAsync(url);
-                var result = await ExtractAsync(content, options);
+                // Set timeout from options
+                int timeout = options?.HttpTimeoutMilliseconds ?? 30000;
 
-                _logger?.LogInformation("Successfully extracted CSV data from URL asynchronously");
-                return result;
+                using (var client = new HttpClient())
+                {
+                    client.Timeout = TimeSpan.FromMilliseconds(timeout);
+                    string content = await client.GetStringAsync(url);
+                    var result = await ExtractAsync(content, options);
+
+                    _logger?.LogInformation("Successfully extracted CSV data from URL asynchronously");
+                    return result;
+                }
             }
             catch (Exception ex)
             {

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace WebSpark.Slurper.Configuration
 {
@@ -46,5 +47,10 @@ namespace WebSpark.Slurper.Configuration
         /// Gets or sets the timeout in milliseconds for HTTP operations
         /// </summary>
         public int HttpTimeoutMilliseconds { get; set; } = 30000; // 30 seconds default
+        /// <summary>
+        /// Gets or sets extractor-specific options that can be used to configure behavior of specific extractors
+        /// </summary>
+        public Dictionary<string, object> ExtractorOptions { get; set; } = new Dictionary<string, object>();
+
     }
 }

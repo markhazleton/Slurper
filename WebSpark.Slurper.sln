@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		USAGE.md = USAGE.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebSpark.Slurper.Demo", "WebSpark.Slurper.Demo\WebSpark.Slurper.Demo.csproj", "{E759E80A-5251-CEE6-B129-067AA0275B66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlurperDemo.Web", "SlurperDemo.Web\SlurperDemo.Web.csproj", "{8BCC6169-1A67-5097-7088-D902236A08B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,10 @@ Global
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2389741-BF48-464E-B0E3-6C262BF0F52C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E759E80A-5251-CEE6-B129-067AA0275B66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E759E80A-5251-CEE6-B129-067AA0275B66}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E759E80A-5251-CEE6-B129-067AA0275B66}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E759E80A-5251-CEE6-B129-067AA0275B66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BCC6169-1A67-5097-7088-D902236A08B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BCC6169-1A67-5097-7088-D902236A08B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BCC6169-1A67-5097-7088-D902236A08B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BCC6169-1A67-5097-7088-D902236A08B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,45 @@
+@{
+    ViewData["Title"] = "XML Extraction Demo";
+}
+
+<div class="container">
+    <h1 class="mb-4">XML Extraction Demo</h1>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3>Slurper XML Extraction</h3>
+        </div>
+        <div class="card-body">
+            <p class="lead">This demo demonstrates extracting book data from an XML file using WebSpark.Slurper's XML
+                extractor.</p>
+
+            @if (ViewBag.Success)
+            {
+                <div class="alert alert-success">
+                    @ViewBag.Message
+                </div>
+
+                <h4 class="mt-4">Book List</h4>
+                <div class="row">
+                    @foreach (var book in ViewBag.BookList)
+                    {
+                        <div class="col-md-6">
+                            <partial name="_BookDisplay" model="book" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    @ViewBag.Message
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a asp-action="Index" class="btn btn-primary">Back to Demo List</a>
+    </div>
+</div>
+               

@@ -1,6 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using WebSpark.Slurper.Configuration;
+using WebSpark.Slurper.Exceptions;
 using Xunit;
 
 namespace WebSpark.Slurper.Tests
@@ -245,7 +252,7 @@ namespace WebSpark.Slurper.Tests
         [SkippableFact]
         public void T12_Usage_PrintJsonContents3_TopLevelArray()
         {
-            Skip.If(true, "Test requires further implementation changes in dynamic property access");
+            // No longer skipped as we've implemented top-level array support
             string json =
 @"[
   {
@@ -272,11 +279,14 @@ namespace WebSpark.Slurper.Tests
 ]".Replace("'", "\"");
             var nutrition = JsonSlurper.ParseText(json);
 
-            /* After migration to WebSpark, this test needs to be updated to handle
-               the dynamic property access for array indexing differently
-            Console.WriteLine("J-T12 name1 = " + nutrition[0].name);
-            Console.WriteLine("J-T12 name2 = " + nutrition[1].name);
-            */
+            // Now accessing top-level array items through the 'items' property
+            Console.WriteLine("J-T12 name1 = " + nutrition.items[0].name);
+            Console.WriteLine("J-T12 name2 = " + nutrition.items[1].name);
+
+            // Verify array content
+            Assert.Equal("Avocado Dip", nutrition.items[0].name);
+            Assert.Equal("Bagels, New York Style", nutrition.items[1].name);
+            Assert.Equal("Beef Frankfurter, Quarter Pound", nutrition.items[2].name);
         }
 
         [SkippableFact]
@@ -471,6 +481,262 @@ namespace WebSpark.Slurper.Tests
 
             dynamic result = JsonSlurper.ParseText(json);
             Assert.Equal("deep value", result.level1.level2.level3.level4.level5);
+        }
+
+        [Fact]
+        public void ConfigurationOptionsTest()
+        {
+            // Create options to test config parameters
+            var options = new SlurperOptions
+            {
+                ExtractorOptions = new Dictionary<string, object>
+                {
+                    ["MaxJsonDepth"] = 10,
+                    ["SanitizePropertyNames"] = true
+                }
+            };
+
+            string json = @"{
+                ""level1"": {
+                    ""level2"": {
+                        ""level3"": {
+                            ""level4"": {
+                                ""level5"": ""deep value""
+                            }
+                        }
+                    }
+                }
+            }";
+
+            dynamic result = JsonSlurper.ParseText(json, options);
+            Assert.Equal("deep value", result.level1.level2.level3.level4.level5);
+        }
+
+        [Fact]
+        public void MaxDepthExceededTest()
+        {
+            // Set a very low max depth to trigger the exception
+            var options = new SlurperOptions
+            {
+                ExtractorOptions = new Dictionary<string, object>
+                {
+                    ["MaxJsonDepth"] = 2 // Only allow 2 levels deep
+                }
+            };
+
+            string json = @"{
+                ""level1"": {
+                    ""level2"": {
+                        ""level3"": {
+                            ""level4"": {
+                                ""level5"": ""deep value""
+                            }
+                        }
+                    }
+                }
+            }";
+
+            // This should throw an exception because we exceed max depth
+            Assert.Throws<DataExtractionException>(() => JsonSlurper.ParseText(json, options));
+        }
+
+        [Fact]
+        public void PropertyNameSanitizationTest()
+        {
+            string json = @"{
+                ""invalid-property-name"": ""value"",
+                ""123numeric-start"": ""numeric"",
+                ""space in name"": ""spaced""
+            }";
+
+            // With sanitization enabled (default)
+            dynamic resultSanitized = JsonSlurper.ParseText(json);
+            Assert.Equal("value", resultSanitized.invalidpropertyname);
+            Assert.Equal("numeric", resultSanitized.prop123numericstart);
+            Assert.Equal("spaced", resultSanitized.spaceinname);
+
+            // With sanitization disabled
+            var options = new SlurperOptions
+            {
+                ExtractorOptions = new Dictionary<string, object>
+                {
+                    ["SanitizePropertyNames"] = false
+                }
+            };
+
+            // Should throw because property names contain invalid characters
+            Assert.Throws<InvalidConfigurationException>(() => JsonSlurper.ParseText(json, options));
+        }
+
+        [Fact]
+        public async Task AsyncParsingTest()
+        {
+            string json = @"{
+                ""name"": ""Async Test"",
+                ""value"": 42
+            }";
+
+            dynamic result = await JsonSlurper.ParseTextAsync(json);
+            Assert.Equal("Async Test", result.name);
+            Assert.Equal(42, result.value);
+        }
+
+        [Fact]
+        public async Task CancellationTokenTest()
+        {
+            string json = @"{
+                ""name"": ""Cancellation Test"",
+                ""value"": 42
+            }";
+
+            // Create a cancelled token
+            using var cts = new CancellationTokenSource();
+            cts.Cancel();
+
+            // Should throw OperationCanceledException when token is already cancelled
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                await JsonSlurper.ParseTextAsync(json, cancellationToken: cts.Token));
+        }
+
+        [Fact]
+        public void MalformedJsonTest()
+        {
+            string malformedJson = @"{
+                ""name"": ""Malformed JSON,
+                ""value"": 42
+            }";
+
+            // Should throw DataExtractionException due to JSON syntax error
+            Assert.Throws<DataExtractionException>(() => JsonSlurper.ParseText(malformedJson));
+        }
+
+        [Fact]
+        public void CommentsInJsonTest()
+        {
+            string jsonWithComments = @"{
+                // This is a comment
+                ""name"": ""Test"", /* Multi-line
+                comment */
+                ""value"": 42
+            }";
+
+            // JsonDocument.Parse with JsonCommentHandling.Skip should handle this
+            dynamic result = JsonSlurper.ParseText(jsonWithComments);
+            Assert.Equal("Test", result.name);
+            Assert.Equal(42, result.value);
+        }
+
+        [Fact]
+        public void TrailingCommasTest()
+        {
+            string jsonWithTrailingCommas = @"{
+                ""items"": [
+                    ""item1"",
+                    ""item2"",
+                ],
+                ""obj"": {
+                    ""prop1"": ""value1"",
+                    ""prop2"": ""value2"",
+                },
+            }";
+
+            // Should not throw with AllowTrailingCommas=true
+            dynamic result = JsonSlurper.ParseText(jsonWithTrailingCommas);
+            Assert.Equal("item1", result.items[0]);
+            Assert.Equal("value2", result.obj.prop2);
+        }
+
+        [Fact(Skip = "This test requires file creation permissions that may not be available in all environments")]
+        public void LargeJsonFileStreamingTest()
+        {
+            // Skip if no large file available locally
+            string filename = "large-test.json";
+            string path = Path.Combine(Path.GetTempPath(), filename);
+
+            try
+            {
+                // Create a large JSON file (5MB) for testing
+                bool created = CreateLargeJsonFile(path, 5);
+                Skip.If(!created, "Could not create large test file");
+
+                // Create options with streaming enabled
+                var options = new SlurperOptions
+                {
+                    UseStreaming = true,
+                    StreamingBufferSize = 4096
+                };
+
+                // Test that we can parse the large file
+                dynamic result = JsonSlurper.ParseFile(path, options);
+                Assert.NotNull(result);
+                Assert.NotNull(result.items);
+                Assert.True(result.items.Count > 0);
+            }
+            finally
+            {
+                // Clean up
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Helper method to create a large JSON file for testing streaming
+        /// </summary>
+        private bool CreateLargeJsonFile(string path, int sizeMB)
+        {
+            try
+            {
+                using (FileStream fs = new FileStream(path, FileMode.Create))
+                using (StreamWriter writer = new StreamWriter(fs))
+                {
+                    writer.WriteLine("{");
+                    writer.WriteLine("  \"items\": [");
+
+                    // Create enough items to reach the target size
+                    int itemCount = sizeMB * 100; // Approximate number of items for target size
+                    for (int i = 0; i < itemCount; i++)
+                    {
+                        writer.WriteLine("    {");
+                        writer.WriteLine($"      \"id\": {i},");
+                        writer.WriteLine($"      \"name\": \"Item {i}\",");
+                        writer.WriteLine($"      \"description\": \"This is a test item with a longer description to consume more space in the file. Item number {i}.\",");
+                        writer.WriteLine($"      \"tags\": [\"test\", \"large\", \"file\", \"streaming\", \"item{i}\"],");
+                        writer.WriteLine($"      \"created\": \"{DateTime.Now.AddDays(-i).ToString("yyyy-MM-ddTHH:mm:ss")}\",");
+
+                        // Add a nested object
+                        writer.WriteLine("      \"details\": {");
+                        writer.WriteLine($"        \"manufacturer\": \"Test Corp {i % 10}\",");
+                        writer.WriteLine($"        \"price\": {Math.Round(10.0 + (i % 100) / 10.0, 2)},");
+                        writer.WriteLine($"        \"inStock\": {(i % 2 == 0 ? "true" : "false")},");
+                        writer.WriteLine($"        \"color\": \"{(i % 5 == 0 ? "red" : i % 4 == 0 ? "blue" : i % 3 == 0 ? "green" : i % 2 == 0 ? "yellow" : "black")}\"");
+                        writer.WriteLine("      }");
+
+                        // If not the last item, add a comma
+                        if (i < itemCount - 1)
+                        {
+                            writer.WriteLine("    },");
+                        }
+                        else
+                        {
+                            writer.WriteLine("    }");
+                        }
+                    }
+
+                    writer.WriteLine("  ]");
+                    writer.WriteLine("}");
+                }
+
+                // Verify the file size is at least approximately what we want
+                var fileInfo = new FileInfo(path);
+                return fileInfo.Length >= sizeMB * 1024 * 1024 * 0.8; // At least 80% of target size
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

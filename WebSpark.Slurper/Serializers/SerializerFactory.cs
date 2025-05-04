@@ -9,10 +9,6 @@ namespace WebSpark.Slurper.Serializers;
 /// Interface for serializing models to various formats
 /// </summary>
 /// <typeparam name="T">The type to serialize</typeparam>
-/// <summary>
-/// Interface for serializing models to various formats
-/// </summary>
-/// <typeparam name="T">The type to serialize</typeparam>
 public interface ISerializer<T> where T : class
 {
     /// <summary>

@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "WebSpark.Slurper Demo";
+}
+
+<div class="text-center">
+    <h1 class="display-4">WebSpark.Slurper Demo</h1>
+    <p class="lead">A demonstration of the WebSpark.Slurper library's capabilities for extracting data from different
+        formats.</p>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3>Available Demos</h3>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a asp-action="XmlDemo" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">XML Extraction</h5>
+                        </div>
+                        <p class="mb-1">Demonstrate extracting data from XML files using Slurper.</p>
+                    </a>
+                    <a asp-controller="JSON" asp-action="Index" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">JSON Extraction</h5>
+                        </div>
+                        <p class="mb-1">Demonstrate extracting data from JSON files using Slurper with before/after
+                            processing.</p>
+                    </a>
+                    <a asp-action="CsvDemo" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">CSV Extraction</h5>
+                        </div>
+                        <p class="mb-1">Demonstrate extracting data from CSV files using Slurper.</p>
+                    </a>
+                    <a asp-action="HtmlDemo" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">HTML Extraction</h5>
+                        </div>
+                        <p class="mb-1">Demonstrate extracting data from HTML files using Slurper.</p>
+                    </a>
+                    <a asp-action="LegacyDemo" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">Legacy API Demo</h5>
+                        </div>
+                        <p class="mb-1">Demonstrate the original static methods from XmlSlurper and JsonSlurper.</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

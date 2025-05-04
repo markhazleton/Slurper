@@ -1,0 +1,102 @@
+@model dynamic
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title">
+            @try
+            {
+                @Model.title
+            }
+            catch
+            {
+
+                <text>Unknown Title</text>
+            }
+        </h5>
+    </div>
+    <div class="card-body">
+        <p>
+            <strong>Author:</strong>
+            @try
+            {
+                @Model.author
+            }
+            catch
+            {
+
+                <text>Unknown Author</text>
+            }
+        </p>
+
+        @try
+        {
+            if (((object)Model.genre) != null)
+            {
+                <p><strong>Genre:</strong> @Model.genre</p>
+            }
+        }
+        catch { }
+
+        @try
+        {
+            if (((object)Model.price) != null)
+            {
+                <p><strong>Price:</strong> $@Model.price</p>
+            }
+        }
+        catch { }
+
+        @try
+        {
+            // Try publish_date first (XML format)
+            if (((object)Model.publish_date) != null)
+            {
+                <p><strong>Published:</strong> @Model.publish_date</p>
+            }
+            // Try publishDate next (JSON format possibly)
+            else if (((object)Model.publishDate) != null)
+            {
+                <p><strong>Published:</strong> @Model.publishDate</p>
+            }
+            // Try published next (another possible format)
+            else if (((object)Model.published) != null)
+            {
+                <p><strong>Published:</strong> @Model.published</p>
+            }
+        }
+        catch { }
+
+        @try
+        {
+            if (((object)Model.description) != null)
+            {
+                <p><strong>Description:</strong> @Model.description</p>
+            }
+        }
+        catch { }
+    </div>
+    <div class="card-footer text-muted">
+        @try
+        {
+            if (((object)Model.id) != null)
+            {
+                <small>ID: @Model.id</small>
+            }
+        }
+        catch { }
+    </div>
+</div>
+           
+               
+           
+           
+           
+
+               
+           
+           
+               
+           
+           
+           
+

@@ -1,0 +1,28 @@
+@model dynamic
+
+<div class=\
+card
+mb-3\>
+    <div class=\card-header
+bg-secondary
+text-white\>
+        <h5>@Model.title</h5>
+    </div>
+    <div class=\card-body\>
+        <div class=\row\>
+            <div class=\col-md-4\>
+                <p><strong>ID:</strong> @Model.id</p>
+                <p><strong>Author:</strong> @Model.author</p>
+                <p><strong>Genre:</strong> @Model.genre</p>
+            </div>
+            <div class=\col-md-4\>
+                <p><strong>Price:</strong> $@Model.price</p>
+                <p><strong>Published:</strong> @Model.publish_date</p>
+            </div>
+            <div class=\col-md-4\>
+                <p><strong>Description:</strong></p>
+                <p>@Model.description</p>
+            </div>
+        </div>
+    </div>
+</div>

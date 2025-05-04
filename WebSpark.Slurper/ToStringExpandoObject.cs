@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 
 namespace WebSpark.Slurper;
 
@@ -45,6 +46,45 @@ public sealed class ToStringExpandoObject : DynamicObject
     public override bool TryGetMember(GetMemberBinder binder, out object result)
     {
         return this.Members.TryGetValue(binder.Name, out result);
+    }
+
+    /// <summary>
+    /// Tries to get an indexed value from the dynamic object
+    /// </summary>
+    /// <param name="binder">The binder providing the indexing operation</param>
+    /// <param name="indexes">The indexes used for the indexing operation</param>
+    /// <param name="result">When this method returns, contains the indexed value, if found</param>
+    /// <returns>True if the indexed value was found; otherwise, false</returns>
+    public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+    {
+        result = null;
+
+        // Support for integer indexing if the object is actually a List
+        if (indexes.Length == 1 && indexes[0] is int index)
+        {
+            if (Members.ContainsKey("items") && Members["items"] is IList<ToStringExpandoObject> items)
+            {
+                if (index >= 0 && index < items.Count)
+                {
+                    result = items[index];
+                    return true;
+                }
+            }
+
+            foreach (var member in Members.Values)
+            {
+                if (member is IList<ToStringExpandoObject> list)
+                {
+                    if (index >= 0 && index < list.Count)
+                    {
+                        result = list[index];
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -211,14 +251,21 @@ public sealed class ToStringExpandoObject : DynamicObject
     /// <returns>A string representation of the dynamic object</returns>
     public override string ToString()
     {
-        //see if we defined a ToString member
-        //if not, use the base implementation
-        object methodObj;
-        this.Members.TryGetValue("ToString", out methodObj);
-        ToStringFunc method = methodObj as ToStringFunc;
-        if (method == null)
-            return base.ToString();
+        // See if we defined a ToString member
+        // If not, return null for complex objects
+        if (this.Members.TryGetValue("ToString", out object methodObj) &&
+            methodObj is ToStringFunc method)
+        {
+            return method();
+        }
 
-        return method();
+        // Check if this is a complex object (has members but no explicit ToString)
+        // If it's a complex object, return null to match the expected behavior
+        if (this.Members.Any() && !this.Members.ContainsKey("ToString"))
+        {
+            return null;
+        }
+
+        return base.ToString();
     }
 }
