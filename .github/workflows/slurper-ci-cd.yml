@@ -39,7 +39,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-          cache: 'nuget'  # Add caching for better performance
+      
+      # Separate NuGet cache step - more compatible approach
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Extract version from csproj
         id: extract_version
@@ -126,6 +134,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
+          # Removed cache parameter to avoid YAML errors
 
       # Configure GitHub Packages source
       - name: Setup GitHub Packages source
