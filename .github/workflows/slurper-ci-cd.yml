@@ -20,9 +20,9 @@ on:
 
 # Enhanced permissions block for better visibility in GitHub UI
 permissions:
-  contents: write  # Changed from 'read' to 'write' to allow creating releases
-  packages: write  # Needed for GitHub Packages
-  discussions: write  # Allow linking releases to discussions for better visibility
+  contents: write # Changed from 'read' to 'write' to allow creating releases
+  packages: write # Needed for GitHub Packages
+  discussions: write # Allow linking releases to discussions for better visibility
 
 jobs:
   build-and-test:
@@ -33,13 +33,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Get all history for proper versioning
+          fetch-depth: 0 # Get all history for proper versioning
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "9.0.x"
-      
+
       # Separate NuGet cache step - more compatible approach
       - name: Cache NuGet packages
         uses: actions/cache@v3
@@ -98,7 +98,7 @@ jobs:
     # Only run on main branch, tags, or when manually triggered with publishPackages=true
     if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.publishPackages == 'true')
     runs-on: ubuntu-latest
-    
+
     # Add environment for added security
     environment: production
 
@@ -160,9 +160,9 @@ jobs:
         with:
           name: WebSpark.Slurper ${{ env.VERSION }}
           generate_release_notes: true
-          draft: false  # Ensure the release is not created as a draft
-          prerelease: false  # Ensure the release is not marked as prerelease unless it's a prerelease version
-          discussion_category_name: "Releases"  # Link to discussions for better visibility
+          draft: false # Ensure the release is not created as a draft
+          prerelease: false # Ensure the release is not marked as prerelease unless it's a prerelease version
+          discussion_category_name: "Releases" # Link to discussions for better visibility
           body: |
             # WebSpark.Slurper ${{ env.VERSION }}
 
