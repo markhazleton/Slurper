@@ -1,0 +1,107 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      forceVersion:
+        description: 'Force version (leave empty to use GitVersion)'
+        required: false
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # GitVersion needs the git history
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+          
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: '5.x'
+          
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+          useConfigFile: true
+          configFilePath: './GitVersion.json'
+      
+      - name: Display GitVersion outputs
+        run: |
+          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+          echo "Major: ${{ steps.gitversion.outputs.major }}"
+          echo "Minor: ${{ steps.gitversion.outputs.minor }}"
+          echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+      
+      - name: Set Version
+        id: setversion
+        run: |
+          if [ "${{ github.event.inputs.forceVersion }}" != "" ]; then
+            echo "VERSION=${{ github.event.inputs.forceVersion }}" >> $GITHUB_ENV
+            echo "Using manually provided version: ${{ github.event.inputs.forceVersion }}"
+          else
+            echo "VERSION=${{ steps.gitversion.outputs.nuGetVersionV2 }}" >> $GITHUB_ENV
+            echo "Using GitVersion generated version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+          fi
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build
+        run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }}
+      
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+      
+      - name: Pack
+        run: dotnet pack WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release --no-build --output nupkgs /p:Version=${{ env.VERSION }}
+      
+      - name: Push to NuGet.org
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      
+      - name: Push to GitHub Packages
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: WebSpark.Slurper ${{ env.VERSION }}
+          draft: false
+          prerelease: false
+          body: |
+            WebSpark.Slurper ${{ env.VERSION }}
+            
+            [Package on NuGet.org](https://www.nuget.org/packages/WebSpark.Slurper/${{ env.VERSION }})
+            
+            ## Changes in this release
+            <!-- Add your release notes here or leave blank to use the commit messages -->
+            
+      - name: Upload Release Asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./nupkgs/WebSpark.Slurper.${{ env.VERSION }}.nupkg
+          asset_name: WebSpark.Slurper.${{ env.VERSION }}.nupkg
+          asset_content_type: application/octet-stream
