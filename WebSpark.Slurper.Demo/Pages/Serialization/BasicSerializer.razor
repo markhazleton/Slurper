@@ -1,0 +1,255 @@
+@page "/serialization/basic"
+@using WebSpark.Slurper
+@using WebSpark.Slurper.Serialization
+@using System.Dynamic
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Slurper - Basic Serialization Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>Basic Serialization Demo</h1>
+            <p class="lead">
+                Serialize extracted data back to various formats with Slurper's serialization capabilities.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>Input Data</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Source Format:</label>
+                        <select class="form-select" @bind="sourceFormat">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputData" class="form-label">Edit Input:</label>
+                        <textarea id="inputData" class="form-control font-monospace" style="height: 200px"
+                            @bind="inputData" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-secondary" @onclick="LoadSampleData">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4>Serialization Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Target Format:</label>
+                        <select class="form-select" @bind="targetFormat">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="indentOutput" @bind="indentOutput">
+                            <label class="form-check-label" for="indentOutput">
+                                Indent Output
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="useCamelCase" @bind="useCamelCase">
+                            <label class="form-check-label" for="useCamelCase">
+                                Use Camel Case (JSON only)
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" id="includeNullValues"
+                                @bind="includeNullValues">
+                            <label class="form-check-label" for="includeNullValues">
+                                Include Null Values
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="rootElementName" class="form-label">Root Element Name (XML only):</label>
+                        <input type="text" class="form-control" id="rootElementName" @bind="rootElementName">
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="SerializeData">
+                            <i class="bi bi-gear"></i> Serialize Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4>Serialization Result</h4>
+                </div>
+                <div class="card-body">
+                    @if (processingError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@processingError</p>
+                        </div>
+                    }
+                    else if (serializationResult != null)
+                    {
+                        <pre class="bg-light p-3 rounded"><code>@serializationResult</code></pre>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Configure your serialization options and click "Serialize Data" to see the results.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper can easily serialize dynamic data to JSON or XML with configurable options:</p>
+                    <pre><code class="language-csharp">// Extract data from a source
+var factory = new SlurperFactory();
+var extractor = factory.CreateJsonExtractor();
+var data = extractor.Extract(jsonString);
+
+// Create a serializer factory
+var serializerFactory = new SerializerFactory();
+
+// Get a JSON serializer and serialize with options
+var jsonSerializer = serializerFactory.CreateJsonSerializer&lt;dynamic&gt;();
+string json = jsonSerializer.Serialize(data, new SerializerOptions
+{
+    IndentOutput = true,
+    UseCamelCase = true,
+    IncludeNullValues = false
+});
+
+// Or get an XML serializer and serialize with options
+var xmlSerializer = serializerFactory.CreateXmlSerializer&lt;dynamic&gt;();
+string xml = xmlSerializer.Serialize(data, new SerializerOptions
+{
+    IndentOutput = true,
+    RootElementName = "Root"
+});
+
+// You can also use extension methods for quick serialization
+string quickJson = data.ToJson(indented: true, camelCase: true);
+string quickXml = data.ToXml(rootName: "Root", indented: true);</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string inputData = string.Empty;
+    private string sourceFormat = "json";
+    private string targetFormat = "json";
+    private string? serializationResult;
+    private string? processingError;
+
+    // Serialization options
+    private bool indentOutput = true;
+    private bool useCamelCase = true;
+    private bool includeNullValues = false;
+    private string rootElementName = "Root";
+
+    // Create factories
+    private readonly SlurperFactory _slurperFactory = new();
+    private readonly SerializerFactory _serializerFactory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        if (sourceFormat == "json")
+        {
+            inputData = await Http.GetStringAsync("sample-data/products.json");
+        }
+        else // xml
+        {
+            inputData = await Http.GetStringAsync("sample-data/books.xml");
+        }
+
+        serializationResult = null;
+        processingError = null;
+    }
+
+    private void SerializeData()
+    {
+        try
+        {
+            // Clear previous results
+            processingError = null;
+
+            // Extract data from the input
+            dynamic extractedData;
+            if (sourceFormat == "json")
+            {
+                var jsonExtractor = _slurperFactory.CreateJsonExtractor();
+                extractedData = jsonExtractor.Extract(inputData);
+            }
+            else // xml
+            {
+                var xmlExtractor = _slurperFactory.CreateXmlExtractor();
+                extractedData = xmlExtractor.Extract(inputData);
+            }
+
+            // Create serialization options
+            var options = new SerializerOptions
+            {
+                IndentOutput = indentOutput,
+                UseCamelCase = useCamelCase,
+                IncludeNullValues = includeNullValues,
+                RootElementName = rootElementName
+            };
+
+            // Serialize based on target format
+            if (targetFormat == "json")
+            {
+                var jsonSerializer = _serializerFactory.CreateJsonSerializer<dynamic>();
+                serializationResult = jsonSerializer.Serialize(extractedData, options);
+            }
+            else // xml
+            {
+                var xmlSerializer = _serializerFactory.CreateXmlSerializer<dynamic>();
+                serializationResult = xmlSerializer.Serialize(extractedData, options);
+            }
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Serialization failed: {ex.Message}";
+            serializationResult = null;
+        }
+    }
+}

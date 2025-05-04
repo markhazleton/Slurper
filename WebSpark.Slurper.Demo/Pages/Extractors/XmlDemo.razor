@@ -1,0 +1,550 @@
+@page "/extractors/xml"
+@using WebSpark.Slurper
+@using System.Dynamic
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>Slurper - XML Extractor Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>XML Extractor Demo</h1>
+            <p class="lead">
+                Extract and work with XML data without defining model classes using Slurper's dynamic XML extractor.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>XML Input</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="xmlInput" class="form-label">XML Data:</label>
+                        <textarea id="xmlInput" class="form-control font-monospace" style="height: 350px"
+                            @bind="xmlInput" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-secondary" @onclick="LoadSampleData">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4>Extraction Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="preserveAttributes"
+                                @bind="preserveAttributes">
+                            <label class="form-check-label" for="preserveAttributes">Preserve Attributes</label>
+                        </div>
+                        <div class="form-text">When enabled, XML attributes are preserved as properties.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="useAttributePrefixes"
+                                @bind="useAttributePrefixes">
+                            <label class="form-check-label" for="useAttributePrefixes">Use Attribute Prefixes</label>
+                        </div>
+                        <div class="form-text">When enabled, attributes are prefixed with the "@@" symbol for clarity.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="preserveTextContent"
+                                @bind="preserveTextContent">
+                            <label class="form-check-label" for="preserveTextContent">Preserve Text Content</label>
+                        </div>
+                        <div class="form-text">When enabled, text content is preserved with the key '#text'.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="xPathQuery" class="form-label">XPath Query (optional):</label>
+                        <input type="text" class="form-control" id="xPathQuery" @bind="xPathQuery"
+                            placeholder="//book[price > 10]">
+                        <div class="form-text">Extract only nodes matching this XPath query.</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="ExtractData">
+                            <i class="bi bi-gear"></i> Extract Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h4>Property Access</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="accessPath" class="form-label">Access Path:</label>
+                        <input type="text" class="form-control" id="accessPath" @bind="accessPath"
+                            placeholder="bookstore.book[0].title">
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-info" @onclick="AccessProperty">
+                            <i class="bi bi-cursor"></i> Access Property
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(accessResult))
+                    {
+                        <div class="mt-3">
+                            <h5>Result:</h5>
+                            <pre class="bg-light p-3 rounded"><code>@accessResult</code></pre>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "result" ? "active" : "")"
+                                @onclick='() => activeTab = "result"'>
+                                Extraction Result
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "tree" ? "active" : "")"
+                                @onclick='() => activeTab = "tree"'>
+                                Object Tree
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "query" ? "active" : "")"
+                                @onclick='() => activeTab = "query"'>
+                                Query Example
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    @if (processingError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@processingError</p>
+                        </div>
+                    }
+                    else if (extractedData != null)
+                    {
+                        @if (activeTab == "result")
+                        {
+                            <pre class="bg-light p-3 rounded"><code>@json</code></pre>
+                        }
+                        else if (activeTab == "tree")
+                        {
+                            <div class="mb-3">
+                                <p>Property names available from the root object:</p>
+                                <div class="row">
+                                    @foreach (var prop in rootProperties)
+                                    {
+                                        <div class="col-md-3 mb-2">
+                                            <span class="badge bg-secondary">@prop</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (rootProperties.Count > 0 && rootProperties[0] == "bookstore")
+                            {
+                                <div class="mb-3">
+                                    <p>Access paths examples:</p>
+                                    <ul>
+                                        <li><code>bookstore.book[0].title</code> - Title of the first book</li>
+                                        <li><code>bookstore.book[0].author</code> - Author of the first book</li>
+                                        <li><code>bookstore.book[0].year</code> - Publication year of the first book</li>
+                                        <li><code>bookstore.book.Length</code> - Number of books in the bookstore</li>
+                                    </ul>
+                                </div>
+                            }
+                        }
+                        else if (activeTab == "query")
+                        {
+                            <div class="mb-4">
+                                <p>With Slurper, you can easily query extracted XML data using LINQ:</p>
+                                <pre class="bg-light p-3 rounded"><code>// Find books published after 2005
+                var recentBooks = data.bookstore.book
+                    .Where(b => Convert.ToInt32(b.year) > 2005)
+                    .OrderBy(b => b.title)
+                    .ToList();
+
+                // Find the average price of books by a specific author
+                var avgPrice = data.bookstore.book
+                    .Where(b => b.author == "John Smith")
+                    .Average(b => Convert.ToDecimal(b.price));
+
+                // Group books by category and count
+                var booksByCategory = data.bookstore.book
+                    .GroupBy(b => b.category)
+                    .Select(g => new {
+                        Category = g.Key,
+                        Count = g.Count(),
+                        AveragePrice = g.Average(b => Convert.ToDecimal(b.price))
+                    })
+                    .OrderByDescending(x => x.Count)
+                    .ToList();</code></pre>
+                            </div>
+
+                            @if (queryResult != null)
+                            {
+                                <div>
+                                    <h5>Query Result:</h5>
+                                    <pre class="bg-light p-3 rounded"><code>@queryResult</code></pre>
+                                </div>
+                            }
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" @onclick="RunSampleQuery">
+                                    <i class="bi bi-play"></i> Run Sample Query
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Configure your extraction options and click "Extract Data" to see the results.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper makes it easy to work with XML data without defining model classes:</p>
+                    <pre><code class="language-csharp">// Create a factory and XML extractor
+var factory = new SlurperFactory();
+var xmlExtractor = factory.CreateXmlExtractor();
+
+// Configure extraction options
+var options = new XmlExtractorOptions
+{
+    PreserveAttributes = true,
+    UseAttributePrefixes = true,
+    PreserveTextContent = true
+};
+
+// Extract data from an XML string
+var data = xmlExtractor.Extract(xmlString, options);
+
+// Access elements and attributes using property paths
+string title = data.bookstore.book[0].title;
+string isbn = data.bookstore.book[0].attributes["isbn"];
+decimal price = Convert.ToDecimal(data.bookstore.book[0].price);
+
+// Use LINQ to query the data
+var expensiveBooks = data.bookstore.book
+    .Where(b => Convert.ToDecimal(b.price) > 20)
+    .Select(b => new { 
+        Title = b.title, 
+        Author = b.author, 
+        Price = Convert.ToDecimal(b.price) 
+    })
+    .ToList();</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string xmlInput = string.Empty;
+    private bool preserveAttributes = true;
+    private bool useAttributePrefixes = true;
+    private bool preserveTextContent = true;
+    private string xPathQuery = string.Empty;
+    private string accessPath = string.Empty;
+    private string accessResult = string.Empty;
+    private dynamic? extractedData;
+    private List<string> rootProperties = new();
+    private string? processingError;
+    private string json = string.Empty;
+    private string activeTab = "result";
+    private string? queryResult;
+
+    // Create factory
+    private readonly SlurperFactory _slurperFactory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        try
+        {
+            xmlInput = await Http.GetStringAsync("sample-data/books.xml");
+            preserveAttributes = true;
+            useAttributePrefixes = true;
+            preserveTextContent = true;
+            xPathQuery = string.Empty;
+            accessPath = "bookstore.book[0].title";
+            extractedData = null;
+            processingError = null;
+            json = string.Empty;
+            queryResult = null;
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Failed to load sample data: {ex.Message}";
+        }
+    }
+
+    private void ExtractData()
+    {
+        try
+        {
+            // Clear previous results
+            processingError = null;
+
+            // Configure extraction options
+            var options = new XmlExtractorOptions
+            {
+                PreserveAttributes = preserveAttributes,
+                UseAttributePrefixes = useAttributePrefixes,
+                PreserveTextContent = preserveTextContent,
+                XPathQuery = !string.IsNullOrWhiteSpace(xPathQuery) ? xPathQuery : null
+            };
+
+            // Extract data from XML
+            var xmlExtractor = _slurperFactory.CreateXmlExtractor();
+            // Use helper method to handle options type conversion
+            extractedData = SlurperHelper.Extract(xmlExtractor, xmlInput, options);
+
+            // Get root properties
+            rootProperties = GetDynamicPropertyNames(extractedData);
+
+            // Convert to JSON for display
+            var options2 = new JsonSerializerOptions { WriteIndented = true };
+            json = JsonSerializer.Serialize(extractedData, options2);
+
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Extraction failed: {ex.Message}";
+            extractedData = null;
+            json = string.Empty;
+            rootProperties.Clear();
+        }
+    }
+
+    private void AccessProperty()
+    {
+        try
+        {
+            if (extractedData == null || string.IsNullOrWhiteSpace(accessPath))
+            {
+                accessResult = "No data extracted or access path is empty.";
+                return;
+            }
+
+            // Parse the access path and navigate the object
+            dynamic result = NavigatePropertyPath(extractedData, accessPath);
+
+            // Convert result to string or JSON depending on type
+            if (result == null)
+            {
+                accessResult = "null";
+            }
+            else if (IsPrimitive(result))
+            {
+                accessResult = result.ToString();
+            }
+            else
+            {
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                accessResult = JsonSerializer.Serialize(result, options);
+            }
+        }
+        catch (Exception ex)
+        {
+            accessResult = $"Access failed: {ex.Message}";
+        }
+    }
+
+    private void RunSampleQuery()
+    {
+        try
+        {
+            if (extractedData == null)
+            {
+                queryResult = "No data available. Extract data first.";
+                return;
+            }
+
+            // Check if we have bookstore data structure
+            var dictionary = extractedData as IDictionary<string, object>;
+            if (dictionary == null || !dictionary.ContainsKey("bookstore"))
+            {
+                queryResult = "Expected bookstore structure not found.";
+                return;
+            }
+
+            // Run a sample LINQ query on the extracted data
+            // Group books by category and calculate average price
+            var books = GetDynamicProperty(extractedData, "bookstore.book") as IEnumerable<dynamic>;
+            if (books == null)
+            {
+                queryResult = "No books found in the data.";
+                return;
+            }
+
+            var booksByCategory = books
+            .GroupBy(b => GetDynamicProperty(b, "category")?.ToString() ?? "Unknown")
+            .Select(g => new
+            {
+                Category = g.Key,
+                Count = g.Count(),
+                Books = g.Select(b => new
+                {
+                    Title = GetDynamicProperty(b, "title"),
+                    Author = GetDynamicProperty(b, "author"),
+                    Year = GetDynamicProperty(b, "year"),
+                    Price = Convert.ToDecimal(GetDynamicProperty(b, "price"))
+                }).ToList()
+            })
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+            // Format the result as JSON for display
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            queryResult = JsonSerializer.Serialize(booksByCategory, options);
+        }
+        catch (Exception ex)
+        {
+            queryResult = $"Query failed: {ex.Message}";
+        }
+    }
+
+    // Helper method to get property from dynamic object by name
+    private object? GetDynamicProperty(dynamic obj, string propertyPath)
+    {
+        try
+        {
+            if (obj == null) return null;
+
+            // Split property path by dots
+            string[] parts = propertyPath.Split('.');
+            dynamic current = obj;
+
+            foreach (var part in parts)
+            {
+                // Check if the part contains array indexing
+                if (part.Contains('[') && part.Contains(']'))
+                {
+                    int bracketStart = part.IndexOf('[');
+                    int bracketEnd = part.IndexOf(']');
+                    string propName = part.Substring(0, bracketStart);
+                    string indexStr = part.Substring(bracketStart + 1, bracketEnd - bracketStart - 1);
+
+                    // Get the array property
+                    var dictionary = current as IDictionary<string, object>;
+                    if (dictionary != null && dictionary.ContainsKey(propName))
+                    {
+                        current = dictionary[propName];
+
+                        // Get the indexed item
+                        if (int.TryParse(indexStr, out int index))
+                        {
+                            if (current is IList<object> list && index >= 0 && index < list.Count)
+                            {
+                                current = list[index];
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else
+                {
+                    // Get the property normally
+                    var dictionary = current as IDictionary<string, object>;
+                    if (dictionary != null && dictionary.ContainsKey(part))
+                    {
+                        current = dictionary[part];
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
+
+            return current;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // Helper method to navigate property path with array indices
+    private dynamic NavigatePropertyPath(dynamic obj, string propertyPath)
+    {
+        return GetDynamicProperty(obj, propertyPath) ?? "Property not found";
+    }
+
+    // Helper method to get all property names from a dynamic object
+    private List<string> GetDynamicPropertyNames(dynamic obj)
+    {
+        var result = new List<string>();
+
+        if (obj == null) return result;
+
+        // Try to get property names using reflection
+        var dictionary = obj as IDictionary<string, object>;
+        if (dictionary != null)
+        {
+            result.AddRange(dictionary.Keys);
+        }
+
+        return result;
+    }
+
+    // Helper method to check if an object is a primitive type
+    private bool IsPrimitive(object obj)
+    {
+        if (obj == null) return true;
+
+        Type type = obj.GetType();
+        return type.IsPrimitive ||
+        type == typeof(string) ||
+        type == typeof(decimal) ||
+        type == typeof(DateTime);
+    }
+}

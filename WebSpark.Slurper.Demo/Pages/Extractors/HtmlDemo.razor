@@ -1,0 +1,406 @@
+@page "/extractors/html"
+@using WebSpark.Slurper
+@using System.Dynamic
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Slurper - HTML Extractor Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>HTML Extractor Demo</h1>
+            <p class="lead">
+                Extract data from HTML web pages without defining model classes using Slurper's dynamic property access.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>HTML Input</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="htmlInput" class="form-label">Edit HTML:</label>
+                        <textarea id="htmlInput" class="form-control font-monospace" style="height: 400px" @bind="htmlInput" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="ExtractFromHtml">
+                            <i class="bi bi-gear"></i> Extract Data
+                        </button>
+                        <button class="btn btn-secondary" @onclick="LoadSampleHtml">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4>Extracted Results</h4>
+                </div>
+                <div class="card-body">
+                    @if (extractionError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@extractionError</p>
+                        </div>
+                    }
+                    else if (extractedData != null)
+                    {
+                        <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="data-tab" data-bs-toggle="tab" data-bs-target="#data"
+                                    type="button" role="tab" aria-controls="data" aria-selected="true">
+                                    Extracted Data
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="articles-tab" data-bs-toggle="tab" data-bs-target="#articles"
+                                    type="button" role="tab" aria-controls="articles" aria-selected="false">
+                                    Articles
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="paths-tab" data-bs-toggle="tab" data-bs-target="#paths"
+                                    type="button" role="tab" aria-controls="paths" aria-selected="false">
+                                    Access Paths
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content p-3 border border-top-0 rounded-bottom mb-3" id="resultTabsContent">
+                            <div class="tab-pane fade show active" id="data" role="tabpanel" aria-labelledby="data-tab">
+                                <h5>Extracted HTML Data:</h5>
+                                <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow: auto;"><code>@formattedResult</code></pre>
+                            </div>
+                            <div class="tab-pane fade" id="articles" role="tabpanel" aria-labelledby="articles-tab">
+                                <h5>Extracted Articles:</h5>
+                                @if (extractedArticles.Count > 0)
+                                {
+                                    <div class="list-group">
+                                        @foreach (var article in extractedArticles)
+                                        {
+                                            <div class="list-group-item">
+                                                <h5>@article.Title</h5>
+                                                <p class="mb-1"><strong>Author:</strong> @article.Author</p>
+                                                <p class="mb-1"><strong>Date:</strong> @article.Date</p>
+                                                @if (article.Tags != null && article.Tags.Count > 0)
+                                                {
+                                                    <div>
+                                                        <strong>Tags:</strong>
+                                                        @foreach (var tag in article.Tags)
+                                                        {
+                                                            <span class="badge bg-secondary me-1">@tag</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-info">No articles were extracted. Try adjusting the HTML structure.</div>
+                                }
+                            </div>
+                            <div class="tab-pane fade" id="paths" role="tabpanel" aria-labelledby="paths-tab">
+                                <h5>Access Path Examples:</h5>
+                                <pre class="bg-light p-3 rounded"><code>@accessPath</code></pre>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Edit the HTML on the left and click "Extract Data" to see the results here.</p>
+                            <p>After extraction, you'll see:</p>
+                            <ul>
+                                <li>The full extracted data structure</li>
+                                <li>Specific extracted articles from the blog</li>
+                                <li>Example property access paths</li>
+                            </ul>
+                            <p>HTML extraction is powerful for web scraping, content extraction, and automated testing.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper extracts HTML data into dynamic objects that can be navigated using simple property access.</p>
+                    <p>The code behind this demo:</p>
+                    <pre><code class="language-csharp">// Create a factory
+var factory = new SlurperFactory();
+
+// Get an HTML extractor
+var htmlExtractor = factory.CreateHtmlExtractor();
+
+// Extract data from the HTML string
+var page = htmlExtractor.Extract(htmlString);
+
+// Access the extracted data using dynamic properties
+// For example, to access the page title:
+var title = page.html.head.title;
+
+// Extract all articles
+var articles = new List&lt;object&gt;();
+
+// Navigate to the articles section
+if (page.html.body.main.section != null)
+{
+    var recentPosts = page.html.body.main.section
+        .Where(s => s.id == "recent-posts")
+        .FirstOrDefault();
+        
+    if (recentPosts?.articles_grid?.article_card != null)
+    {
+        foreach (var article in recentPosts.articles_grid.article_card)
+        {
+            var articleData = new
+            {
+                Title = article.h3.ToString(),
+                Author = article.p.Where(p => p["class"] == "author")
+                    .FirstOrDefault()?.ToString().Replace("By ", ""),
+                Date = article.p.Where(p => p["class"] == "date")
+                    .FirstOrDefault()?.ToString(),
+                Tags = article.tags?.tag?.Select(t => t.ToString()).ToList()
+            };
+            
+            articles.Add(articleData);
+        }
+    }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string htmlInput = string.Empty;
+    private dynamic? extractedData;
+    private string? extractionError;
+    private string formattedResult = string.Empty;
+    private string accessPath = string.Empty;
+    private List<ArticleInfo> extractedArticles = new();
+
+    public class ArticleInfo
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string Date { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleHtml();
+    }
+
+    private async Task LoadSampleHtml()
+    {
+        htmlInput = await Http.GetStringAsync("sample-data/blog.html");
+        extractedData = null;
+        extractionError = null;
+        formattedResult = string.Empty;
+        accessPath = string.Empty;
+        extractedArticles.Clear();
+    }
+
+    private void ExtractFromHtml()
+    {
+        try
+        {
+            // Clear previous results
+            extractionError = null;
+            extractedArticles.Clear();
+            
+            // Create a factory and get HTML extractor
+            var factory = new SlurperFactory();
+            var htmlExtractor = factory.CreateHtmlExtractor();
+            
+            // Extract data from HTML
+            extractedData = htmlExtractor.Extract(htmlInput);
+            
+            // Format the result for display (limit size for UI)
+            var options = new JsonSerializerOptions { WriteIndented = true, MaxDepth = 3 };
+            formattedResult = JsonSerializer.Serialize(extractedData, options);
+            
+            // Try to extract blog articles
+            ExtractArticles();
+            
+            // Generate an example access path
+            GenerateAccessPathExample();
+        }
+        catch (Exception ex)
+        {
+            extractionError = $"Extraction failed: {ex.Message}";
+            extractedData = null;
+            formattedResult = string.Empty;
+            accessPath = string.Empty;
+            extractedArticles.Clear();
+        }
+    }
+
+    private void ExtractArticles()
+    {
+        try
+        {
+            // Extract articles from the blog structure in our sample
+            if (extractedData.html.body.main.section != null)
+            {
+                var sections = extractedData.html.body.main.section;
+                dynamic recentPosts = null;
+                
+                // Find the recent posts section
+                foreach (var section in sections)
+                {
+                    if (section.id != null && section.id.ToString() == "recent-posts")
+                    {
+                        recentPosts = section;
+                        break;
+                    }
+                }
+                
+                if (recentPosts != null && recentPosts.articles_grid != null)
+                {
+                    var articleCards = recentPosts.articles_grid.article_card;
+                    
+                    if (articleCards != null)
+                    {
+                        foreach (var article in articleCards)
+                        {
+                            var articleInfo = new ArticleInfo
+                            {
+                                Title = article.h3?.ToString() ?? "Unknown Title"
+                            };
+                            
+                            // Extract author
+                            if (article.p != null)
+                            {
+                                foreach (var p in article.p)
+                                {
+                                    if (p["class"] != null && p["class"].ToString() == "author")
+                                    {
+                                        articleInfo.Author = p.ToString().Replace("By ", "");
+                                    }
+                                    else if (p["class"] != null && p["class"].ToString() == "date")
+                                    {
+                                        articleInfo.Date = p.ToString();
+                                    }
+                                }
+                            }
+                            
+                            // Extract tags
+                            if (article.tags != null && article.tags.tag != null)
+                            {
+                                foreach (var tag in article.tags.tag)
+                                {
+                                    articleInfo.Tags.Add(tag.ToString());
+                                }
+                            }
+                            
+                            extractedArticles.Add(articleInfo);
+                        }
+                    }
+                }
+            }
+            
+            // Try to extract featured article if no articles were found
+            if (extractedArticles.Count == 0 && extractedData.html.body.main.section != null)
+            {
+                var sections = extractedData.html.body.main.section;
+                
+                // Find the featured section
+                foreach (var section in sections)
+                {
+                    if (section.id != null && section.id.ToString() == "featured")
+                    {
+                        if (section.article != null)
+                        {
+                            var article = section.article;
+                            var articleInfo = new ArticleInfo
+                            {
+                                Title = article.h3?.ToString() ?? "Unknown Title"
+                            };
+                            
+                            // Extract author and date
+                            if (article.p != null)
+                            {
+                                foreach (var p in article.p)
+                                {
+                                    if (p["class"] != null && p["class"].ToString() == "author")
+                                    {
+                                        articleInfo.Author = p.ToString().Replace("By ", "");
+                                    }
+                                    else if (p["class"] != null && p["class"].ToString() == "date")
+                                    {
+                                        articleInfo.Date = p.ToString();
+                                    }
+                                }
+                            }
+                            
+                            extractedArticles.Add(articleInfo);
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error extracting articles: {ex.Message}");
+        }
+    }
+
+    private void GenerateAccessPathExample()
+    {
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("// Example property access paths:");
+            sb.AppendLine("// Get the page title");
+            sb.AppendLine("var title = extractedData.html.head.title;");
+            
+            // Example for navigating to specific sections
+            sb.AppendLine("\n// Navigate to a specific section by ID");
+            sb.AppendLine("var sections = extractedData.html.body.main.section;");
+            sb.AppendLine("var featuredSection = sections.Where(s => s.id == \"featured\").FirstOrDefault();");
+            sb.AppendLine("var recentPostsSection = sections.Where(s => s.id == \"recent-posts\").FirstOrDefault();");
+            
+            // Example for extracting article information
+            sb.AppendLine("\n// Extract articles from recent posts section");
+            sb.AppendLine("var articles = new List<dynamic>();");
+            sb.AppendLine("if (recentPostsSection?.articles_grid?.article_card != null)");
+            sb.AppendLine("{");
+            sb.AppendLine("    foreach (var article in recentPostsSection.articles_grid.article_card)");
+            sb.AppendLine("    {");
+            sb.AppendLine("        var title = article.h3;");
+            sb.AppendLine("        var author = article.p.Where(p => p[\"class\"] == \"author\").FirstOrDefault();");
+            sb.AppendLine("        var date = article.p.Where(p => p[\"class\"] == \"date\").FirstOrDefault();");
+            sb.AppendLine("        articles.Add(new { Title = title, Author = author, Date = date });");
+            sb.AppendLine("    }");
+            sb.AppendLine("}");
+            
+            accessPath = sb.ToString();
+        }
+        catch (Exception)
+        {
+            accessPath = "// Unable to generate access path examples for this structure.";
+        }
+    }
+}

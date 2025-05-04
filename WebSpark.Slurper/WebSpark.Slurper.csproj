@@ -5,8 +5,7 @@
         <Nullable>enable</Nullable>
         <Authors>Mark Hazleton, Jim (Dimitrios) Andrakakis</Authors>
         <Company>Mark Hazleton</Company>
-        <Description>A flexible data extraction and transformation library for XML, JSON, CSV, and
-            HTML.</Description>
+        <Description>A flexible data extraction and transformation library for XML, JSON, CSV, and HTML.</Description>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -50,7 +49,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.4" />
         <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
     </ItemGroup>
 

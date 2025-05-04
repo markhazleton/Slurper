@@ -1,0 +1,158 @@
+﻿@page "/"
+
+<PageTitle>Slurper - Dynamic Data Extraction for .NET</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12 text-center">
+            <h1 class="display-4">Slurper</h1>
+            <p class="lead">A lightweight dynamic data extraction library for .NET</p>
+            <p>Seamlessly extract and work with data in various formats without defining model classes.</p>
+        </div>
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="bi bi-braces"></i> Extractors</h4>
+                </div>
+                <div class="card-body">
+                    <p>Extract data from various formats into dynamic objects that can be navigated with simple property
+                        access.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a href="/extractors/json">JSON Extractor</a>
+                            <p class="text-muted small mb-0">Parse JSON data without model classes</p>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/extractors/xml">XML Extractor</a>
+                            <p class="text-muted small mb-0">Extract data from XML documents</p>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/extractors/csv">CSV Extractor</a>
+                            <p class="text-muted small mb-0">Work with CSV files dynamically</p>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/extractors/html">HTML Extractor</a>
+                            <p class="text-muted small mb-0">Parse and extract content from HTML</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4><i class="bi bi-arrow-left-right"></i> Serialization</h4>
+                </div>
+                <div class="card-body">
+                    <p>Convert extracted data back to various formats with configurable options.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a href="/serialization/basic">Basic Serialization</a>
+                            <p class="text-muted small mb-0">Serialize data with various options</p>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/serialization/envelope">Envelope Serialization</a>
+                            <p class="text-muted small mb-0">Create standardized API responses</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header bg-info text-white">
+                    <h4><i class="bi bi-speedometer2"></i> Advanced Features</h4>
+                </div>
+                <div class="card-body">
+                    <p>Explore advanced features and real-world applications of Slurper.</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <a href="/advanced/performance">Performance Optimization</a>
+                            <p class="text-muted small mb-0">Streaming, caching, and parallel processing</p>
+                        </li>
+                        <li class="list-group-item">
+                            <a href="/advanced/realworld">Real-World Examples</a>
+                            <p class="text-muted small mb-0">Practical applications and use cases</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>Key Features</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Zero Model Classes</strong> - Work with data without defining model classes
+                                </li>
+                                <li><strong>Dynamic Property Access</strong> - Navigate nested data with simple dot
+                                    notation</li>
+                                <li><strong>Multiple Formats</strong> - Support for JSON, XML, CSV, and HTML</li>
+                                <li><strong>LINQ Support</strong> - Query data with familiar LINQ expressions</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul>
+                                <li><strong>Serialization</strong> - Convert data back to JSON or XML</li>
+                                <li><strong>API Response Envelopes</strong> - Standardized response formats</li>
+                                <li><strong>Performance Optimizations</strong> - Streaming and parallel processing</li>
+                                <li><strong>Fluent API</strong> - Simple and intuitive interface</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Quick Example</h4>
+                </div>
+                <div class="card-body">
+                    <p>Extract and work with JSON data:</p>
+                    <pre><code class="language-csharp">// Create a factory
+var factory = new SlurperFactory();
+
+// Get a JSON extractor
+var jsonExtractor = factory.CreateJsonExtractor();
+
+// Extract data from a JSON string
+var data = jsonExtractor.Extract(jsonString);
+
+// Access data with dynamic property access
+string name = data.products[0].name;
+decimal price = data.products[0].price;
+
+// Query data with LINQ
+var expensiveProducts = data.products
+    .Where(p => p.price > 500)
+    .OrderBy(p => p.name)
+    .ToList();
+    
+// Serialize back to JSON with options
+var serializer = new SerializerFactory().CreateJsonSerializer&lt;dynamic&gt;();
+string json = serializer.Serialize(expensiveProducts, new SerializerOptions
+{
+    IndentOutput = true,
+    UseCamelCase = true
+});</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

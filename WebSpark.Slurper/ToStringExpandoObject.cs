@@ -53,9 +53,9 @@ public sealed class ToStringExpandoObject : DynamicObject
     /// <param name="binder">The binder providing the name of the member to set</param>
     /// <param name="value">The value to set for the member</param>
     /// <returns>True if the member was set successfully; otherwise, false</returns>
-    public override bool TrySetMember(SetMemberBinder binder, object value)
+    public override bool TrySetMember(SetMemberBinder binder, object? value)
     {
-        this.Members[binder.Name] = value;
+        this.Members[binder.Name] = value!;
         return true;
     }
 

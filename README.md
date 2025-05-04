@@ -17,6 +17,7 @@ Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurp
 - **Unified API**: Consistent interface for all supported formats
 - **Dynamic Object Support**: Access extracted data using dynamic properties
 - **No Type Declaration Required**: Use data without defining model classes first
+- **Serialization Support**: Easily serialize extracted data back to JSON including envelope formats
 - **Async Support**: All extraction methods have asynchronous versions
 - **Dependency Injection**: Full integration with .NET DI container
 - **Error Handling**: Comprehensive exception types for better error handling
@@ -352,6 +353,60 @@ var pages = htmlExtractor.Extract(html);
 var page = pages.First();
 
 Console.WriteLine($"Title: {page.html.body.div.h1}");
+```
+
+### Serialization
+
+Slurper includes robust serialization capabilities to convert your extracted data back to structured formats:
+
+```csharp
+// Create a serializer factory
+var serializerFactory = new SerializerFactory();
+
+// Get a JSON serializer for a specific type
+var serializer = serializerFactory.CreateJsonSerializer<MyModel>();
+
+// Basic serialization
+string json = serializer.Serialize(myModel);
+
+// Customize serialization options
+var options = new SerializerOptions
+{
+    IndentOutput = true,
+    IncludeNullValues = false,
+    UseCamelCase = true
+};
+string formattedJson = serializer.Serialize(myModel, options);
+
+// Use envelope serialization for API responses with metadata
+var metadata = new Dictionary<string, object>
+{
+    { "version", "1.0" },
+    { "requestId", Guid.NewGuid().ToString() }
+};
+string envelopeJson = serializer.SerializeWithEnvelope(myModel, "data-response", metadata, options);
+```
+
+### Working with Dynamic Objects and Serialization
+
+Slurper's ToStringExpandoObject can be easily serialized to JSON:
+
+```csharp
+// Extract data dynamically
+var factory = new SlurperFactory();
+var jsonExtractor = factory.CreateJsonExtractor();
+var data = jsonExtractor.Extract("{\"name\":\"John\",\"age\":30}");
+
+// Serialize dynamic data back to JSON
+string json = data.ToJson(indented: true);
+
+// Create an envelope structure with metadata
+var metadata = new Dictionary<string, object>
+{
+    { "source", "user-input" },
+    { "processedAt", DateTime.UtcNow }
+};
+string envelope = data.ToJsonEnvelope("user-data", metadata, indented: true);
 ```
 
 ### Error Handling

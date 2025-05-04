@@ -1,0 +1,238 @@
+@page "/extractors/json"
+@using WebSpark.Slurper
+@using System.Dynamic
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Slurper - JSON Extractor Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>JSON Extractor Demo</h1>
+            <p class="lead">
+                Extract data from JSON without defining model classes using Slurper's dynamic property access.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>JSON Input</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="jsonInput" class="form-label">Edit JSON:</label>
+                        <textarea id="jsonInput" class="form-control font-monospace" style="height: 400px" @bind="jsonInput" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="ExtractFromJson">
+                            <i class="bi bi-gear"></i> Extract Data
+                        </button>
+                        <button class="btn btn-secondary" @onclick="LoadSampleJson">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4>Extracted Results</h4>
+                </div>
+                <div class="card-body">
+                    @if (extractionError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@extractionError</p>
+                        </div>
+                    }
+                    else if (extractedData != null)
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">JSON Extraction Results:</label>
+                            <pre class="bg-light p-3 rounded"><code>@formattedResult</code></pre>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Access path examples:</label>
+                            <pre class="bg-light p-3 rounded"><code>@accessPath</code></pre>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Edit the JSON on the left and click "Extract Data" to see the results here.</p>
+                            <p>After extraction, you'll see:</p>
+                            <ul>
+                                <li>The extracted data structure</li>
+                                <li>Example property access paths</li>
+                            </ul>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper extracts JSON data into dynamic objects that can be navigated with simple property access.</p>
+                    <p>The code behind this demo:</p>
+                    <pre><code class="language-csharp">// Create a factory
+var factory = new SlurperFactory();
+
+// Get a JSON extractor
+var jsonExtractor = factory.CreateJsonExtractor();
+
+// Extract data from the JSON string
+var result = jsonExtractor.Extract(jsonString);
+
+// Access the extracted data using dynamic properties
+// For example, to access a product name:
+var products = result.products;
+var firstProduct = products[0];
+var name = firstProduct.name;
+var price = firstProduct.price;
+</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string jsonInput = string.Empty;
+    private dynamic? extractedData;
+    private string? extractionError;
+    private string formattedResult = string.Empty;
+    private string accessPath = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleJson();
+    }
+
+    private async Task LoadSampleJson()
+    {
+        jsonInput = await Http.GetStringAsync("sample-data/products.json");
+        extractedData = null;
+        extractionError = null;
+        formattedResult = string.Empty;
+        accessPath = string.Empty;
+    }
+
+    private void ExtractFromJson()
+    {
+        try
+        {
+            // Clear previous results
+            extractionError = null;
+            
+            // Create a factory and get JSON extractor
+            var factory = new SlurperFactory();
+            var jsonExtractor = factory.CreateJsonExtractor();
+            
+            // Extract data from JSON
+            extractedData = jsonExtractor.Extract(jsonInput);
+            
+            // Format the result for display
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            formattedResult = JsonSerializer.Serialize(extractedData, options);
+            
+            // Generate an example access path
+            GenerateAccessPathExample();
+        }
+        catch (Exception ex)
+        {
+            extractionError = $"Extraction failed: {ex.Message}";
+            extractedData = null;
+            formattedResult = string.Empty;
+            accessPath = string.Empty;
+        }
+    }
+
+    private void GenerateAccessPathExample()
+    {
+        try
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("// Example property access paths:");
+            
+            // Try to detect products structure (from our sample data)
+            if (extractedData.products != null)
+            {
+                sb.AppendLine("var products = extractedData.products;");
+                if (extractedData.products.Count > 0)
+                {
+                    sb.AppendLine("var firstProduct = products[0];");
+                    
+                    // Try to access common product properties
+                    try
+                    {
+                        if (extractedData.products[0].name != null)
+                            sb.AppendLine($"string name = firstProduct.name; // Value: \"{extractedData.products[0].name}\"");
+                    }
+                    catch { }
+                    
+                    try
+                    {
+                        if (extractedData.products[0].price != null)
+                            sb.AppendLine($"var price = firstProduct.price; // Value: {extractedData.products[0].price}");
+                    }
+                    catch { }
+                    
+                    try
+                    {
+                        if (extractedData.products[0].specs != null)
+                            sb.AppendLine($"var specs = firstProduct.specs; // Access nested object");
+                            
+                        try
+                        {
+                            if (extractedData.products[0].specs.color != null)
+                                sb.AppendLine($"string color = firstProduct.specs.color; // Value: \"{extractedData.products[0].specs.color}\"");
+                        }
+                        catch { }
+                    }
+                    catch { }
+                    
+                    try
+                    {
+                        if (extractedData.products[0].reviews != null && extractedData.products[0].reviews.Count > 0)
+                            sb.AppendLine($"var firstReview = firstProduct.reviews[0]; // Access array element");
+                    }
+                    catch { }
+                }
+            }
+            else
+            {
+                // Try to find top-level properties
+                var props = extractedData.GetType().GetProperties();
+                if (props.Length > 0)
+                {
+                    sb.AppendLine($"// Access top-level properties:");
+                    foreach (var prop in props.Take(3))
+                    {
+                        sb.AppendLine($"var {prop.Name} = extractedData.{prop.Name};");
+                    }
+                }
+            }
+            
+            accessPath = sb.ToString();
+        }
+        catch (Exception)
+        {
+            accessPath = "// Unable to generate access path examples for this structure.";
+        }
+    }
+}

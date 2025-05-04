@@ -1,0 +1,349 @@
+@page "/serialization/envelope"
+@using WebSpark.Slurper
+@using WebSpark.Slurper.Serialization
+@using System.Dynamic
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+
+<PageTitle>Slurper - Envelope Serialization Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>Envelope Serialization Demo</h1>
+            <p class="lead">
+                Wrap extracted data in standardized API response envelopes with Slurper's envelope serialization.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>Data Source</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Source Format:</label>
+                        <select class="form-select" @bind="sourceFormat">
+                            <option value="json">JSON</option>
+                            <option value="xml">XML</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputData" class="form-label">Source Data:</label>
+                        <textarea id="inputData" class="form-control font-monospace" style="height: 200px" @bind="inputData" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-secondary" @onclick="LoadSampleData">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4>Envelope Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Envelope Type:</label>
+                        <select class="form-select" @bind="envelopeType">
+                            <option value="standard">Standard Response</option>
+                            <option value="paged">Paged Response</option>
+                            <option value="custom">Custom Response</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Status:</label>
+                        <select class="form-select" @bind="responseStatus">
+                            <option value="success">Success</option>
+                            <option value="error">Error</option>
+                        </select>
+                    </div>
+                    
+                    @if (envelopeType == "paged")
+                    {
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Page Size:</label>
+                                <input type="number" class="form-control" @bind="pageSize" min="1" max="100">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Current Page:</label>
+                                <input type="number" class="form-control" @bind="currentPage" min="1" max="10">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Total Pages:</label>
+                                <input type="number" class="form-control" @bind="totalPages" min="1" max="100">
+                            </div>
+                        </div>
+                    }
+                    
+                    @if (envelopeType == "custom")
+                    {
+                        <div class="mb-3">
+                            <label for="dataPropertyName" class="form-label">Data Property Name:</label>
+                            <input type="text" class="form-control" id="dataPropertyName" @bind="dataPropertyName">
+                        </div>
+                        <div class="mb-3">
+                            <label for="customMetadata" class="form-label">Custom Metadata (JSON):</label>
+                            <textarea id="customMetadata" class="form-control font-monospace" style="height: 100px" @bind="customMetadata"></textarea>
+                        </div>
+                    }
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="CreateEnvelope">
+                            <i class="bi bi-envelope"></i> Create Envelope Response
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4>API Response</h4>
+                </div>
+                <div class="card-body">
+                    @if (processingError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@processingError</p>
+                        </div>
+                    }
+                    else if (apiResponse != null)
+                    {
+                        <pre class="bg-light p-3 rounded"><code>@apiResponse</code></pre>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Configure your envelope options and click "Create Envelope Response" to see the results.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper's envelope serialization makes it easy to wrap extracted data in standardized API response formats:</p>
+                    <pre><code class="language-csharp">// Extract data from a source
+var factory = new SlurperFactory();
+var extractor = factory.CreateJsonExtractor();
+var data = extractor.Extract(jsonString);
+
+// Create an envelope serializer
+var envelopeFactory = new EnvelopeSerializerFactory();
+var envelopeSerializer = envelopeFactory.CreateJsonEnvelopeSerializer();
+
+// Create a standard API response envelope
+var standardResponse = envelopeSerializer.CreateStandardResponse(
+    data,
+    success: true,
+    message: "Data retrieved successfully",
+    code: 200
+);
+
+// Create a paged response envelope
+var pagedResponse = envelopeSerializer.CreatePagedResponse(
+    data,
+    pageSize: 10,
+    currentPage: 1,
+    totalPages: 5,
+    totalItems: 48,
+    success: true,
+    message: "Page 1 of results"
+);
+
+// Create a custom response envelope
+var customResponse = envelopeSerializer.CreateCustomResponse(
+    data,
+    dataPropertyName: "items",
+    metadata: new
+    {
+        apiVersion = "2.0",
+        server = "api-east-1",
+        processingTimeMs = 125,
+        truncated = false
+    }
+);
+
+// The response is a regular dynamic object that can be serialized
+var json = JsonSerializer.Serialize(standardResponse, new JsonSerializerOptions
+{
+    WriteIndented = true
+});</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string inputData = string.Empty;
+    private string sourceFormat = "json";
+    private string envelopeType = "standard";
+    private string responseStatus = "success";
+    private string? apiResponse;
+    private string? processingError;
+    
+    // Paged response options
+    private int pageSize = 10;
+    private int currentPage = 1;
+    private int totalPages = 5;
+    
+    // Custom response options
+    private string dataPropertyName = "data";
+    private string customMetadata = "{\n  \"apiVersion\": \"2.0\",\n  \"server\": \"api-east-1\",\n  \"processingTimeMs\": 125\n}";
+    
+    // Create factories
+    private readonly SlurperFactory _slurperFactory = new();
+    private readonly SerializerFactory _serializerFactory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        if (sourceFormat == "json")
+        {
+            inputData = await Http.GetStringAsync("sample-data/products.json");
+        }
+        else // xml
+        {
+            inputData = await Http.GetStringAsync("sample-data/books.xml");
+        }
+        
+        apiResponse = null;
+        processingError = null;
+    }
+
+    private void CreateEnvelope()
+    {
+        try
+        {
+            // Clear previous results
+            processingError = null;
+            
+            // Extract data from the input
+            dynamic extractedData;
+            if (sourceFormat == "json")
+            {
+                var jsonExtractor = _slurperFactory.CreateJsonExtractor();
+                extractedData = jsonExtractor.Extract(inputData);
+            }
+            else // xml
+            {
+                var xmlExtractor = _slurperFactory.CreateXmlExtractor();
+                extractedData = xmlExtractor.Extract(inputData);
+            }
+            
+            // Create an envelope based on selected type
+            dynamic envelope = null;
+            var envelopeSerializer = _serializerFactory.CreateEnvelopeSerializer();
+            
+            bool success = responseStatus == "success";
+            string message = success ? "Data retrieved successfully" : "An error occurred processing the request";
+            int statusCode = success ? 200 : 400;
+            
+            switch (envelopeType)
+            {
+                case "standard":
+                    envelope = envelopeSerializer.CreateStandardResponse(
+                        extractedData,
+                        success: success,
+                        message: message,
+                        code: statusCode
+                    );
+                    break;
+                    
+                case "paged":
+                    // Calculate total items based on the data
+                    int totalItems = CalculateTotalItems(extractedData);
+                    
+                    envelope = envelopeSerializer.CreatePagedResponse(
+                        extractedData,
+                        pageSize: pageSize,
+                        currentPage: currentPage,
+                        totalPages: totalPages,
+                        totalItems: totalItems,
+                        success: success,
+                        message: $"Page {currentPage} of results"
+                    );
+                    break;
+                    
+                case "custom":
+                    // Parse custom metadata
+                    dynamic metadata = null;
+                    try
+                    {
+                        metadata = JsonSerializer.Deserialize<dynamic>(customMetadata);
+                    }
+                    catch
+                    {
+                        metadata = new ExpandoObject();
+                    }
+                    
+                    envelope = envelopeSerializer.CreateCustomResponse(
+                        extractedData,
+                        dataPropertyName: dataPropertyName,
+                        metadata: metadata
+                    );
+                    break;
+            }
+            
+            // Serialize the envelope to JSON
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            apiResponse = JsonSerializer.Serialize(envelope, options);
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Envelope creation failed: {ex.Message}";
+            apiResponse = null;
+        }
+    }
+    
+    private int CalculateTotalItems(dynamic data)
+    {
+        try
+        {
+            // Try to determine the total number of items in the data
+            // This is a simplified implementation that works with our sample data
+            if (sourceFormat == "json" && data.products != null)
+            {
+                return data.products.Count;
+            }
+            else if (sourceFormat == "xml" && data.bookstore != null && data.bookstore.bookList != null)
+            {
+                return data.bookstore.bookList.Count;
+            }
+            
+            // Default fallback
+            return pageSize * totalPages;
+        }
+        catch
+        {
+            return pageSize * totalPages;
+        }
+    }
+}

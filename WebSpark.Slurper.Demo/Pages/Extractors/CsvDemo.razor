@@ -1,0 +1,462 @@
+@page "/extractors/csv"
+@using WebSpark.Slurper
+@using System.Dynamic
+@using System.Text.Json
+@inject HttpClient Http
+
+<PageTitle>Slurper - CSV Extractor Demo</PageTitle>
+
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h1>CSV Extractor Demo</h1>
+            <p class="lead">
+                Extract and work with CSV data without defining model classes using Slurper's dynamic CSV extractor.
+            </p>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4>CSV Input</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="csvInput" class="form-label">CSV Data:</label>
+                        <textarea id="csvInput" class="form-control font-monospace" style="height: 250px"
+                            @bind="csvInput" @bind:event="oninput"></textarea>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-secondary" @onclick="LoadSampleData">
+                            <i class="bi bi-arrow-counterclockwise"></i> Load Sample Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header bg-success text-white">
+                    <h4>Extraction Options</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="hasHeaderRow" @bind="hasHeaderRow">
+                            <label class="form-check-label" for="hasHeaderRow">Use First Row as Headers</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="separator" class="form-label">Separator Character:</label>
+                        <select id="separator" class="form-select" @bind="separator">
+                            <option value=",">Comma (,)</option>
+                            <option value=";">Semicolon (;)</option>
+                            <option value="\t">Tab</option>
+                            <option value="|">Pipe (|)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="customHeaders" class="form-label">Custom Headers (comma separated, if not using
+                            header row):</label>
+                        <input type="text" class="form-control" id="customHeaders" @bind="customHeaders"
+                            placeholder="column1,column2,column3,...">
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="trimValues" @bind="trimValues">
+                            <label class="form-check-label" for="trimValues">Trim Whitespace</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="skipEmptyLines" @bind="skipEmptyLines">
+                            <label class="form-check-label" for="skipEmptyLines">Skip Empty Lines</label>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" @onclick="ExtractData">
+                            <i class="bi bi-gear"></i> Extract Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "table" ? "active" : "")"
+                                @onclick='() => activeTab = "table"'>
+                                Table View
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "json" ? "active" : "")"
+                                @onclick='() => activeTab = "json"'>
+                                JSON Result
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link @(activeTab == "query" ? "active" : "")"
+                                @onclick='() => activeTab = "query"'>
+                                Query Example
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    @if (processingError != null)
+                    {
+                        <div class="alert alert-danger">
+                            <h5>Error:</h5>
+                            <p>@processingError</p>
+                        </div>
+                    }
+                    else if (extractedData != null)
+                    {
+                        @if (activeTab == "table")
+                        {
+                            <div class="table-responsive">
+                                @if (headers != null && headers.Count > 0)
+                                {
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                @foreach (var header in headers)
+                                                {
+                                                    <th>@header</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @for (int i = 0; i < Math.Min(extractedData.Count, 10); i++)
+                                            {
+                                                var row = extractedData[i];
+                                                <tr>
+                                                    @foreach (var header in headers)
+                                                    {
+                                                        <td>@GetDynamicProperty(row, header)</td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+
+                                    @if (extractedData.Count > 10)
+                                    {
+                                        <div class="alert alert-info">
+                                            Showing 10 of @extractedData.Count rows.
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-warning">
+                                        No data to display or headers not defined.
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else if (activeTab == "json")
+                        {
+                            <pre class="bg-light p-3 rounded"><code>@json</code></pre>
+                        }
+                        else if (activeTab == "query")
+                        {
+                            <div class="mb-4">
+                                <p>With Slurper, you can easily query extracted CSV data using LINQ:</p>
+                                <pre class="bg-light p-3 rounded"><code>// Filter employees with salary > $75,000 and order by department
+        var highPaidEmployees = data
+            .Where(e => Convert.ToDecimal(e.salary) > 75000)
+            .OrderBy(e => e.department)
+            .ThenByDescending(e => Convert.ToDecimal(e.salary))
+            .ToList();
+
+        // Get average salary by department
+        var departmentAverages = data
+            .GroupBy(e => e.department)
+            .Select(g => new {
+                Department = g.Key,
+                AverageSalary = g.Average(e => Convert.ToDecimal(e.salary))
+            })
+            .OrderByDescending(x => x.AverageSalary)
+            .ToList();</code></pre>
+                            </div>
+
+                            @if (queryResult != null)
+                            {
+                                <div>
+                                    <h5>Query Result:</h5>
+                                    <pre class="bg-light p-3 rounded"><code>@queryResult</code></pre>
+                                </div>
+                            }
+
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" @onclick="RunSampleQuery">
+                                    <i class="bi bi-play"></i> Run Sample Query
+                                </button>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <p>Configure your extraction options and click "Extract Data" to see the results.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4>How It Works</h4>
+                </div>
+                <div class="card-body">
+                    <p>Slurper makes it easy to work with CSV data without defining model classes:</p>
+                    <pre><code class="language-csharp">// Create a factory and CSV extractor
+var factory = new SlurperFactory();
+var csvExtractor = factory.CreateCsvExtractor();
+
+// Configure extraction options
+var options = new CsvExtractorOptions
+{
+    HasHeaderRow = true,
+    Separator = ',',
+    TrimValues = true,
+    SkipEmptyLines = true
+};
+
+// Extract data from a CSV string
+var data = csvExtractor.Extract(csvString, options);
+
+// Access fields using property names (from header row)
+foreach (var row in data)
+{
+    string name = row.name;
+    string email = row.email;
+    string department = row.department;
+    decimal salary = Convert.ToDecimal(row.salary);
+    
+    // Do something with the data...
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string csvInput = string.Empty;
+    private string separator = ",";
+    private bool hasHeaderRow = true;
+    private bool trimValues = true;
+    private bool skipEmptyLines = true;
+    private string customHeaders = "";
+    private dynamic? extractedData;
+    private List<string> headers = new();
+    private string? processingError;
+    private string json = string.Empty;
+    private string activeTab = "table";
+    private string? queryResult;
+
+    // Create factory
+    private readonly SlurperFactory _slurperFactory = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSampleData();
+    }
+
+    private async Task LoadSampleData()
+    {
+        try
+        {
+            csvInput = await Http.GetStringAsync("sample-data/employees.csv");
+            hasHeaderRow = true;
+            separator = ",";
+            customHeaders = "";
+            extractedData = null;
+            processingError = null;
+            json = string.Empty;
+            queryResult = null;
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Failed to load sample data: {ex.Message}";
+        }
+    }
+
+    private void ExtractData()
+    {
+        try
+        {
+            // Clear previous results
+            processingError = null;
+
+            // Split custom headers if provided
+            List<string>? headersList = null;
+            if (!hasHeaderRow && !string.IsNullOrWhiteSpace(customHeaders))
+            {
+                headersList = customHeaders.Split(',').Select(h => h.Trim()).ToList();
+            }
+
+            // Configure extraction options
+            var options = new CsvExtractorOptions
+            {
+                HasHeaderRow = hasHeaderRow,
+                Separator = separator[0], // First character of the separator string
+                CustomHeaders = headersList,
+                TrimValues = trimValues,
+                SkipEmptyLines = skipEmptyLines
+            };
+
+            // Extract data from CSV
+            var csvExtractor = _slurperFactory.CreateCsvExtractor();
+            // Use helper method to handle options type conversion
+            extractedData = SlurperHelper.Extract(csvExtractor, csvInput, options);
+
+            // Get headers (either from first row or custom headers)
+            headers = hasHeaderRow
+            ? GetDynamicPropertyNames(extractedData.FirstOrDefault())
+            : (headersList ?? new List<string>());
+
+            // Convert to JSON for display
+            var options2 = new JsonSerializerOptions { WriteIndented = true };
+            json = JsonSerializer.Serialize(extractedData, options2);
+
+        }
+        catch (Exception ex)
+        {
+            processingError = $"Extraction failed: {ex.Message}";
+            extractedData = null;
+            json = string.Empty;
+        }
+    }
+
+    private void RunSampleQuery()
+    {
+        try
+        {
+            if (extractedData == null || extractedData.Count == 0)
+            {
+                queryResult = "No data available. Extract data first.";
+                return;
+            }
+
+            // Run a sample LINQ query on the extracted data
+            // Get average salary by department
+            var data = extractedData as IEnumerable<dynamic>;
+            if (data == null)
+            {
+                queryResult = "Failed to process data.";
+                return;
+            }
+
+            // Create a list to store our results
+            var departmentAverages = new List<object>();
+
+            // Group data by department manually
+            var departments = new Dictionary<string, List<dynamic>>();
+            foreach (var item in data)
+            {
+                var dept = GetDynamicProperty(item, "department");
+                if (!departments.ContainsKey(dept))
+                {
+                    departments[dept] = new List<dynamic>();
+                }
+                departments[dept].Add(item);
+            }
+
+            // Calculate averages
+            foreach (var dept in departments)
+            {
+                decimal sum = 0;
+                int count = 0;
+
+                foreach (var employee in dept.Value)
+                {
+                    if (decimal.TryParse(GetDynamicProperty(employee, "salary"), out decimal salary))
+                    {
+                        sum += salary;
+                        count++;
+                    }
+                }
+
+                departmentAverages.Add(new
+                {
+                    Department = dept.Key,
+                    AverageSalary = count > 0 ? sum / count : 0
+                });
+            }
+
+            // Sort by average salary descending
+            departmentAverages = departmentAverages
+            .OrderByDescending(x => ((dynamic)x).AverageSalary)
+            .ToList();
+
+            // Format the result as JSON for display
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            queryResult = JsonSerializer.Serialize(departmentAverages, options);
+        }
+        catch (Exception ex)
+        {
+            queryResult = $"Query failed: {ex.Message}";
+        }
+    }
+
+    // Helper method to get property from dynamic object by name
+    private string GetDynamicProperty(dynamic obj, string propertyName)
+    {
+        try
+        {
+            if (obj == null) return "";
+
+            // Try to access the property using reflection
+            var dictionary = obj as IDictionary<string, object>;
+            if (dictionary != null && dictionary.ContainsKey(propertyName))
+            {
+                var value = dictionary[propertyName];
+                return value?.ToString() ?? "";
+            }
+
+            return "";
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    // Helper method to get all property names from a dynamic object
+    private List<string> GetDynamicPropertyNames(dynamic obj)
+    {
+        var result = new List<string>();
+
+        if (obj == null) return result;
+
+        // Try to get property names using reflection
+        var dictionary = obj as IDictionary<string, object>;
+        if (dictionary != null)
+        {
+            result.AddRange(dictionary.Keys);
+        }
+
+        return result;
+    }
+}
+    
+
+                                
+                            

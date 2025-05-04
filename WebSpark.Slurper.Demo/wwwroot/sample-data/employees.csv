@@ -1,0 +1,11 @@
+id,first_name,last_name,email,department,salary,hire_date,is_manager
+1,John,Smith,john.smith@example.com,Engineering,85000,2023-03-15,false
+2,Emily,Johnson,emily.johnson@example.com,Marketing,72000,2023-05-22,false
+3,Michael,Williams,michael.williams@example.com,Sales,78000,2022-11-08,true
+4,Jessica,Brown,jessica.brown@example.com,Human Resources,65000,2024-01-10,false
+5,David,Jones,david.jones@example.com,Engineering,92000,2022-08-01,true
+6,Sarah,Miller,sarah.miller@example.com,Finance,88000,2023-09-15,false
+7,Robert,Davis,robert.davis@example.com,Marketing,71000,2024-02-18,false
+8,Jennifer,Garcia,jennifer.garcia@example.com,Engineering,83000,2023-04-05,false
+9,William,Rodriguez,william.rodriguez@example.com,Sales,76000,2023-07-20,false
+10,Elizabeth,Martinez,elizabeth.martinez@example.com,Finance,94000,2022-06-12,true
