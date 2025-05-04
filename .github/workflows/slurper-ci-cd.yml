@@ -1,9 +1,11 @@
-name: Publish NuGet Package
+name: WebSpark.Slurper CI/CD
 
 on:
   push:
     branches: [ main ]
     tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       forceVersion:
@@ -12,8 +14,8 @@ on:
         type: string
 
 jobs:
-  build-and-publish:
-    name: Build and Publish
+  build-and-test:
+    name: Build and Test
     runs-on: ubuntu-latest
     
     steps:
@@ -41,11 +43,13 @@ jobs:
       
       - name: Display GitVersion outputs
         run: |
-          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
-          echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
           echo "Major: ${{ steps.gitversion.outputs.major }}"
           echo "Minor: ${{ steps.gitversion.outputs.minor }}"
           echo "Patch: ${{ steps.gitversion.outputs.patch }}"
+          echo "SemVer: ${{ steps.gitversion.outputs.semVer }}"
+          echo "FullSemVer: ${{ steps.gitversion.outputs.fullSemVer }}"
+          echo "NuGetVersion: ${{ steps.gitversion.outputs.nuGetVersion }}"
+          echo "NuGetVersionV2: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
       
       - name: Set Version
         id: setversion
@@ -62,13 +66,72 @@ jobs:
         run: dotnet restore
       
       - name: Build
-        run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }}
+        run: dotnet build --configuration Release --no-restore /p:Version=${{ env.VERSION }} /p:PackageVersion=${{ env.VERSION }}
       
       - name: Test
         run: dotnet test --configuration Release --no-build --verbosity normal
       
       - name: Pack
-        run: dotnet pack WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release --no-build --output nupkgs /p:Version=${{ env.VERSION }}
+        run: dotnet pack WebSpark.Slurper/WebSpark.Slurper.csproj --configuration Release --no-build --output nupkgs /p:Version=${{ env.VERSION }} /p:PackageVersion=${{ env.VERSION }}
+      
+      # List output directories for debugging
+      - name: List generated packages
+        run: ls -la nupkgs/
+      
+      # Upload artifacts for use in other jobs
+      - name: Upload NuGet packages as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nuget-packages
+          path: nupkgs/*.nupkg
+          retention-days: 7
+
+  publish:
+    name: Publish Packages
+    needs: build-and-test
+    # Only run on main branch or tags, not on PRs
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      # Get GitVersion again to ensure we have the version info in this job
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.10.2
+        with:
+          versionSpec: '5.x'
+          
+      - name: Determine Version
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.10.2
+        with:
+          useConfigFile: true
+          configFilePath: './GitVersion.json'
+      
+      - name: Set Version
+        id: setversion
+        run: |
+          if [ "${{ github.event.inputs.forceVersion }}" != "" ]; then
+            echo "VERSION=${{ github.event.inputs.forceVersion }}" >> $GITHUB_ENV
+            echo "Using manually provided version: ${{ github.event.inputs.forceVersion }}"
+          else
+            echo "VERSION=${{ steps.gitversion.outputs.nuGetVersionV2 }}" >> $GITHUB_ENV
+            echo "Using GitVersion generated version: ${{ steps.gitversion.outputs.nuGetVersionV2 }}"
+          fi
+      
+      # Download artifacts from build job
+      - name: Download NuGet packages
+        uses: actions/download-artifact@v3
+        with:
+          name: nuget-packages
+          path: nupkgs
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
       
       - name: Push to NuGet.org
         run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
@@ -76,10 +139,11 @@ jobs:
       - name: Push to GitHub Packages
         run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json --skip-duplicate
       
-      - name: Create Release
+      - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
+        # Only create release when a tag is pushed
         if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -91,10 +155,11 @@ jobs:
             WebSpark.Slurper ${{ env.VERSION }}
             
             [Package on NuGet.org](https://www.nuget.org/packages/WebSpark.Slurper/${{ env.VERSION }})
+            [Package on GitHub Packages](https://github.com/${{ github.repository }}/packages)
             
             ## Changes in this release
             <!-- Add your release notes here or leave blank to use the commit messages -->
-            
+      
       - name: Upload Release Asset
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/upload-release-asset@v1
