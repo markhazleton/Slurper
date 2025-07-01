@@ -1,10 +1,9 @@
-using System.Diagnostics;
-using System.Dynamic;
-using System.Collections;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CSharp.RuntimeBinder;
 using SlurperDemo.Web.Models;
+using System.Collections;
+using System.Diagnostics;
+using System.Text.Json;
 using WebSpark.Slurper;
 using WebSpark.Slurper.Extractors;
 

@@ -13,6 +13,18 @@
             <p class="lead">This demo demonstrates extracting book data from an HTML file using WebSpark.Slurper's HTML
                 extractor.</p>
 
+            @if (ViewBag.RawHtmlContent != null)
+            {
+                <div class="mb-3">
+                    <h6>Raw HTML Content Being Processed:</h6>
+                    <details>
+                        <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw HTML</summary>
+                        <pre class="bg-light p-3 mt-2"
+                            style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawHtmlContent</code></pre>
+                    </details>
+                </div>
+            }
+
             @if (ViewBag.Success)
             {
                 <div class="alert alert-success">
@@ -42,4 +54,3 @@
         <a asp-action="Index" class="btn btn-primary">Back to Demo List</a>
     </div>
 </div>
-               

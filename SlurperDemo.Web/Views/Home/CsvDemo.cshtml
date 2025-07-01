@@ -13,6 +13,18 @@
             <p class="lead">This demo demonstrates extracting book data from a CSV file using WebSpark.Slurper's CSV
                 extractor.</p>
 
+            @if (ViewBag.RawCsvContent != null)
+            {
+                <div class="mb-3">
+                    <h6>Raw CSV Content Being Processed:</h6>
+                    <details>
+                        <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw CSV</summary>
+                        <pre class="bg-light p-3 mt-2"
+                            style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawCsvContent</code></pre>
+                    </details>
+                </div>
+            }
+
             @if (ViewBag.Success)
             {
                 <div class="alert alert-success">
@@ -42,4 +54,3 @@
         <a asp-action="Index" class="btn btn-primary">Back to Demo List</a>
     </div>
 </div>
-               

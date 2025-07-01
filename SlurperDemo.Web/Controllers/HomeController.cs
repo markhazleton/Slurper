@@ -1,10 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Dynamic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CSharp.RuntimeBinder;
 using SlurperDemo.Web.Models;
+using System.Collections;
+using System.Diagnostics;
+using System.Dynamic;
 using WebSpark.Slurper;
 using WebSpark.Slurper.Extractors;
 
@@ -45,6 +44,13 @@ public class HomeController : Controller
         try
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.xml");
+
+            // Read and store raw XML content for display
+            if (System.IO.File.Exists(filePath))
+            {
+                ViewBag.RawXmlContent = System.IO.File.ReadAllText(filePath);
+            }
+
             var books = _xmlExtractor.ExtractFromFile(filePath);
             // Use dynamic to handle dynamic properties
             dynamic firstBook = books.First();
@@ -69,6 +75,13 @@ public class HomeController : Controller
         try
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "books.csv");
+
+            // Read and store raw CSV content for display
+            if (System.IO.File.Exists(filePath))
+            {
+                ViewBag.RawCsvContent = System.IO.File.ReadAllText(filePath);
+            }
+
             var books = _csvExtractor.ExtractFromFile(filePath);
             ViewBag.BookList = books;
             ViewBag.Success = true;
@@ -89,6 +102,13 @@ public class HomeController : Controller
         try
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "books.html");
+
+            // Read and store raw HTML content for display
+            if (System.IO.File.Exists(filePath))
+            {
+                ViewBag.RawHtmlContent = System.IO.File.ReadAllText(filePath);
+            }
+
             var books = _htmlExtractor.ExtractFromFile(filePath);
 
             // Create a proper List<dynamic> that's safely enumerable by the view
@@ -328,5 +348,94 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    public IActionResult LegacyDemo()
+    {
+        try
+        {
+            var xmlFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.xml");
+            var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.json");
+
+            // Demonstrate legacy XmlSlurper static method
+            dynamic? xmlResult = null;
+            if (System.IO.File.Exists(xmlFilePath))
+            {
+                // Read and store raw XML content for display
+                ViewBag.RawXmlContent = System.IO.File.ReadAllText(xmlFilePath);
+
+                xmlResult = XmlSlurper.ParseFile(xmlFilePath);
+                // XML structure: The root <catalog> element becomes the object itself
+                // Multiple <book> elements become "bookList" property directly on the root
+                ViewBag.XmlBooks = xmlResult?.bookList;
+
+                // For debugging: show the structure if books are null
+                if (ViewBag.XmlBooks == null && xmlResult != null)
+                {
+                    ViewBag.XmlStructure = SerializeExpandoObject(xmlResult);
+                }
+            }
+
+            // Demonstrate legacy JsonSlurper static method
+            dynamic? jsonResult = null;
+            if (System.IO.File.Exists(jsonFilePath))
+            {
+                // Read and store raw JSON content for display
+                ViewBag.RawJsonContent = System.IO.File.ReadAllText(jsonFilePath);
+
+                jsonResult = JsonSlurper.ParseFile(jsonFilePath);
+
+                // Debug: Let's see what the actual structure is
+                ViewBag.JsonStructure = SerializeExpandoObject(jsonResult);
+
+                // Try multiple possible paths based on how JsonSlurper might structure the data
+                ViewBag.JsonBooks = null;
+
+                try
+                {
+                    // Option 1: catalog.book (direct array)
+                    if (jsonResult?.catalog?.book != null)
+                    {
+                        ViewBag.JsonBooks = jsonResult.catalog.book;
+                    }
+                    // Option 2: catalog.bookList (array with List suffix)
+                    else if (jsonResult?.catalog?.bookList != null)
+                    {
+                        ViewBag.JsonBooks = jsonResult.catalog.bookList;
+                    }
+                    // Option 3: Just catalog (if catalog itself contains the books)
+                    else if (jsonResult?.catalog != null)
+                    {
+                        ViewBag.JsonBooks = jsonResult.catalog;
+                    }
+                    // Option 4: Root level books
+                    else if (jsonResult?.book != null)
+                    {
+                        ViewBag.JsonBooks = jsonResult.book;
+                    }
+                    else if (jsonResult?.bookList != null)
+                    {
+                        ViewBag.JsonBooks = jsonResult.bookList;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error accessing JSON structure");
+                }
+            }
+
+            ViewBag.Success = true;
+            ViewBag.Message = "Successfully demonstrated legacy static methods";
+            ViewBag.XmlFileExists = System.IO.File.Exists(xmlFilePath);
+            ViewBag.JsonFileExists = System.IO.File.Exists(jsonFilePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in Legacy Demo");
+            ViewBag.Success = false;
+            ViewBag.Message = $"Error: {ex.Message}";
+        }
+
+        return View();
     }
 }

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Xunit;
 using WebSpark.Slurper.Serializers;
+using Xunit;
 
 namespace WebSpark.Slurper.Tests.Serializers
 {

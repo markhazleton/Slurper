@@ -211,7 +211,7 @@ namespace WebSpark.Slurper.Extractors
                     // Try to auto-detect and convert value types if needed
                     object convertedValue = ConvertValueType(value);
 
-                    ((IDictionary<string, object>)row.Members).Add(headers[j], convertedValue);
+                    (row.Members).Add(headers[j], convertedValue);
                 }
 
                 return true;
