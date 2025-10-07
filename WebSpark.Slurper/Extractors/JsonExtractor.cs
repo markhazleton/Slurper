@@ -2,12 +2,12 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using WebSpark.Slurper.Configuration;
 using WebSpark.Slurper.Exceptions;
+using WebSpark.Slurper.Services;
+using WebSpark.Slurper.Utilities;
 
 namespace WebSpark.Slurper.Extractors
 {
@@ -17,10 +17,10 @@ namespace WebSpark.Slurper.Extractors
     public class JsonExtractor : IJsonExtractor
     {
         private readonly ILogger _logger;
-        private static readonly Lazy<HttpClient> _lazyHttpClient = new Lazy<HttpClient>(() => CreateHttpClient());
+        private readonly IHttpClientService _httpClientService;
 
-        // Use this HTTP client property instead of the static field directly
-        private static HttpClient HttpClient => _lazyHttpClient.Value;
+        // Constants for configuration
+        private const int LargeFileSizeThreshold = 1024 * 1024; // 1MB
 
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonExtractor"/> class
@@ -38,12 +38,15 @@ namespace WebSpark.Slurper.Extractors
             _logger = logger;
         }
 
-        private static HttpClient CreateHttpClient()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonExtractor"/> class
+        /// </summary>
+        /// <param name="httpClientService">The HTTP client service to use</param>
+        /// <param name="logger">The logger to use</param>
+        public JsonExtractor(IHttpClientService httpClientService, ILogger logger = null)
         {
-            var client = new HttpClient();
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Slurper", "1.0"));
-            return client;
+            _httpClientService = httpClientService ?? throw new ArgumentNullException(nameof(httpClientService));
+            _logger = logger;
         }
 
         /// <inheritdoc/>
@@ -51,6 +54,8 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateSourceContent(source, nameof(source));
+                
                 _logger?.LogInformation("Extracting JSON data from source");
                 var result = new List<ToStringExpandoObject> { JsonSlurper.ParseText(source, options) };
                 _logger?.LogInformation("Successfully extracted JSON data");
@@ -69,14 +74,9 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateFileExists(filePath, nameof(filePath));
+                
                 _logger?.LogInformation("Extracting JSON data from file: {FilePath}", filePath);
-
-                if (!File.Exists(filePath))
-                {
-                    var ex = new FileNotFoundException($"JSON file not found: {filePath}", filePath);
-                    _logger?.LogError(ex, "JSON file not found: {FilePath}", filePath);
-                    throw new DataExtractionException($"JSON file not found: {filePath}", ex);
-                }
 
                 var result = new List<ToStringExpandoObject> { JsonSlurper.ParseFile(filePath, options) };
                 _logger?.LogInformation("Successfully extracted JSON data from file");
@@ -94,22 +94,14 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateUrl(url, nameof(url));
+                
                 _logger?.LogInformation("Extracting JSON data from URL: {Url}", url);
 
-                // Configure HTTP client timeout from options
-                int timeoutMs = options?.HttpTimeoutMilliseconds ?? 30000;
-                using var cts = new CancellationTokenSource(timeoutMs);
-
-                string content = HttpRequest(url, options, cts.Token).GetAwaiter().GetResult();
-                var result = Extract(content, options);
-                _logger?.LogInformation("Successfully extracted JSON data from URL");
-                return result;
-            }
-            catch (TaskCanceledException ex)
-            {
-                string message = $"Request to URL timed out: {url}";
-                _logger?.LogError(ex, message);
-                throw new DataExtractionException(message, ex);
+                // For sync methods, we need to call the async version and wait
+                // This is not ideal but maintains backward compatibility
+                var task = ExtractFromUrlAsync(url, options);
+                return task.GetAwaiter().GetResult();
             }
             catch (Exception ex) when (ex is not SlurperException)
             {
@@ -124,6 +116,8 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateSourceContent(source, nameof(source));
+                
                 _logger?.LogInformation("Asynchronously extracting JSON data from source");
                 var result = await Task.Run(() => new List<ToStringExpandoObject> {
                     JsonSlurper.ParseText(source, options)
@@ -144,17 +138,12 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateFileExists(filePath, nameof(filePath));
+                
                 _logger?.LogInformation("Asynchronously extracting JSON data from file: {FilePath}", filePath);
 
-                if (!File.Exists(filePath))
-                {
-                    var ex = new FileNotFoundException($"JSON file not found: {filePath}", filePath);
-                    _logger?.LogError(ex, "JSON file not found: {FilePath}", filePath);
-                    throw new DataExtractionException($"JSON file not found: {filePath}", ex);
-                }
-
                 // Use streaming for large files if enabled
-                if (options?.UseStreaming == true && new FileInfo(filePath).Length > 1024 * 1024) // > 1MB
+                if (options?.UseStreaming == true && new FileInfo(filePath).Length > LargeFileSizeThreshold)
                 {
                     _logger?.LogInformation("Using streaming for large file: {FilePath}", filePath);
                     return await ExtractFromFileStreamingAsync(filePath, options);
@@ -177,13 +166,15 @@ namespace WebSpark.Slurper.Extractors
         {
             try
             {
+                InputValidator.ValidateUrl(url, nameof(url));
+                
                 _logger?.LogInformation("Asynchronously extracting JSON data from URL: {Url}", url);
 
                 // Configure HTTP client timeout from options
                 int timeoutMs = options?.HttpTimeoutMilliseconds ?? 30000;
                 using var cts = new CancellationTokenSource(timeoutMs);
 
-                string content = await HttpRequest(url, options, cts.Token);
+                string content = await GetContentFromUrlAsync(url, options, cts.Token);
                 var result = await ExtractAsync(content, options);
                 _logger?.LogInformation("Successfully extracted JSON data from URL asynchronously");
                 return result;
@@ -202,56 +193,22 @@ namespace WebSpark.Slurper.Extractors
             }
         }
 
-        private async Task<string> HttpRequest(string url, SlurperOptions options, CancellationToken cancellationToken)
+        private async Task<string> GetContentFromUrlAsync(string url, SlurperOptions options, CancellationToken cancellationToken)
         {
-            // Apply retry logic if enabled
-            bool useRetry = options?.ExtractorOptions?.TryGetValue("UseRetry", out var retryObj) == true &&
-                           retryObj is bool retryEnabled && retryEnabled;
-
-            if (!useRetry)
+            if (_httpClientService != null)
             {
-                // Simple request without retry
-                return await HttpClient.GetStringAsync(url, cancellationToken);
+                return await _httpClientService.GetStringAsync(url, options, cancellationToken);
             }
 
-            // Default retry parameters
-            int maxRetries = options?.ExtractorOptions?.TryGetValue("MaxRetries", out var retriesObj) == true &&
-                            retriesObj is int retriesVal ? retriesVal : 3;
-            int baseDelayMs = options?.ExtractorOptions?.TryGetValue("RetryBaseDelayMs", out var delayObj) == true &&
-                             delayObj is int delayVal ? delayVal : 1000;
-
-            // Retry with exponential backoff
-            int attempt = 0;
-            Exception lastException = null;
-
-            while (attempt < maxRetries)
-            {
-                try
-                {
-                    return await HttpClient.GetStringAsync(url, cancellationToken);
-                }
-                catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
-                {
-                    attempt++;
-                    lastException = ex;
-
-                    if (attempt >= maxRetries)
-                        break;
-
-                    // Exponential backoff with jitter
-                    int delayMs = (int)(baseDelayMs * Math.Pow(2, attempt - 1));
-                    Random jitter = new Random();
-                    int jitterMs = jitter.Next(0, 100);
-                    int totalDelayMs = delayMs + jitterMs;
-
-                    _logger?.LogWarning(ex, "HTTP request failed (attempt {Attempt}/{MaxRetries}), retrying in {DelayMs}ms: {Url}",
-                        attempt, maxRetries, totalDelayMs, url);
-
-                    await Task.Delay(totalDelayMs, cancellationToken);
-                }
-            }
-
-            throw lastException ?? new HttpRequestException($"Failed to retrieve data from URL after {maxRetries} attempts");
+            // Fallback for backward compatibility when no HttpClientService is injected
+            // This should be deprecated in future versions
+            _logger?.LogWarning("Using fallback HTTP client. Consider injecting IHttpClientService for better performance and lifecycle management.");
+            
+            using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("Slurper", "3.3.0"));
+            
+            return await httpClient.GetStringAsync(url, cancellationToken);
         }
 
         private async Task<IEnumerable<ToStringExpandoObject>> ExtractFromFileStreamingAsync(string filePath, SlurperOptions options)

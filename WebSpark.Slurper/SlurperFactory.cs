@@ -5,6 +5,7 @@ using WebSpark.Slurper.Configuration;
 using WebSpark.Slurper.Exceptions;
 using WebSpark.Slurper.Extensions;
 using WebSpark.Slurper.Extractors;
+using WebSpark.Slurper.Services;
 
 namespace WebSpark.Slurper
 {
@@ -14,6 +15,7 @@ namespace WebSpark.Slurper
     public class SlurperFactory : ISlurperFactory
     {
         private readonly ILoggerFactory _loggerFactory;
+        private readonly IHttpClientService _httpClientService;
         private readonly List<ISlurperPlugin> _plugins = new List<ISlurperPlugin>();
 
         /// <summary>
@@ -32,6 +34,17 @@ namespace WebSpark.Slurper
             _loggerFactory = loggerFactory;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SlurperFactory"/> class with logger factory and HTTP client service
+        /// </summary>
+        /// <param name="loggerFactory">The logger factory to use for creating loggers</param>
+        /// <param name="httpClientService">The HTTP client service to use for HTTP operations</param>
+        public SlurperFactory(ILoggerFactory loggerFactory, IHttpClientService httpClientService)
+        {
+            _loggerFactory = loggerFactory;
+            _httpClientService = httpClientService;
+        }
+
         /// <inheritdoc/>
         public IXmlExtractor CreateXmlExtractor()
         {
@@ -43,9 +56,18 @@ namespace WebSpark.Slurper
         /// <inheritdoc/>
         public IJsonExtractor CreateJsonExtractor()
         {
-            return _loggerFactory != null
-                ? new JsonExtractor(_loggerFactory.CreateLogger<JsonExtractor>())
-                : new JsonExtractor();
+            if (_loggerFactory != null && _httpClientService != null)
+            {
+                return new JsonExtractor(_httpClientService, _loggerFactory.CreateLogger<JsonExtractor>());
+            }
+            else if (_loggerFactory != null)
+            {
+                return new JsonExtractor(_loggerFactory.CreateLogger<JsonExtractor>());
+            }
+            else
+            {
+                return new JsonExtractor();
+            }
         }
 
         /// <inheritdoc/>

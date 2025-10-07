@@ -43,6 +43,9 @@ public static class JsonSlurper
     /// </summary>
     public static bool SanitizePropertyNames { get; set; } = true;
 
+    // Constants
+    private const int LargeFileSizeThreshold = 1024 * 1024; // 1MB
+
     /// <summary>
     /// Parses the given json file and returns a <c>System.Dynamic.ToStringExpandoObject</c>.
     /// </summary>
@@ -66,7 +69,7 @@ public static class JsonSlurper
             {
                 var fileInfo = new FileInfo(path);
                 // If file is large, use streaming approach
-                if (fileInfo.Length > 1024 * 1024) // Greater than 1MB
+                if (fileInfo.Length > LargeFileSizeThreshold)
                 {
                     return ParseFileWithStreaming(path, options);
                 }
@@ -221,26 +224,31 @@ public static class JsonSlurper
         // Handle top-level arrays
         if (root.ValueKind == JsonValueKind.Array)
         {
-            var items = new List<ToStringExpandoObject>();
-
-            foreach (var element in root.EnumerateArray())
-            {
-                var item = new ToStringExpandoObject();
-                AddRecursive(item, element, 0, options);
-                items.Add(item);
-            }
-
-            // Create a property named "items" for the array elements
-            result.Members["items"] = items;
-
-            // Also add a List property for backwards compatibility with existing tests
-            result.Members["List"] = items;
-
-            return result;
+            return ProcessArrayRootElement(root, options, result);
         }
 
         // Handle regular objects
         return AddRecursive(result, root, 0, options);
+    }
+
+    private static dynamic ProcessArrayRootElement(JsonElement root, SlurperOptions options, ToStringExpandoObject result)
+    {
+        var items = new List<ToStringExpandoObject>();
+
+        foreach (var element in root.EnumerateArray())
+        {
+            var item = new ToStringExpandoObject();
+            AddRecursive(item, element, 0, options);
+            items.Add(item);
+        }
+
+        // Create a property named "items" for the array elements
+        result.Members["items"] = items;
+
+        // Also add a List property for backwards compatibility with existing tests
+        result.Members["List"] = items;
+
+        return result;
     }
 
     private static JsonDocumentOptions GetJsonDocumentOptions(SlurperOptions options)
@@ -257,7 +265,27 @@ public static class JsonSlurper
 
     private static dynamic AddRecursive(ToStringExpandoObject parent, object obj, int depth = 0, SlurperOptions options = null)
     {
-        // Prevent stack overflow with deep nesting
+        // Validate depth to prevent stack overflow
+        ValidateParsingDepth(depth, options);
+
+        // Process the object based on its type and handle primitive values early
+        object jsonObj = ProcessObjectByType(parent, obj, options);
+        if (jsonObj == null)
+        {
+            return parent;
+        }
+
+        // Extract child properties from the JSON object
+        var propertiesList = ExtractChildProperties(jsonObj, obj, options);
+        
+        // Group properties and create the dynamic object structure
+        ProcessPropertyGroups(parent, propertiesList, depth, options);
+
+        return parent;
+    }
+
+    private static void ValidateParsingDepth(int depth, SlurperOptions options)
+    {
         int maxDepth = options?.ExtractorOptions?.TryGetValue("MaxJsonDepth", out var depthObj) == true && depthObj is int depthValue
             ? depthValue
             : MaxDepth;
@@ -266,168 +294,204 @@ public static class JsonSlurper
         {
             throw new DataExtractionException($"JSON parsing exceeded maximum depth of {maxDepth}. This may indicate a malformed or malicious JSON structure.");
         }
+    }
 
-        object jsonObj = null;
-        if (obj is JsonProperty)
+    private static object ProcessObjectByType(ToStringExpandoObject parent, object obj, SlurperOptions options)
+    {
+        return obj switch
         {
-            var jsonProperty = (JsonProperty)obj;
-            var jsonValue = jsonProperty.Value;
+            JsonProperty jsonProperty => ProcessJsonProperty(parent, jsonProperty, options),
+            JsonElement jsonElement => ProcessJsonElement(parent, jsonElement),
+            _ => null
+        };
+    }
 
-            // Handle null values directly
-            if (jsonValue.ValueKind == JsonValueKind.Null)
-            {
-                parent.Members[GetSafePropertyName(jsonProperty.Name, options)] = null;
-                return parent;
-            }
+    private static object ProcessJsonProperty(ToStringExpandoObject parent, JsonProperty jsonProperty, SlurperOptions options)
+    {
+        var jsonValue = jsonProperty.Value;
 
-            // here we only care about ValueKind that
-            // may have nested elements
-            switch (jsonValue.ValueKind)
-            {
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
-                    jsonObj = jsonValue;
-                    break;
-                default:
-                    // Handle primitive values directly
-                    parent.Members[GetSafePropertyName(jsonProperty.Name, options)] = GetJsonValue(jsonValue);
-                    return parent;
-            }
+        // Handle null values directly
+        if (jsonValue.ValueKind == JsonValueKind.Null)
+        {
+            parent.Members[GetSafePropertyName(jsonProperty.Name, options)] = null;
+            return null;
         }
 
-        if (obj is JsonElement)
+        // Only process complex types (Object/Array), handle primitives directly
+        return jsonValue.ValueKind switch
         {
-            var jsonElement = (JsonElement)obj;
+            JsonValueKind.Object or JsonValueKind.Array => jsonValue,
+            _ => ProcessPrimitiveJsonProperty(parent, jsonProperty, jsonValue, options)
+        };
+    }
 
-            // Handle primitive values directly for JsonElement
-            if (jsonElement.ValueKind == JsonValueKind.String ||
-                jsonElement.ValueKind == JsonValueKind.Number ||
-                jsonElement.ValueKind == JsonValueKind.True ||
-                jsonElement.ValueKind == JsonValueKind.False ||
-                jsonElement.ValueKind == JsonValueKind.Null)
-            {
-                string value = getJsonPropertyValue(jsonElement);
-                // Store the primitive value in the custom ToString delegate
-                parent.Members["ToString"] = new ToStringFunc(() => value);
-                return parent;
-            }
+    private static object ProcessPrimitiveJsonProperty(ToStringExpandoObject parent, JsonProperty jsonProperty, JsonElement jsonValue, SlurperOptions options)
+    {
+        // Handle primitive values directly
+        parent.Members[GetSafePropertyName(jsonProperty.Name, options)] = GetJsonValue(jsonValue);
+        return null;
+    }
 
-            jsonObj = obj;
+    private static object ProcessJsonElement(ToStringExpandoObject parent, JsonElement jsonElement)
+    {
+        // Handle primitive values directly for JsonElement
+        if (IsPrimitiveJsonElement(jsonElement))
+        {
+            string value = GetJsonPropertyValue(jsonElement);
+            // Store the primitive value in the custom ToString delegate
+            parent.Members["ToString"] = new ToStringFunc(() => value);
+            return null;
         }
 
-        if (jsonObj == null)
-        {
-            return parent;
-        }
+        return jsonElement;
+    }
 
+    private static bool IsPrimitiveJsonElement(JsonElement jsonElement)
+    {
+        return jsonElement.ValueKind == JsonValueKind.String ||
+               jsonElement.ValueKind == JsonValueKind.Number ||
+               jsonElement.ValueKind == JsonValueKind.True ||
+               jsonElement.ValueKind == JsonValueKind.False ||
+               jsonElement.ValueKind == JsonValueKind.Null;
+    }
+
+    private static List<Tuple<string, object>> ExtractChildProperties(object jsonObj, object originalObj, SlurperOptions options)
+    {
         var propertiesList = new List<Tuple<string, object>>();
 
-        if (jsonObj is JsonElement)
+        if (jsonObj is not JsonElement jsonElement)
         {
-            var jsonElement = (JsonElement)jsonObj;
-            List<object> jsonChildren = null;
+            return propertiesList;
+        }
 
-            if (jsonElement.ValueKind == JsonValueKind.Object)
-            {
-                jsonChildren = jsonElement.EnumerateObject().Select(x => (object)x).ToList();
-            }
-            if (jsonElement.ValueKind == JsonValueKind.Array)
-            {
-                jsonChildren = jsonElement.EnumerateArray().Select(x => (object)x).ToList();
-            }
+        var jsonChildren = GetJsonChildren(jsonElement);
+        if (jsonChildren == null || !jsonChildren.Any())
+        {
+            return propertiesList;
+        }
 
-            if (jsonChildren != null && jsonChildren.Any())
+        foreach (var jsonChild in jsonChildren)
+        {
+            var propertyInfo = ExtractPropertyInfo(jsonChild, originalObj, options);
+            if (propertyInfo != null)
             {
-                foreach (var jsonChild in jsonChildren)
-                {
-                    string jsonName = null;
-                    if (jsonChild is JsonElement)
-                    {
-                        string parentType = obj.GetType().Name;
-                        switch (parentType)
-                        {
-                            case "JsonElement":
-                                // parent is nameless
-                                jsonName = string.Empty;
-                                break;
-                            case "JsonProperty":
-                                jsonName = ((JsonProperty)obj).Name;
-                                break;
-                            default:
-                                throw new NotSupportedException($"Unsupported parent type '{obj.GetType().FullName}' of node:\r\n{jsonChild}");
-                        }
-                    }
-                    if (jsonChild is JsonProperty)
-                    {
-                        JsonProperty prop = (JsonProperty)jsonChild;
-                        jsonName = prop.Name;
-
-                        // Handle null values for properties directly
-                        if (prop.Value.ValueKind == JsonValueKind.Null)
-                        {
-                            string propertyName = GetSafePropertyName(jsonName, options);
-                            parent.Members[propertyName] = null;
-                            continue;
-                        }
-                    }
-                    string name = GetSafePropertyName(jsonName, options);
-                    Debug.WriteLine($"{jsonName} = {name}");
-                    propertiesList.Add(new Tuple<string, object>(name, jsonChild));
-                }
+                propertiesList.Add(propertyInfo);
             }
         }
 
-        // determine list names
+        return propertiesList;
+    }
+
+    private static List<object> GetJsonChildren(JsonElement jsonElement)
+    {
+        return jsonElement.ValueKind switch
+        {
+            JsonValueKind.Object => jsonElement.EnumerateObject().Select(x => (object)x).ToList(),
+            JsonValueKind.Array => jsonElement.EnumerateArray().Select(x => (object)x).ToList(),
+            _ => null
+        };
+    }
+
+    private static Tuple<string, object>? ExtractPropertyInfo(object jsonChild, object originalObj, SlurperOptions options)
+    {
+        string jsonName = GetPropertyName(jsonChild, originalObj);
+        
+        // Always create property info - null handling will be done during processing
+        string name = GetSafePropertyName(jsonName, options);
+        Debug.WriteLine($"{jsonName} = {name}");
+        return new Tuple<string, object>(name, jsonChild);
+    }
+
+    private static string GetPropertyName(object jsonChild, object originalObj)
+    {
+        return jsonChild switch
+        {
+            JsonElement => GetElementPropertyName(originalObj),
+            JsonProperty prop => prop.Name,
+            _ => throw new NotSupportedException($"Unsupported child type '{jsonChild.GetType().FullName}'")
+        };
+    }
+
+    private static string GetElementPropertyName(object originalObj)
+    {
+        return originalObj.GetType().Name switch
+        {
+            "JsonElement" => string.Empty, // parent is nameless
+            "JsonProperty" => ((JsonProperty)originalObj).Name,
+            _ => throw new NotSupportedException($"Unsupported parent type '{originalObj.GetType().FullName}'")
+        };
+    }
+
+    private static void ProcessPropertyGroups(ToStringExpandoObject parent, List<Tuple<string, object>> propertiesList, int depth, SlurperOptions options)
+    {
         var groups = propertiesList.GroupBy(x => x.Item1);
+        
         foreach (var group in groups)
         {
             if (group.Count() == 1)
             {
-                // add property to parent
-                dynamic newMember = new ToStringExpandoObject();
-                object jsonObjChild = group.First().Item2;
-                string value = getJsonPropertyValue(jsonObjChild);
-                if (value != null)
-                {
-                    newMember.Members["ToString"] = new ToStringFunc(() => value);
-                }
-                string newMemberName = group.Key;
-                parent.Members.Add(newMemberName, newMember);
-                AddRecursive(newMember, jsonObjChild, depth + 1, options);
+                ProcessSingleProperty(parent, group.First(), depth, options);
             }
             else
             {
-                // lists
-                string listName = $"{group.Key}{ListSuffix}";
-                List<ToStringExpandoObject> newList;
-                if (!parent.Members.ContainsKey(listName))
-                {
-                    newList = new List<ToStringExpandoObject>();
-                    parent.Members.Add(listName, newList);
-                }
-                else
-                {
-                    newList = parent.Members[listName] as List<ToStringExpandoObject>;
-                }
-                foreach (var listNode in group.ToList())
-                {
-                    // add property to parent
-                    dynamic newMember = new ToStringExpandoObject();
-                    object jsonObjChild = listNode.Item2;
-                    string value = getJsonPropertyValue(jsonObjChild);
-                    if (value != null)
-                    {
-                        newMember.Members["ToString"] = new ToStringFunc(() => value);
-                    }
-                    //string newMemberName = group.Key;
-
-                    newList.Add(newMember);
-                    AddRecursive(newMember, jsonObjChild, depth + 1, options);
-                }
+                ProcessPropertyList(parent, group, depth, options);
             }
         }
+    }
 
-        return parent;
+    private static void ProcessSingleProperty(ToStringExpandoObject parent, Tuple<string, object> property, int depth, SlurperOptions options)
+    {
+        var (propertyName, jsonObjChild) = property;
+        
+        // Handle null values for properties
+        if (jsonObjChild is JsonProperty prop && prop.Value.ValueKind == JsonValueKind.Null)
+        {
+            parent.Members[propertyName] = null;
+            return;
+        }
+
+        // Create new member for the property
+        dynamic newMember = new ToStringExpandoObject();
+        string value = GetJsonPropertyValue(jsonObjChild);
+        if (value != null)
+        {
+            newMember.Members["ToString"] = new ToStringFunc(() => value);
+        }
+        
+        parent.Members.Add(propertyName, newMember);
+        AddRecursive(newMember, jsonObjChild, depth + 1, options);
+    }
+
+    private static void ProcessPropertyList(ToStringExpandoObject parent, IGrouping<string, Tuple<string, object>> group, int depth, SlurperOptions options)
+    {
+        string listName = $"{group.Key}{ListSuffix}";
+        
+        // Get or create the list
+        if (!parent.Members.TryGetValue(listName, out var existingList))
+        {
+            existingList = new List<ToStringExpandoObject>();
+            parent.Members.Add(listName, existingList);
+        }
+        
+        var newList = (List<ToStringExpandoObject>)existingList;
+
+        foreach (var listNode in group)
+        {
+            var newMember = CreateListMember(listNode.Item2);
+            newList.Add(newMember);
+            AddRecursive(newMember, listNode.Item2, depth + 1, options);
+        }
+    }
+
+    private static ToStringExpandoObject CreateListMember(object jsonObjChild)
+    {
+        dynamic newMember = new ToStringExpandoObject();
+        string value = GetJsonPropertyValue(jsonObjChild);
+        if (value != null)
+        {
+            newMember.Members["ToString"] = new ToStringFunc(() => value);
+        }
+        return newMember;
     }
 
     private static object GetJsonValue(JsonElement element)
@@ -435,7 +499,6 @@ public static class JsonSlurper
         switch (element.ValueKind)
         {
             case JsonValueKind.String:
-                // Return the string value without quotes
                 return element.GetString();
             case JsonValueKind.Number:
                 if (element.TryGetInt32(out int intValue))
@@ -457,66 +520,42 @@ public static class JsonSlurper
         }
     }
 
-    private static string getJsonPropertyValue(object jsonObj)
+    private static string GetJsonPropertyValue(object jsonObj)
     {
-        if (!(jsonObj is JsonProperty) && !(jsonObj is JsonElement))
+        if (jsonObj is not JsonProperty and not JsonElement)
         {
-            // nothing to see here
             return null;
         }
 
-        string rawText = null;
-
-        if (jsonObj is JsonElement)
+        return jsonObj switch
         {
-            var element = (JsonElement)jsonObj;
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.String:
-                    // Return the string value without quotes
-                    return element.GetString();
-                case JsonValueKind.Number:
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    // ToStringExpandoObject takes care about conversion
-                    rawText = element.GetRawText();
-                    break;
-                case JsonValueKind.Null:
-                    // Explicitly handle null values
-                    return null;
-                default:
-                    return null;
-            }
-        }
+            JsonElement element => ProcessJsonElementValue(element),
+            JsonProperty prop => ProcessJsonPropertyValue(prop),
+            _ => null
+        };
+    }
 
-        if (jsonObj is JsonProperty)
+    private static string ProcessJsonElementValue(JsonElement element)
+    {
+        return element.ValueKind switch
         {
-            var prop = (JsonProperty)jsonObj;
-            switch (prop.Value.ValueKind)
-            {
-                case JsonValueKind.String:
-                    rawText = prop.Value.GetString();
-                    break;
-                case JsonValueKind.Number:
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    // ToStringExpandoObject takes care about conversion
-                    rawText = prop.Value.GetRawText();
-                    break;
-                case JsonValueKind.Null:
-                    // Explicitly return null for null values
-                    return null;
-                case JsonValueKind.Undefined:
-                case JsonValueKind.Object:
-                case JsonValueKind.Array:
-                    // stays null
-                    break;
-                default:
-                    throw new NotSupportedException($"JsonProperty ValueKind {prop.Value.ValueKind} is not supported");
-            }
-        }
-        Debug.WriteLine(rawText);
-        return rawText;
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => element.GetRawText(),
+            JsonValueKind.Null => null,
+            _ => null
+        };
+    }
+
+    private static string ProcessJsonPropertyValue(JsonProperty prop)
+    {
+        return prop.Value.ValueKind switch
+        {
+            JsonValueKind.String => prop.Value.GetString(),
+            JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => prop.Value.GetRawText(),
+            JsonValueKind.Null => null,
+            JsonValueKind.Undefined or JsonValueKind.Object or JsonValueKind.Array => null,
+            _ => throw new NotSupportedException($"JsonProperty ValueKind {prop.Value.ValueKind} is not supported")
+        };
     }
 
     private static string GetSafePropertyName(string nodeName, SlurperOptions options = null)

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using WebSpark.Slurper.Extractors;
+using WebSpark.Slurper.Services;
 
 namespace WebSpark.Slurper.Extensions
 {
@@ -16,6 +17,9 @@ namespace WebSpark.Slurper.Extensions
         /// <returns>The same service collection to enable method chaining</returns>
         public static IServiceCollection AddSlurper(this IServiceCollection services)
         {
+            // Register HTTP client and service
+            services.AddHttpClient<IHttpClientService, HttpClientService>();
+            
             // Register factory
             services.AddSingleton<ISlurperFactory, SlurperFactory>();
 
@@ -36,12 +40,19 @@ namespace WebSpark.Slurper.Extensions
         /// <returns>The same service collection to enable method chaining</returns>
         public static IServiceCollection AddSlurper(this IServiceCollection services, ILoggerFactory loggerFactory)
         {
+            // Register HTTP client and service
+            services.AddHttpClient<IHttpClientService, HttpClientService>();
+            
             // Register factory with logger
             services.AddSingleton<ISlurperFactory>(new SlurperFactory(loggerFactory));
 
-            // Register extractors with logger
+            // Register extractors with logger and HTTP client service
             services.AddTransient<IXmlExtractor>(sp => new XmlExtractor(loggerFactory.CreateLogger<XmlExtractor>()));
-            services.AddTransient<IJsonExtractor>(sp => new JsonExtractor(loggerFactory.CreateLogger<JsonExtractor>()));
+            services.AddTransient<IJsonExtractor>(sp => 
+            {
+                var httpClientService = sp.GetRequiredService<IHttpClientService>();
+                return new JsonExtractor(httpClientService, loggerFactory.CreateLogger<JsonExtractor>());
+            });
             services.AddTransient<ICsvExtractor>(sp => new CsvExtractor(loggerFactory.CreateLogger<CsvExtractor>()));
             services.AddTransient<IHtmlExtractor>(sp => new HtmlExtractor(loggerFactory.CreateLogger<IHtmlExtractor>()));
 
