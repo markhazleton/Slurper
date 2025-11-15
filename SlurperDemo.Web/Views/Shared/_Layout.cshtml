@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SlurperDemo.Web</title>
     <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Bundled CSS from webpack build (includes Bootstrap, Font Awesome, and custom styles) -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SlurperDemo.Web.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
     <header>
@@ -75,32 +75,8 @@
         </div>
     </footer>
     
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bundled JavaScript from webpack build (includes jQuery, Bootstrap, validation, and custom scripts) -->
     <script src="~/js/site.js" asp-append-version="true"></script>
-    
-    <!-- Achievement Counter Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Count unlocked achievements
-            const unlockedCount = document.querySelectorAll('.achievement-unlocked').length;
-            const totalCount = document.querySelectorAll('.achievement-badge').length;
-            
-            // Update navbar counter
-            const counter = document.getElementById('achievement-counter');
-            if (counter) {
-                counter.textContent = unlockedCount + '/' + totalCount;
-            }
-            
-            // Add some fun sound effect simulation for unlocked achievements
-            const unlockedAchievements = document.querySelectorAll('.achievement-unlocked');
-            unlockedAchievements.forEach(function(achievement, index) {
-                setTimeout(function() {
-                    achievement.style.animation = 'unlock-glow 0.5s ease-in-out';
-                }, index * 200);
-            });
-        });
-    </script>
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>
