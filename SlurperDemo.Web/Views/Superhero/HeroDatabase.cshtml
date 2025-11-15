@@ -1,0 +1,311 @@
+@{
+    ViewData["Title"] = "??? Superhero Database Extraction";
+}
+
+<style>
+    .extraction-complete {
+        background: linear-gradient(135deg, #00b09b, #96c93d);
+        color: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+    }
+    
+    .format-section {
+        border-radius: 15px;
+        margin-bottom: 30px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .format-section:hover {
+        transform: translateY(-5px);
+    }
+    
+    .json-header { background: linear-gradient(135deg, #667eea, #764ba2); }
+    .xml-header { background: linear-gradient(135deg, #f093fb, #f5576c); }
+    .csv-header { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+    
+    .hero-card {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        border-radius: 10px;
+        margin-bottom: 15px;
+        padding: 15px;
+        border: none;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-card:hover {
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    
+    .hero-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    }
+    
+    .power-badge {
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        border-radius: 15px;
+        padding: 3px 10px;
+        margin: 2px;
+        display: inline-block;
+        color: white;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    
+    .threat-cosmic { border-left: 5px solid #8e44ad; }
+    .threat-galactic { border-left: 5px solid #e74c3c; }
+    .threat-planetary { border-left: 5px solid #f39c12; }
+    .threat-global { border-left: 5px solid #27ae60; }
+    .threat-universal { border-left: 5px solid #3498db; }
+    .threat-multiversal { border-left: 5px solid #9b59b6; }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+    }
+    
+    .stat-number {
+        font-size: 2.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .slurp-animation {
+        animation: slurp 3s ease-in-out infinite;
+    }
+    
+    @@keyframes slurp {
+        0%, 100% { transform: scale(1) rotate(0deg); }
+        25% { transform: scale(1.1) rotate(5deg); }
+        75% { transform: scale(0.9) rotate(-5deg); }
+    }
+</style>
+
+@if (ViewBag.Success)
+{
+    <div class="extraction-complete">
+        <h2>?? Database Extraction Complete! ??</h2>
+        <p class="mb-0">Successfully extracted superhero data from multiple formats using Slurper technology!</p>
+        <div class="stats-grid mt-4">
+            <div class="stat-card">
+                <div class="stat-number slurp-animation">@ViewBag.TotalHeroes</div>
+                <div>Heroes Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number slurp-animation">@ViewBag.FormatsCracked</div>
+                <div>Formats Cracked</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number slurp-animation">@ViewBag.DataPointsExtracted</div>
+                <div>Data Points</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number slurp-animation">@ViewBag.ExtractionTime</div>
+                <div>Extraction Time</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JSON Section -->
+    <div class="format-section">
+        <div class="card">
+            <div class="card-header json-header text-white">
+                <h3><i class="fas fa-code"></i> JSON Database (SuperheroHQ.json)</h3>
+                <small>Advanced structured data with nested arrays</small>
+            </div>
+            <div class="card-body">
+                <p><strong>Extraction Method:</strong> <code>jsonExtractor.ExtractFromFile()</code> ? Navigate to <code>superhero_database.heroes</code></p>
+                <div class="row">
+                    @foreach (var hero in ViewBag.JsonHeroes)
+                    {
+                        <div class="col-lg-6 col-xl-4">
+                            <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                                <h5>
+                                    ????? @hero.codename
+                                    <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                </h5>
+                                <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
+                                <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                <p class="mb-2"><strong>Powers:</strong></p>
+                                <div class="mb-2">
+                                    @try
+                                    {
+                                        @foreach (var power in hero.powers)
+                                        {
+                                            <span class="power-badge">@power</span>
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        <span class="power-badge">Powers data unavailable</span>
+                                    }
+                                </div>
+                                <small class="text-muted">@hero.origin_story</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- XML Section -->
+    <div class="format-section">
+        <div class="card">
+            <div class="card-header xml-header text-white">
+                <h3><i class="fas fa-code"></i> XML Database (SuperheroHQ.xml)</h3>
+                <small>Hierarchical markup with element attributes</small>
+            </div>
+            <div class="card-body">
+                <p><strong>Extraction Method:</strong> <code>xmlExtractor.ExtractFromFile()</code> ? Access <code>heroList</code> array</p>
+                @if (ViewBag.XmlHeroes != null && ViewBag.XmlHeroes.Count > 0)
+                {
+                    <div class="row">
+                        @foreach (var hero in ViewBag.XmlHeroes)
+                        {
+                            <div class="col-lg-6 col-xl-4">
+                                <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                                    <h5>
+                                        ????? @hero.codename
+                                        <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                    </h5>
+                                    <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
+                                    <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                    <p class="mb-2"><strong>Powers:</strong></p>
+                                    <div class="mb-2">
+                                        @try
+                                        {
+                                            @if (hero.powers != null && hero.powers.powerList != null)
+                                            {
+                                                @foreach (var power in hero.powers.powerList)
+                                                {
+                                                    <span class="power-badge">@power</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <span class="power-badge">Powers structure varies</span>
+                                            }
+                                        }
+                                        catch
+                                        {
+                                            <span class="power-badge">Powers data unavailable</span>
+                                        }
+                                    </div>
+                                    <small class="text-muted">@hero.origin_story</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <h5>?? XML Structure Analysis</h5>
+                        <p>XML extraction successful, but the structure differs from JSON. This demonstrates how different formats organize the same data!</p>
+                        <ul>
+                            <li>XML uses element attributes (id="hero001")</li>
+                            <li>Nested elements become object properties</li>
+                            <li>Multiple elements create arrays with "List" suffix</li>
+                        </ul>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- CSV Section -->
+    <div class="format-section">
+        <div class="card">
+            <div class="card-header csv-header text-white">
+                <h3><i class="fas fa-table"></i> CSV Database (superheroes.csv)</h3>
+                <small>Tabular data with column headers</small>
+            </div>
+            <div class="card-body">
+                <p><strong>Extraction Method:</strong> <code>csvExtractor.ExtractFromFile()</code> ? Direct row objects</p>
+                @if (ViewBag.CsvHeroes != null && ViewBag.CsvHeroes.Count > 0)
+                {
+                    <div class="row">
+                        @foreach (var hero in ViewBag.CsvHeroes)
+                        {
+                            <div class="col-lg-6 col-xl-4">
+                                <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                                    <h5>
+                                        ?? @hero.codename
+                                        <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                    </h5>
+                                    <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
+                                    <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                    <p class="mb-2"><strong>Primary Power:</strong></p>
+                                    <div class="mb-2">
+                                        <span class="power-badge">@hero.primary_power</span>
+                                    </div>
+                                    <small class="text-muted">CSV format stores simplified data structure</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <p>CSV heroes data not available. Check file path and CSV structure.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h4>?? Mission Accomplished! ??</h4>
+                <p class="lead">Slurper successfully extracted superhero data from multiple formats with a unified API!</p>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <a asp-action="Index" class="btn btn-primary btn-lg w-100">
+                            ?? Return to Command Center
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg w-100">
+                            ??? Back to Detective Agency
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <h4>?? Database Extraction Failed! ??</h4>
+        <p><strong>Error:</strong> @ViewBag.ErrorMessage</p>
+        <a asp-action="Index" class="btn btn-warning">Try Again</a>
+    </div>
+}

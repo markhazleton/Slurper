@@ -8,12 +8,15 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SlurperDemo.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SlurperDemo.Web</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    🕵️‍♀️ Slurper Detective Agency
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -21,16 +24,43 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">
+                                🏠 HQ
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Superhero" asp-action="Index">
+                                🦸‍♂️ Heroes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="JSON" asp-action="Index">
+                                🧩 JSON
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">
+                                Privacy
+                            </a>
                         </li>
                     </ul>
+                    
+                    <!-- Achievement Progress in Navbar -->
+                    <div class="navbar-text">
+                        <small class="text-muted">
+                            🏆 Progress: <span id="achievement-counter">0/8</span>
+                        </small>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
+    
+    <!-- Achievements Bar -->
+    <div class="container">
+        <partial name="_Achievements" />
+    </div>
+    
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -39,12 +69,39 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - SlurperDemo.Web - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - Slurper Detective Agency - 
+            <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a> |
+            <span class="text-success">🎯 Keep exploring data formats, Detective!</span>
         </div>
     </footer>
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Achievement Counter Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Count unlocked achievements
+            const unlockedCount = document.querySelectorAll('.achievement-unlocked').length;
+            const totalCount = document.querySelectorAll('.achievement-badge').length;
+            
+            // Update navbar counter
+            const counter = document.getElementById('achievement-counter');
+            if (counter) {
+                counter.textContent = unlockedCount + '/' + totalCount;
+            }
+            
+            // Add some fun sound effect simulation for unlocked achievements
+            const unlockedAchievements = document.querySelectorAll('.achievement-unlocked');
+            unlockedAchievements.forEach(function(achievement, index) {
+                setTimeout(function() {
+                    achievement.style.animation = 'unlock-glow 0.5s ease-in-out';
+                }, index * 200);
+            });
+        });
+    </script>
+    
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

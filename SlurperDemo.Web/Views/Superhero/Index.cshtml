@@ -1,0 +1,211 @@
+@{
+    ViewData["Title"] = "?? Superhero Command Center";
+}
+
+<style>
+    .hero-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        border: none;
+        overflow: hidden;
+    }
+    
+    .hero-card:hover {
+        transform: translateY(-10px) rotateX(5deg);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+    
+    .power-badge {
+        background: linear-gradient(45deg, #ff6b6b, #feca57);
+        border-radius: 20px;
+        padding: 5px 15px;
+        margin: 3px;
+        display: inline-block;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        transform: rotate(-2deg);
+    }
+    
+    .threat-level {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255,255,255,0.9);
+        border-radius: 15px;
+        padding: 5px 12px;
+        font-weight: bold;
+        font-size: 0.8em;
+    }
+    
+    .cosmic { color: #8e44ad; }
+    .galactic { color: #e74c3c; }
+    .planetary { color: #f39c12; }
+    .global { color: #27ae60; }
+    .universal { color: #3498db; }
+    .multiversal { color: #9b59b6; }
+    
+    .command-center {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 40px 0;
+        margin: -20px -15px 30px -15px;
+        clip-path: polygon(0 0, 100% 0, 100% 90%, 0 100%);
+    }
+    
+    .stats-panel {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .pulse { animation: pulse 2s infinite; }
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    .search-box {
+        background: rgba(255,255,255,0.95);
+        border-radius: 25px;
+        padding: 15px 25px;
+        margin: 20px 0;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+</style>
+
+<div class="command-center text-center">
+    <h1 class="display-3">????? Superhero Command Center ?????</h1>
+    <p class="lead fs-4">
+        <span class="badge bg-light text-dark pulse">
+            ?? Data Defenders Database Access Portal ??
+        </span>
+    </p>
+    <p class="mt-3">Access the classified superhero database using advanced Slurper extraction technology!</p>
+</div>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <!-- Mission Control Panel -->
+            <div class="card shadow-lg mb-4">
+                <div class="card-header bg-dark text-white text-center">
+                    <h3>?? Mission Control Panel</h3>
+                </div>
+                <div class="card-body bg-light">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <a asp-action="HeroDatabase" class="btn btn-primary btn-lg w-100 hero-card text-white text-decoration-none p-4">
+                                <h4>?? Full Database Scan</h4>
+                                <p class="mb-0">Extract ALL superhero data from multiple formats</p>
+                                <small class="d-block mt-2 opacity-75">JSON + XML + CSV Analysis</small>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-box">
+                                <h5>?? Power Search</h5>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for heroes, powers..." id="searchInput">
+                                    <button class="btn btn-warning" onclick="performPowerSearch()">
+                                        <i class="fas fa-search"></i> Search
+                                    </button>
+                                </div>
+                                <div id="searchResults" class="mt-3"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg w-100 p-4 text-decoration-none">
+                                <h4>?? Return to HQ</h4>
+                                <p class="mb-0">Back to main detective agency</p>
+                                <small class="d-block mt-2 opacity-75">All Case Files</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info Panel -->
+            <div class="stats-panel text-white text-center">
+                <div class="row">
+                    <div class="col-md-3">
+                        <h3 class="pulse">?</h3>
+                        <h4>Lightning Fast</h4>
+                        <p>Extracts data at superhero speeds</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="pulse">???</h3>
+                        <h4>Error Proof</h4>
+                        <p>Handles corrupted data like a pro</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="pulse">??</h3>
+                        <h4>Universal</h4>
+                        <p>Works with any data format</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h3 class="pulse">??</h3>
+                        <h4>Precise</h4>
+                        <p>Extracts exactly what you need</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function performPowerSearch() {
+        const searchTerm = document.getElementById('searchInput').value;
+        const resultsDiv = document.getElementById('searchResults');
+        
+        if (!searchTerm.trim()) {
+            resultsDiv.innerHTML = '<div class="alert alert-warning">Please enter a search term!</div>';
+            return;
+        }
+        
+        resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Scanning database...</div>';
+        
+        fetch('/Superhero/PowerSearch', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'searchTerm=' + encodeURIComponent(searchTerm)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.count === 0) {
+                    resultsDiv.innerHTML = '<div class="alert alert-info">No heroes found matching "' + data.searchTerm + '"</div>';
+                } else {
+                    let html = '<div class="alert alert-success">Found ' + data.count + ' hero(s) matching "' + data.searchTerm + '"</div>';
+                    data.heroes.forEach(hero => {
+                        html += '<div class="card mb-2">';
+                        html += '<div class="card-body p-2">';
+                        html += '<strong>' + hero.codename + '</strong> (' + hero.real_name + ')<br>';
+                        html += '<small class="text-muted">' + hero.base_location + ' • ' + hero.threat_level + '</small>';
+                        html += '</div></div>';
+                    });
+                    resultsDiv.innerHTML = html;
+                }
+            } else {
+                resultsDiv.innerHTML = '<div class="alert alert-danger">' + data.message + '</div>';
+            }
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = '<div class="alert alert-danger">Search failed: ' + error.message + '</div>';
+        });
+    }
+    
+    // Allow Enter key to trigger search
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            performPowerSearch();
+        }
+    });
+</script>

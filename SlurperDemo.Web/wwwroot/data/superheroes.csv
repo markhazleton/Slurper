@@ -1,0 +1,7 @@
+id,codename,real_name,primary_power,base_location,threat_level,favorite_food,weakness,team,first_appearance
+hero001,Captain Slurper,Data Knight,Super Data Extraction,Silicon Valley,Cosmic,JSON cookies,Corrupted data,Data Defenders,Amazing Data Tales #1
+hero002,The XML Warrior,Marcus Parser,Tag Manipulation,Cloud City,Galactic,Element soup,Malformed tags,Data Defenders,Web Standards Weekly #42
+hero003,CSV Lightning,Taylor Delimiter,Column Separation,Excel-sior City,Planetary,Comma-separated vegetables,Missing headers,Data Defenders,Spreadsheet Spectacular #7
+hero004,HTML Spider,Penny Parker,DOM Traversal,Browser Heights,Global,Tag soup,Internet Explorer,Data Defenders,Web Dev Weekly #365
+hero005,Doctor Dynamic,Danny Object,Type Transformation,Memory Heap Headquarters,Universal,Polymorphic pizza,Null reference exceptions,Data Defenders,Dynamic Data Comics #1
+hero006,The Extractor,Sam Ple,Pattern Recognition,Algorithm Alley,Multiversal,Regex rolls,Infinite loops,Data Defenders,Pattern Recognition #13
