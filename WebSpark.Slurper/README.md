@@ -88,4 +88,4 @@ This project is licensed under the MIT License - see the [LICENSE.txt](LICENSE.t
 
 ## Requirements
 
-- .NET 9.0 or later
+- .NET 8.0, .NET 9.0, or .NET 10.0

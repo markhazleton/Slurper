@@ -77,6 +77,7 @@ WebSpark.Slurper is available as a NuGet package with the following target frame
 
 - .NET 8.0
 - .NET 9.0
+- .NET 10.0
 
 ### Installation
 
@@ -451,7 +452,7 @@ var books = await xmlExtractor.ExtractFromFileAsync("books.xml");
 
 ## Requirements
 
-- .NET 9.0 or later
+- .NET 8.0, .NET 9.0, or .NET 10.0
 
 ## 🤝 Contributing
 
