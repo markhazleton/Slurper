@@ -1,0 +1,23 @@
+# Jekyll configuration for GitHub Pages
+# This disables Jekyll processing since we're using a static HTML site
+
+# Disable Jekyll
+markdown: kramdown
+theme: null
+
+# Include these files/folders
+include:
+  - .nojekyll
+
+# Exclude these files/folders from the build
+exclude:
+  - README.md
+  - .git
+  - .github
+
+# Site settings (optional, for metadata)
+title: WebSpark.Slurper
+description: The magical data extractor for .NET - Transform complex XML, JSON, CSV, and HTML into friendly C# objects
+author: Mark Hazleton
+url: https://markhazleton.github.io
+baseurl: /Slurper
