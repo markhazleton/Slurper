@@ -1,0 +1,1 @@
+Unable to locate the required strategy or plan documents in the repository. Please ensure that both the strategy and plan files exist in `.github/upgrades/` and try again. Task generation requires both files to apply batching rules and produce the executable task list.

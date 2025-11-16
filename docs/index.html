@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSpark.Slurper - Magical Data Extraction for .NET</title>
+    <meta name="description" content="Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration! The Swiss Army knife for data extraction in .NET.">
+    <meta name="keywords" content="C#, .NET, XML, JSON, CSV, HTML, data extraction, parsing, NuGet">
+    <meta name="author" content="Mark Hazleton">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="WebSpark.Slurper - Magical Data Extraction for .NET">
+    <meta property="og:description" content="Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://markhazleton.github.io/Slurper/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="icon.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Prism.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <img src="icon.png" alt="Slurper Logo" class="nav-logo">
+                <span class="nav-title">WebSpark.Slurper</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#features" class="nav-link">Features</a></li>
+                <li><a href="#quickstart" class="nav-link">Quick Start</a></li>
+                <li><a href="#docs" class="nav-link">Documentation</a></li>
+                <li><a href="#versions" class="nav-link">Versions</a></li>
+                <li><a href="https://github.com/MarkHazleton/Slurper" class="nav-link" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a></li>
+            </ul>
+            <button class="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-magic"></i>
+                    <span>Zero Configuration Required</span>
+                </div>
+                <h1 class="hero-title">
+                    Transform Complex Data Into<br>
+                    <span class="gradient-text">Friendly C# Objects</span>
+                </h1>
+                <p class="hero-subtitle">
+                    The magical data extractor for .NET that makes working with XML, JSON, CSV, and HTML a breeze.
+                    No tedious model creation. No parsing headaches. Just pure productivity.
+                </p>
+                <div class="hero-actions">
+                    <a href="https://www.nuget.org/packages/WebSpark.Slurper" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-download"></i>
+                        Install from NuGet
+                    </a>
+                    <a href="#quickstart" class="btn btn-secondary">
+                        <i class="fas fa-rocket"></i>
+                        Get Started
+                    </a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <div class="stat-value">
+                            <img src="https://img.shields.io/nuget/v/WebSpark.Slurper.svg" alt="NuGet Version">
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">
+                            <img src="https://img.shields.io/nuget/dt/WebSpark.Slurper.svg" alt="NuGet Downloads">
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">
+                            <img src="https://img.shields.io/github/stars/MarkHazleton/Slurper?style=social" alt="GitHub Stars">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-code">
+                <div class="code-window">
+                    <div class="code-header">
+                        <div class="code-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <span class="code-title">Program.cs</span>
+                    </div>
+                    <pre><code class="language-csharp">// Install: dotnet add package WebSpark.Slurper
+
+var factory = new SlurperFactory();
+var extractor = factory.CreateXmlExtractor();
+
+string xml = @"
+&lt;book id=""bk101""&gt;
+  &lt;author&gt;Gambardella, Matthew&lt;/author&gt;
+  &lt;title&gt;XML Developer Guide&lt;/title&gt;
+  &lt;price&gt;44.95&lt;/price&gt;
+&lt;/book&gt;";
+
+var book = extractor.Extract(xml).First();
+
+// Access data with dynamic properties - no model needed!
+Console.WriteLine($"Title: {book.title}");
+Console.WriteLine($"Author: {book.author}");
+Console.WriteLine($"Price: ${book.price}");</code></pre>
+                </div>
+            </div>
+        </div>
+        <div class="hero-background">
+            <div class="bg-shape shape-1"></div>
+            <div class="bg-shape shape-2"></div>
+            <div class="bg-shape shape-3"></div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Why Developers Love Slurper</h2>
+                <p class="section-subtitle">
+                    A comprehensive toolkit for data extraction with enterprise-grade features
+                </p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-code"></i>
+                    </div>
+                    <h3>Multiple Data Formats</h3>
+                    <p>Extract data from XML, JSON, CSV, and HTML with a unified, consistent API.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3>Dynamic Objects</h3>
+                    <p>Access extracted data using dynamic properties without defining model classes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3>Zero Configuration</h3>
+                    <p>Start extracting data immediately with sensible defaults and no setup required.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Async Support</h3>
+                    <p>All extraction methods have asynchronous versions for non-blocking operations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-syringe"></i>
+                    </div>
+                    <h3>Dependency Injection</h3>
+                    <p>Full integration with .NET DI container for clean architecture.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <h3>Extensible</h3>
+                    <p>Plugin system allows you to add custom data extractors for any format.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h3>High Performance</h3>
+                    <p>Streaming, parallel processing, and caching options for optimal performance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Error Handling</h3>
+                    <p>Comprehensive exception types with detailed messages for easy debugging.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-export"></i>
+                    </div>
+                    <h3>Serialization</h3>
+                    <p>Easily serialize extracted data back to JSON with envelope support.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start Section -->
+    <section id="quickstart" class="quickstart">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Get Started in Minutes</h2>
+                <p class="section-subtitle">
+                    Three simple steps to start extracting data
+                </p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Install the Package</h3>
+                        <p>Add WebSpark.Slurper to your project using the .NET CLI or Package Manager.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" data-clipboard-target="#install-cmd">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <pre><code id="install-cmd">dotnet add package WebSpark.Slurper</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Create an Extractor</h3>
+                        <p>Use the factory to create an extractor for your data format.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" data-clipboard-target="#create-cmd">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <pre><code id="create-cmd" class="language-csharp">var factory = new SlurperFactory();
+var extractor = factory.CreateJsonExtractor();</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Extract Data</h3>
+                        <p>Extract from strings, files, or URLs and access data dynamically.</p>
+                        <div class="code-block">
+                            <button class="copy-btn" data-clipboard-target="#extract-cmd">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <pre><code id="extract-cmd" class="language-csharp">var data = extractor.Extract(jsonString);
+Console.WriteLine(data.First().propertyName);</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Examples Section -->
+    <section id="docs" class="examples">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Powerful Examples</h2>
+                <p class="section-subtitle">
+                    See how Slurper handles different data formats with ease
+                </p>
+            </div>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="xml">
+                        <i class="fas fa-code"></i>
+                        XML
+                    </button>
+                    <button class="tab-btn" data-tab="json">
+                        <i class="fas fa-brackets-curly"></i>
+                        JSON
+                    </button>
+                    <button class="tab-btn" data-tab="csv">
+                        <i class="fas fa-table"></i>
+                        CSV
+                    </button>
+                    <button class="tab-btn" data-tab="html">
+                        <i class="fas fa-file-code"></i>
+                        HTML
+                    </button>
+                    <button class="tab-btn" data-tab="di">
+                        <i class="fas fa-syringe"></i>
+                        DI
+                    </button>
+                </div>
+                <div class="tab-content">
+                    <div class="tab-pane active" data-tab="xml">
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="code-title">XmlExample.cs</span>
+                            </div>
+                            <pre><code class="language-csharp">// Create factory and extractor
+var factory = new SlurperFactory();
+var xmlExtractor = factory.CreateXmlExtractor();
+
+// Extract from string
+string xml = @"
+&lt;catalog&gt;
+  &lt;book id=""bk101""&gt;
+    &lt;author&gt;Gambardella, Matthew&lt;/author&gt;
+    &lt;title&gt;XML Developer Guide&lt;/title&gt;
+    &lt;price&gt;44.95&lt;/price&gt;
+  &lt;/book&gt;
+  &lt;book id=""bk102""&gt;
+    &lt;author&gt;Ralls, Kim&lt;/author&gt;
+    &lt;title&gt;Midnight Rain&lt;/title&gt;
+    &lt;price&gt;5.95&lt;/price&gt;
+  &lt;/book&gt;
+&lt;/catalog&gt;";
+
+var catalog = xmlExtractor.Extract(xml).First();
+
+// Access data dynamically - bookList is created automatically!
+foreach (var book in catalog.bookList)
+{
+    Console.WriteLine($"Title: {book.title}");
+    Console.WriteLine($"Author: {book.author}");
+    Console.WriteLine($"Price: ${book.price}");
+    Console.WriteLine($"ID: {book.id}"); // Attributes too!
+    Console.WriteLine();
+}
+
+// Extract from file or URL
+var booksFromFile = xmlExtractor.ExtractFromFile("books.xml");
+var booksFromUrl = await xmlExtractor.ExtractFromUrlAsync("https://api.example.com/books.xml");</code></pre>
+                        </div>
+                    </div>
+                    <div class="tab-pane" data-tab="json">
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="code-title">JsonExample.cs</span>
+                            </div>
+                            <pre><code class="language-csharp">// Create factory and extractor
+var factory = new SlurperFactory();
+var jsonExtractor = factory.CreateJsonExtractor();
+
+// Extract from JSON string
+string json = @"{
+  ""users"": [
+    {
+      ""id"": 1,
+      ""name"": ""John Doe"",
+      ""email"": ""john@example.com"",
+      ""active"": true
+    },
+    {
+      ""id"": 2,
+      ""name"": ""Jane Smith"",
+      ""email"": ""jane@example.com"",
+      ""active"": false
+    }
+  ]
+}";
+
+var data = jsonExtractor.Extract(json).First();
+
+// Navigate nested structures naturally
+foreach (var user in data.users.usersList)
+{
+    Console.WriteLine($"User #{user.id}: {user.name}");
+    Console.WriteLine($"Email: {user.email}");
+    Console.WriteLine($"Status: {(user.active ? ""Active"" : ""Inactive"")}");
+    Console.WriteLine();
+}
+
+// Serialize back to JSON
+string outputJson = data.ToJson(indented: true);
+
+// Create envelope with metadata
+var metadata = new Dictionary&lt;string, object&gt;
+{
+    { ""timestamp"", DateTime.UtcNow },
+    { ""version"", ""1.0"" }
+};
+string envelope = data.ToJsonEnvelope(""response"", metadata, indented: true);</code></pre>
+                        </div>
+                    </div>
+                    <div class="tab-pane" data-tab="csv">
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="code-title">CsvExample.cs</span>
+                            </div>
+                            <pre><code class="language-csharp">// Create factory and extractor
+var factory = new SlurperFactory();
+var csvExtractor = factory.CreateCsvExtractor();
+
+// Extract from CSV string
+string csv = @"id,name,department,salary
+101,John Doe,Engineering,95000
+102,Jane Smith,Marketing,87000
+103,Bob Johnson,Engineering,92000
+104,Alice Williams,Sales,78000";
+
+var employees = csvExtractor.Extract(csv);
+
+// Access CSV data as dynamic objects
+foreach (var employee in employees)
+{
+    Console.WriteLine($"ID: {employee.id}");
+    Console.WriteLine($"Name: {employee.name}");
+    Console.WriteLine($"Department: {employee.department}");
+    Console.WriteLine($"Salary: ${employee.salary:N0}");
+    Console.WriteLine();
+}
+
+// Extract from file
+var employeesFromFile = csvExtractor.ExtractFromFile("employees.csv");
+
+// Extract from URL
+var employeesFromUrl = await csvExtractor.ExtractFromUrlAsync(
+    "https://example.com/data/employees.csv"
+);</code></pre>
+                        </div>
+                    </div>
+                    <div class="tab-pane" data-tab="html">
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="code-title">HtmlExample.cs</span>
+                            </div>
+                            <pre><code class="language-csharp">// Create factory and extractor
+var factory = new SlurperFactory();
+var htmlExtractor = factory.CreateHtmlExtractor();
+
+// Extract from HTML string
+string html = @"
+&lt;html&gt;
+  &lt;body&gt;
+    &lt;article class=""product""&gt;
+      &lt;h1&gt;Wireless Headphones&lt;/h1&gt;
+      &lt;p class=""price""&gt;$129.99&lt;/p&gt;
+      &lt;div class=""description""&gt;
+        Premium sound quality with noise cancellation
+      &lt;/div&gt;
+    &lt;/article&gt;
+  &lt;/body&gt;
+&lt;/html&gt;";
+
+var page = htmlExtractor.Extract(html).First();
+
+// Navigate HTML structure
+Console.WriteLine($"Product: {page.html.body.article.h1}");
+Console.WriteLine($"Price: {page.html.body.article.p}");
+Console.WriteLine($"Description: {page.html.body.article.div}");
+
+// Extract from URL
+var webPage = await htmlExtractor.ExtractFromUrlAsync("https://example.com/product");
+
+// Perfect for web scraping
+Console.WriteLine($"Title: {webPage.First().html.body.h1}");</code></pre>
+                        </div>
+                    </div>
+                    <div class="tab-pane" data-tab="di">
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="code-title">DependencyInjection.cs</span>
+                            </div>
+                            <pre><code class="language-csharp">// In Program.cs or Startup.cs
+using WebSpark.Slurper.Extensions;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Register all Slurper services
+builder.Services.AddSlurper();
+
+var app = builder.Build();
+
+// In your service class
+public class DataService
+{
+    private readonly IXmlExtractor _xmlExtractor;
+    private readonly IJsonExtractor _jsonExtractor;
+    private readonly ICsvExtractor _csvExtractor;
+    private readonly IHttpClientService _httpClient;
+    private readonly ILogger&lt;DataService&gt; _logger;
+    
+    public DataService(
+        IXmlExtractor xmlExtractor,
+        IJsonExtractor jsonExtractor,
+        ICsvExtractor csvExtractor,
+        IHttpClientService httpClient,
+        ILogger&lt;DataService&gt; logger)
+    {
+        _xmlExtractor = xmlExtractor;
+        _jsonExtractor = jsonExtractor;
+        _csvExtractor = csvExtractor;
+        _httpClient = httpClient;
+        _logger = logger;
+    }
+    
+    public async Task&lt;IEnumerable&lt;dynamic&gt;&gt; GetProductsAsync(string url, string format)
+    {
+        _logger.LogInformation($"Fetching products from {url} in {format} format");
+        
+        return format.ToLower() switch
+        {
+            "xml" => await _xmlExtractor.ExtractFromUrlAsync(url),
+            "json" => await _jsonExtractor.ExtractFromUrlAsync(url),
+            "csv" => await _csvExtractor.ExtractFromUrlAsync(url),
+            _ => throw new NotSupportedException($"Format {format} not supported")
+        };
+    }
+}</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Version History Section -->
+    <section id="versions" class="versions">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Version History</h2>
+                <p class="section-subtitle">
+                    Track the evolution of WebSpark.Slurper
+                </p>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker current"></div>
+                    <div class="timeline-content">
+                        <div class="version-header">
+                            <h3>Version 3.3.0</h3>
+                            <span class="badge badge-current">Current</span>
+                            <span class="version-date">November 2025</span>
+                        </div>
+                        <ul class="version-changes">
+                            <li><i class="fas fa-plus"></i> Added .NET 10.0 support</li>
+                            <li><i class="fas fa-star"></i> Multi-framework targeting (net8.0, net9.0, net10.0)</li>
+                            <li><i class="fas fa-rocket"></i> Performance optimizations</li>
+                            <li><i class="fas fa-shield-alt"></i> Enhanced security features</li>
+                        </ul>
+                        <div class="version-links">
+                            <a href="https://www.nuget.org/packages/WebSpark.Slurper/3.3.0" class="version-link" target="_blank">
+                                <i class="fas fa-download"></i> NuGet Package
+                            </a>
+                            <a href="https://github.com/MarkHazleton/Slurper/releases/tag/v3.3.0" class="version-link" target="_blank">
+                                <i class="fab fa-github"></i> Release Notes
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="version-header">
+                            <h3>Version 3.1.1</h3>
+                            <span class="version-date">April 2025</span>
+                        </div>
+                        <ul class="version-changes">
+                            <li><i class="fas fa-box-open"></i> Initial public release</li>
+                            <li><i class="fas fa-file-code"></i> XML, JSON, CSV, and HTML extraction</li>
+                            <li><i class="fas fa-plug"></i> Factory pattern implementation</li>
+                            <li><i class="fas fa-syringe"></i> Dependency injection support</li>
+                            <li><i class="fas fa-puzzle-piece"></i> Plugin system architecture</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <div class="version-header">
+                            <h3>Version 2.x</h3>
+                            <span class="version-date">2024</span>
+                        </div>
+                        <ul class="version-changes">
+                            <li><i class="fas fa-code-branch"></i> Legacy version with static API</li>
+                            <li><i class="fas fa-file-code"></i> Basic XML and JSON support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="version-support">
+                <h3>Framework Support</h3>
+                <div class="framework-grid">
+                    <div class="framework-item supported">
+                        <i class="fas fa-check-circle"></i>
+                        <span>.NET 8.0</span>
+                    </div>
+                    <div class="framework-item supported">
+                        <i class="fas fa-check-circle"></i>
+                        <span>.NET 9.0</span>
+                    </div>
+                    <div class="framework-item supported">
+                        <i class="fas fa-check-circle"></i>
+                        <span>.NET 10.0</span>
+                    </div>
+                    <div class="framework-item supported">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Blazor</span>
+                    </div>
+                    <div class="framework-item supported">
+                        <i class="fas fa-check-circle"></i>
+                        <span>MAUI</span>
+                    </div>
+                    <div class="framework-item not-supported">
+                        <i class="fas fa-times-circle"></i>
+                        <span>.NET Framework</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation Section -->
+    <section class="documentation">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Documentation & Resources</h2>
+                <p class="section-subtitle">
+                    Everything you need to master WebSpark.Slurper
+                </p>
+            </div>
+            <div class="doc-grid">
+                <a href="https://github.com/MarkHazleton/Slurper/wiki" class="doc-card" target="_blank">
+                    <div class="doc-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>API Reference</h3>
+                    <p>Complete documentation of all classes, methods, and interfaces</p>
+                    <span class="doc-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="https://github.com/MarkHazleton/Slurper-Samples" class="doc-card" target="_blank">
+                    <div class="doc-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Sample Projects</h3>
+                    <p>Real-world examples and use cases to learn from</p>
+                    <span class="doc-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="https://github.com/MarkHazleton/Slurper/discussions" class="doc-card" target="_blank">
+                    <div class="doc-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3>Community</h3>
+                    <p>Join discussions, ask questions, and share your experiences</p>
+                    <span class="doc-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+                <a href="https://github.com/MarkHazleton/Slurper/issues" class="doc-card" target="_blank">
+                    <div class="doc-icon">
+                        <i class="fas fa-bug"></i>
+                    </div>
+                    <h3>Report Issues</h3>
+                    <p>Found a bug or have a feature request? Let us know</p>
+                    <span class="doc-arrow"><i class="fas fa-arrow-right"></i></span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Transform Your Data?</h2>
+                <p>Join thousands of developers who are already using WebSpark.Slurper to simplify their data extraction.</p>
+                <div class="cta-actions">
+                    <a href="https://www.nuget.org/packages/WebSpark.Slurper" class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fas fa-download"></i>
+                        Install Now
+                    </a>
+                    <a href="https://github.com/MarkHazleton/Slurper" class="btn btn-secondary btn-lg" target="_blank">
+                        <i class="fab fa-github"></i>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>WebSpark.Slurper</h4>
+                    <p>The magical data extractor for .NET that makes working with structured data a breeze.</p>
+                    <div class="social-links">
+                        <a href="https://github.com/MarkHazleton/Slurper" target="_blank" aria-label="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.nuget.org/packages/WebSpark.Slurper" target="_blank" aria-label="NuGet">
+                            <i class="fas fa-cube"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/wiki">Documentation</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper-Samples">Sample Projects</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/releases">Release Notes</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/blob/main/LICENSE">License</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/discussions">Discussions</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/issues">Report Issues</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/pulls">Pull Requests</a></li>
+                        <li><a href="https://github.com/MarkHazleton/Slurper/blob/main/CONTRIBUTING.md">Contributing</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Package Info</h4>
+                    <ul>
+                        <li><a href="https://www.nuget.org/packages/WebSpark.Slurper">NuGet Package</a></li>
+                        <li><a href="https://www.nuget.org/packages/WebSpark.Slurper#versions-body-tab">Version History</a></li>
+                        <li><a href="https://www.nuget.org/packages/WebSpark.Slurper#dependencies-body-tab">Dependencies</a></li>
+                        <li><a href="https://www.nuget.org/packages/WebSpark.Slurper#statistics-body-tab">Statistics</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Mark Hazleton. Licensed under the MIT License.</p>
+                <p>Based on original work by Jim (Dimitrios) Andrakakis.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.11/clipboard.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

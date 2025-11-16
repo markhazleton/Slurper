@@ -5,9 +5,46 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
+
+  <!-- NPM Build Integration -->
+  <PropertyGroup>
+    <NpmBuildEnabled Condition="'$(NpmBuildEnabled)' == ''">true</NpmBuildEnabled>
+    <NpmCommand Condition="'$(Configuration)' == 'Debug'">run build:dev</NpmCommand>
+    <NpmCommand Condition="'$(Configuration)' == 'Release'">run build</NpmCommand>
+  </PropertyGroup>
+
+  <!-- Install npm packages before build -->
+  <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Condition="'$(NpmBuildEnabled)' == 'true' AND !Exists('node_modules')">
+    <Message Text="Installing npm packages..." Importance="high" />
+    <Exec Command="npm install" />
+  </Target>
+
+  <!-- Run npm build -->
+  <Target Name="NpmBuild" BeforeTargets="BeforeBuild" AfterTargets="NpmInstall" Condition="'$(NpmBuildEnabled)' == 'true'">
+    <Message Text="Building client-side assets with webpack ($(Configuration) mode)..." Importance="high" />
+    <Exec Command="npm $(NpmCommand)" />
+  </Target>
+
+  <!-- Clean npm artifacts -->
+  <Target Name="NpmClean" AfterTargets="Clean">
+    <Message Text="Cleaning npm build artifacts..." Importance="high" />
+    <RemoveDir Directories="wwwroot\css;wwwroot\js;wwwroot\fonts;wwwroot\images" />
+  </Target>
+
+  <!-- Exclude npm files from publish -->
+  <ItemGroup>
+    <Content Remove="node_modules\**" />
+    <Content Remove="src\**" />
+    <Content Remove="package.json" />
+    <Content Remove="package-lock.json" />
+    <Content Remove="webpack.config.js" />
+    <Content Remove="build.ps1" />
+    <Content Remove=".npmrc" />
+    <None Include="node_modules\**" />
+  </ItemGroup>
 
 </Project>

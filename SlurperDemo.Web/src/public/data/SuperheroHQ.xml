@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<superhero_database>
+    <team_info>
+        <name>Data Defenders</name>
+        <headquarters>The Slurper Tower</headquarters>
+        <motto>No data format is too complex!</motto>
+        <formation_date>2024-01-01</formation_date>
+    </team_info>
+    
+    <hero id="hero001">
+        <codename>Captain Slurper</codename>
+        <real_name>Data Knight</real_name>
+        <origin_story>Bitten by a radioactive parsing spider, gained the ability to extract data from any format instantly.</origin_story>
+        <base_location>Silicon Valley</base_location>
+        <threat_level>Cosmic</threat_level>
+        <favorite_food>JSON cookies</favorite_food>
+        <weakness>Corrupted data</weakness>
+        <team>Data Defenders</team>
+        <first_appearance>Amazing Data Tales #1</first_appearance>
+        <powers>
+            <power>Super Data Extraction</power>
+            <power>Format Transformation</power>
+            <power>Error Immunity</power>
+        </powers>
+        <costume_colors>
+            <color>blue</color>
+            <color>silver</color>
+            <color>electric green</color>
+        </costume_colors>
+    </hero>
+    
+    <hero id="hero002">
+        <codename>The XML Warrior</codename>
+        <real_name>Marcus Parser</real_name>
+        <origin_story>Fell into a vat of XML while working late at a tech company. Emerged with the power to understand any markup language.</origin_story>
+        <base_location>Cloud City</base_location>
+        <threat_level>Galactic</threat_level>
+        <favorite_food>Element soup</favorite_food>
+        <weakness>Malformed tags</weakness>
+        <team>Data Defenders</team>
+        <first_appearance>Web Standards Weekly #42</first_appearance>
+        <powers>
+            <power>Tag Manipulation</power>
+            <power>Schema Validation</power>
+            <power>Namespace Control</power>
+        </powers>
+        <costume_colors>
+            <color>orange</color>
+            <color>white</color>
+            <color>gold</color>
+        </costume_colors>
+    </hero>
+    
+    <hero id="hero003">
+        <codename>CSV Lightning</codename>
+        <real_name>Taylor Delimiter</real_name>
+        <origin_story>Struck by lightning while holding a spreadsheet during a thunderstorm. Now moves data at the speed of light.</origin_story>
+        <base_location>Excel-sior City</base_location>
+        <threat_level>Planetary</threat_level>
+        <favorite_food>Comma-separated vegetables</favorite_food>
+        <weakness>Missing headers</weakness>
+        <team>Data Defenders</team>
+        <first_appearance>Spreadsheet Spectacular #7</first_appearance>
+        <powers>
+            <power>Column Separation</power>
+            <power>Row Multiplication</power>
+            <power>Comma Mastery</power>
+        </powers>
+        <costume_colors>
+            <color>yellow</color>
+            <color>black</color>
+            <color>electric blue</color>
+        </costume_colors>
+    </hero>
+</superhero_database>
