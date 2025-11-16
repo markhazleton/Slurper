@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "?? JSON Enigma Investigation";
+    ViewData["Title"] = "🔍 JSON Enigma Investigation";
 }
 
 <style>
@@ -9,7 +9,7 @@
     }
     
     .slurp-effect::before {
-        content: '??';
+        content: '💧';
         position: absolute;
         top: 50%;
         left: -100%;
@@ -116,10 +116,10 @@
 </style>
 
 <div class="investigation-header text-center">
-    <h1 class="display-3">?? JSON Enigma Investigation ??</h1>
+        <h1 class="display-3">🔍 JSON Enigma Investigation 🔍</h1>
     <p class="lead fs-4">
         <span class="badge bg-light text-dark pulse">
-            ?? Case File #002: Classified Intelligence Extraction ??
+                        📁 Case File #002: Classified Intelligence Extraction 📁
         </span>
     </p>
     <p class="mt-3">Detective, your mission is to extract superhero intelligence from encrypted JSON files!</p>
@@ -128,7 +128,7 @@
 <div class="container">
     <div class="card mb-4 evidence-box">
         <div class="card-header bg-primary text-white">
-            <h3>?? Investigation Briefing</h3>
+            <h3>📋 Investigation Briefing</h3>
         </div>
         <div class="card-body">
             <p class="lead">This case demonstrates extracting superhero data from a JSON file using WebSpark.Slurper's JSON
@@ -144,17 +144,17 @@
             @if (ViewBag.Success)
             {
                 <div class="alert alert-success">
-                    <strong>?? Mission Accomplished!</strong> @ViewBag.Message
+                    <strong>✅ Mission Accomplished!</strong> @ViewBag.Message
                 </div>
 
                 <div class="row mb-4">
                     <div class="col-12">
-                        <h4>?? Investigation Process</h4>
+                        <h4>🔎 Investigation Process</h4>
                         <div class="alert alert-secondary">
                             @foreach (var step in ViewBag.ProcessingSteps)
                             {
                                 <div class="extraction-step">
-                                    <i class="fas fa-search"></i> @step
+                                    <i class="bi bi-search"></i> @step
                                 </div>
                             }
                         </div>
@@ -165,7 +165,7 @@
                     <div class="col-md-6">
                         <div class="card slurp-effect">
                             <div class="card-header bg-secondary text-white">
-                                <h4>?? Before: Encrypted Evidence</h4>
+                                <h4>🔒 Before: Encrypted Evidence</h4>
                             </div>
                             <div class="card-body">
                                 <p>This is the raw JSON intelligence file we intercepted:</p>
@@ -177,7 +177,7 @@
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header bg-success text-white">
-                                <h4>????? After: Decoded Intelligence</h4>
+                                                                <h4>🔓✨ After: Decoded Intelligence</h4>
                             </div>
                             <div class="card-body">
                                 <p>Slurper successfully decoded <strong>@ViewBag.BookCount superhero profiles</strong> from the encrypted files:</p>
@@ -185,12 +185,12 @@
                                     @foreach (var hero in ViewBag.BookList)
                                     {
                                         <div class="hero-display">
-                                            <h5>????? @hero.codename</h5>
-                                            <p><strong>Real Identity:</strong> @hero.real_name</p>
-                                            <p><strong>Threat Level:</strong> <span class="badge bg-warning">@hero.threat_level</span></p>
-                                            <p><strong>Base:</strong> @hero.base_location</p>
+                                                                                        <h5>🦸 @hero.codename</h5>
+                                            <p><strong>Real Identity:</strong> @hero.realname</p>
+                                            <p><strong>Threat Level:</strong> <span class="badge bg-warning">@hero.threatlevel</span></p>
+                                            <p><strong>Base:</strong> @hero.baselocation</p>
                                             <p><strong>Weakness:</strong> @hero.weakness</p>
-                                            <small class="text-muted">@hero.origin_story</small>
+                                            <small class="text-muted">@hero.originstory</small>
                                         </div>
                                     }
                                 </div>
@@ -201,7 +201,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header bg-info text-white">
-                        <h4>?? Slurper Intelligence Analysis</h4>
+                        <h4>🧠 Slurper Intelligence Analysis</h4>
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -234,12 +234,14 @@
 <span style="color: #ce9178;">var</span> intelligence = jsonExtractor.ExtractFromFile(<span style="color: #ce9178;">"data.json"</span>);
 
 <span style="color: #569cd6;">// Navigate with simple dot notation</span>
+<span style="color: #569cd6;">// Note: Slurper sanitizes property names (removes underscores)</span>
+<span style="color: #569cd6;">// Arrays become propertyName.propertyNameList</span>
 <span style="color: #ce9178;">dynamic</span> decoded = intelligence.First();
-<span style="color: #ce9178;">var</span> heroes = decoded.superhero_database.heroes;
+<span style="color: #ce9178;">var</span> heroes = decoded.superherodatabase.heroes.heroesList;
 
 <span style="color: #569cd6;">// Access any property dynamically</span>
 <span style="color: #4ec9b0;">foreach</span> (<span style="color: #ce9178;">var</span> hero <span style="color: #4ec9b0;">in</span> heroes) {
-    Console.WriteLine($<span style="color: #ce9178;">"{hero.codename} - {hero.threat_level}"</span>);
+    Console.WriteLine($<span style="color: #ce9178;">"{hero.codename} - {hero.threatlevel}"</span>);
 }
 
 <span style="color: #569cd6;">// No custom classes required!</span>
@@ -254,7 +256,7 @@
             else
             {
                 <div class="alert alert-danger">
-                    <strong>?? Investigation Failed!</strong> @ViewBag.Message
+                    <strong>❌ Investigation Failed!</strong> @ViewBag.Message
                 </div>
             }
         </div>
@@ -264,17 +266,17 @@
         <div class="row">
             <div class="col-md-4">
                 <a asp-controller="Superhero" asp-action="Index" class="btn btn-warning btn-lg w-100 mb-2">
-                    ????? Access Full Superhero Database
+                    🦸💾 Access Full Superhero Database
                 </a>
             </div>
             <div class="col-md-4">
                 <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg w-100 mb-2">
-                    ?? Return to Detective HQ
+                    🏠 Return to Detective HQ
                 </a>
             </div>
             <div class="col-md-4">
                 <a asp-action="XmlDemo" class="btn btn-secondary btn-lg w-100 mb-2">
-                    ?? Next Case: XML Archives
+                    📄 Next Case: XML Archives
                 </a>
             </div>
         </div>

@@ -2,49 +2,49 @@
     var achievements = new List<dynamic>
     {
         new { 
-            icon = "??", 
+            icon = "<i class='bi bi-search'></i>", 
             title = "Data Detective", 
             description = "Successfully extracted data from your first format",
             unlocked = true
         },
         new { 
-            icon = "???", 
+            icon = "<i class='bi bi-journal-album'></i>", 
             title = "Format Explorer", 
             description = "Tried multiple data extraction formats",
             unlocked = true
         },
         new { 
-            icon = "?????", 
+            icon = "<i class='bi bi-person-badge'></i>", 
             title = "Superhero Analyst", 
             description = "Accessed the classified superhero database",
             unlocked = ViewContext.RouteData.Values["controller"]?.ToString() == "Superhero"
         },
         new { 
-            icon = "??", 
+            icon = "<i class='bi bi-braces'></i>", 
             title = "JSON Master", 
             description = "Decoded complex JSON intelligence files",
             unlocked = ViewContext.RouteData.Values["controller"]?.ToString() == "JSON"
         },
         new { 
-            icon = "??", 
+            icon = "<i class='bi bi-file-code'></i>", 
             title = "XML Archaeologist", 
             description = "Excavated data from ancient XML scrolls",
             unlocked = ViewContext.RouteData.Values["action"]?.ToString() == "XmlDemo"
         },
         new { 
-            icon = "??", 
+            icon = "<i class='bi bi-file-earmark-spreadsheet'></i>", 
             title = "CSV Analyst", 
             description = "Analyzed structured tabular data",
             unlocked = ViewContext.RouteData.Values["action"]?.ToString() == "CsvDemo"
         },
         new { 
-            icon = "??", 
+            icon = "<i class='bi bi-spider'></i>", 
             title = "Web Crawler", 
             description = "Extracted secrets from HTML documents",
             unlocked = ViewContext.RouteData.Values["action"]?.ToString() == "HtmlDemo"
         },
         new { 
-            icon = "???", 
+            icon = "<i class='bi bi-archive'></i>", 
             title = "Legacy Expert", 
             description = "Mastered the ancient static methods",
             unlocked = ViewContext.RouteData.Values["action"]?.ToString() == "LegacyDemo"
@@ -95,13 +95,13 @@
 </style>
 
 <div class="achievements-container text-center">
-    <h6 class="mb-3">?? Detective Achievements</h6>
+    <h6 class="mb-3"><i class="bi bi-trophy"></i> Detective Achievements</h6>
     <div>
         @foreach (var achievement in achievements)
         {
             <span class="achievement-badge @(achievement.unlocked ? "achievement-unlocked" : "achievement-locked")" 
                   title="@achievement.title: @achievement.description">
-                @achievement.icon @achievement.title
+                @Html.Raw(achievement.icon) @achievement.title
             </span>
         }
     </div>

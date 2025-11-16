@@ -61,19 +61,23 @@ public class JSONController : Controller
             try
             {
                 // Track the processing steps to explain what Slurper is doing
-                processingSteps.Add("?? Slurper extracts the JSON intelligence into dynamic objects");
+                processingSteps.Add("💧 Slurper extracts the JSON intelligence into dynamic objects");
 
                 // Use dynamic to handle dynamic properties
                 dynamic firstResult = heroes.First();
-                processingSteps.Add("?? We access the first object from the extracted collection");
+                processingSteps.Add("👉 We access the first object from the extracted collection");
 
-                dynamic database = firstResult.superhero_database;
-                processingSteps.Add("??? Navigate to the 'superhero_database' property");
+                // Note: Slurper sanitizes property names by removing non-alphanumeric characters
+                // So "superhero_database" becomes "superherodatabase"
+                dynamic database = firstResult.superherodatabase;
+                processingSteps.Add("➡️➡️ Navigate to the 'superherodatabase' property (sanitized from 'superhero_database')");
 
-                dynamic heroesArray = database.heroes;
-                processingSteps.Add("????? Access the 'heroes' property, which contains an array of superhero profiles");
+                // Arrays in JSON become List properties with "List" suffix
+                // So "heroes": [...] becomes accessible as heroes.heroesList
+                dynamic heroesArray = database.heroes.heroesList;
+                processingSteps.Add("🎯👥 Access the 'heroes.heroesList' property, which contains an array of superhero profiles");
 
-                processingSteps.Add("? Processing individual superhero profiles from the intelligence data");
+                processingSteps.Add("🔍 Processing individual superhero profiles from the intelligence data");
 
                 // Show the structure navigation
                 ViewBag.ProcessingSteps = processingSteps;
@@ -81,7 +85,7 @@ public class JSONController : Controller
                 // Handle the heroes array
                 if (heroesArray is IEnumerable && !(heroesArray is string))
                 {
-                    processingSteps.Add("?? Since 'heroes' contains multiple profiles, we decode each superhero");
+                    processingSteps.Add("🔁 Since 'heroes' contains multiple profiles, we decode each superhero");
                     foreach (var hero in (IEnumerable)heroesArray)
                     {
                         heroCollection.Add(hero);
@@ -89,7 +93,7 @@ public class JSONController : Controller
                 }
                 else
                 {
-                    processingSteps.Add("?? Since 'heroes' contains a single profile, we decode it directly");
+                    processingSteps.Add("👤 Since 'heroes' contains a single profile, we decode it directly");
                     heroCollection.Add(heroesArray);
                 }
 
@@ -100,14 +104,14 @@ public class JSONController : Controller
 
                 // Additional explanation of what Slurper does for superheroes
                 ViewBag.SlurperExplanation = @"
-                    <p><strong>????? What Slurper Does for Superhero Intelligence:</strong></p>
+                    <p><strong>🦸‍♂️📊 What Slurper Does for Superhero Intelligence:</strong></p>
                     <ul>
-                        <li>?? Decodes encrypted intelligence files (JSON, XML, CSV, HTML) into accessible dynamic objects</li>
-                        <li>?? Navigates complex nested superhero database structures with simple dot notation</li>
-                        <li>?? Allows you to access hero profiles, powers, and classified info without predefined schemas</li>
-                        <li>? Automatically handles single heroes or entire superhero teams</li>
-                        <li>??? Provides a unified way to extract intelligence from various sources without format-specific decoding</li>
-                        <li>?? Perfect for rapid intelligence gathering operations across multiple data formats</li>
+                        <li>🔓 Decodes encrypted intelligence files (JSON, XML, CSV, HTML) into accessible dynamic objects</li>
+                        <li>🧭 Navigates complex nested superhero database structures with simple dot notation</li>
+                        <li>🎯 Allows you to access hero profiles, powers, and classified info without predefined schemas</li>
+                        <li>🔄 Automatically handles single heroes or entire superhero teams</li>
+                        <li>✨🔧 Provides a unified way to extract intelligence from various sources without format-specific decoding</li>
+                        <li>⚡ Perfect for rapid intelligence gathering operations across multiple data formats</li>
                     </ul>";
             }
             catch (RuntimeBinderException ex)

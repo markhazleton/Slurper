@@ -66,7 +66,7 @@
 <div class="superhero-card 
     @try 
     { 
-        @($"threat-{Model.threat_level.ToString().ToLower()}")
+        @($"threat-{Model.threatlevel.ToString().ToLower()}")
     } 
     catch 
     { 
@@ -75,7 +75,7 @@
     
     <div class="d-flex justify-content-between align-items-start mb-3">
         <h5 class="mb-0">
-            <span class="hero-icon">?????</span>
+            <span class="hero-icon">🦸‍♂️</span>
             @try
             {
                 @Model.codename
@@ -89,7 +89,7 @@
         <span class="badge bg-dark">
             @try
             {
-                @Model.threat_level
+                @Model.threatlevel
             }
             catch
             {
@@ -101,10 +101,10 @@
     <div class="row">
         <div class="col-md-8">
             <p class="mb-2">
-                <strong>?? Real Identity:</strong>
+                <strong>🎭 Real Identity:</strong>
                 @try
                 {
-                    @Model.real_name
+                    @Model.realname
                 }
                 catch
                 {
@@ -113,10 +113,10 @@
             </p>
 
             <p class="mb-2">
-                <strong>?? Base:</strong>
+                <strong>🏙️ Base:</strong>
                 @try
                 {
-                    @Model.base_location
+                    @Model.baselocation
                 }
                 catch
                 {
@@ -129,7 +129,7 @@
                 if (((object)Model.team) != null)
                 {
                     <p class="mb-2">
-                        <strong>?? Team:</strong> @Model.team
+                        <strong>👥 Team:</strong> @Model.team
                     </p>
                 }
             }
@@ -140,7 +140,7 @@
                 if (((object)Model.first_appearance) != null)
                 {
                     <p class="mb-2">
-                        <strong>?? First Appearance:</strong> @Model.first_appearance
+                        <strong>📚 First Appearance:</strong> @Model.firstappearance
                     </p>
                 }
             }
@@ -152,8 +152,8 @@
             {
                 if (((object)Model.favorite_food) != null)
                 {
-                    <p class="mb-1"><small>?? Favorite Food:</small></p>
-                    <p class="mb-2"><strong>@Model.favorite_food</strong></p>
+                    <p class="mb-1"><small>🍔 Favorite Food:</small></p>
+                    <p class="mb-2"><strong>@Model.favoritefood</strong></p>
                 }
             }
             catch { }
@@ -195,8 +195,8 @@
         if (((object)Model.origin_story) != null)
         {
             <div class="mb-3">
-                <p class="mb-1"><strong>?? Origin Story:</strong></p>
-                <small class="text-muted fst-italic">@Model.origin_story</small>
+                <p class="mb-1"><strong>📜 Origin Story:</strong></p>
+                <small class="text-muted fst-italic">@Model.originstory</small>
             </div>
         }
     }
@@ -208,7 +208,7 @@
         if (((object)Model.weakness) != null)
         {
             <div class="weakness-warning">
-                <small><strong>?? Weakness:</strong> @Model.weakness</small>
+                <small><strong>⚠️ Weakness:</strong> @Model.weakness</small>
             </div>
         }
     }

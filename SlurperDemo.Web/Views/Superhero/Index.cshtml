@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "?? Superhero Command Center";
+    ViewData["Title"] = "Superhero Command Center";
 }
 
 <style>
@@ -79,10 +79,10 @@
 </style>
 
 <div class="command-center text-center">
-    <h1 class="display-3">????? Superhero Command Center ?????</h1>
+    <h1 class="display-3"><i class="bi bi-shield-fill-check"></i> Superhero Command Center <i class="bi bi-shield-fill-check"></i></h1>
     <p class="lead fs-4">
         <span class="badge bg-light text-dark pulse">
-            ?? Data Defenders Database Access Portal ??
+            <i class="bi bi-database-fill"></i> Data Defenders Database Access Portal <i class="bi bi-database-fill"></i>
         </span>
     </p>
     <p class="mt-3">Access the classified superhero database using advanced Slurper extraction technology!</p>
@@ -95,24 +95,24 @@
             <!-- Mission Control Panel -->
             <div class="card shadow-lg mb-4">
                 <div class="card-header bg-dark text-white text-center">
-                    <h3>?? Mission Control Panel</h3>
+                    <h3><i class="bi bi-gear-fill"></i> Mission Control Panel</h3>
                 </div>
                 <div class="card-body bg-light">
                     <div class="row text-center">
                         <div class="col-md-4">
                             <a asp-action="HeroDatabase" class="btn btn-primary btn-lg w-100 hero-card text-white text-decoration-none p-4">
-                                <h4>?? Full Database Scan</h4>
+                                <h4><i class="bi bi-server"></i> Full Database Scan</h4>
                                 <p class="mb-0">Extract ALL superhero data from multiple formats</p>
                                 <small class="d-block mt-2 opacity-75">JSON + XML + CSV Analysis</small>
                             </a>
                         </div>
                         <div class="col-md-4">
                             <div class="search-box">
-                                <h5>?? Power Search</h5>
+                                <h5><i class="bi bi-search"></i> Power Search</h5>
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="Search for heroes, powers..." id="searchInput">
                                     <button class="btn btn-warning" onclick="performPowerSearch()">
-                                        <i class="fas fa-search"></i> Search
+                                        <i class="bi bi-search"></i> Search
                                     </button>
                                 </div>
                                 <div id="searchResults" class="mt-3"></div>
@@ -120,7 +120,7 @@
                         </div>
                         <div class="col-md-4">
                             <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg w-100 p-4 text-decoration-none">
-                                <h4>?? Return to HQ</h4>
+                                <h4><i class="bi bi-arrow-return-left"></i> Return to HQ</h4>
                                 <p class="mb-0">Back to main detective agency</p>
                                 <small class="d-block mt-2 opacity-75">All Case Files</small>
                             </a>
@@ -133,22 +133,22 @@
             <div class="stats-panel text-white text-center">
                 <div class="row">
                     <div class="col-md-3">
-                        <h3 class="pulse">?</h3>
+                        <h3 class="pulse"><i class="bi bi-lightning-fill"></i></h3>
                         <h4>Lightning Fast</h4>
                         <p>Extracts data at superhero speeds</p>
                     </div>
                     <div class="col-md-3">
-                        <h3 class="pulse">???</h3>
+                        <h3 class="pulse"><i class="bi bi-shield-fill-check"></i></h3>
                         <h4>Error Proof</h4>
                         <p>Handles corrupted data like a pro</p>
                     </div>
                     <div class="col-md-3">
-                        <h3 class="pulse">??</h3>
+                        <h3 class="pulse"><i class="bi bi-globe"></i></h3>
                         <h4>Universal</h4>
                         <p>Works with any data format</p>
                     </div>
                     <div class="col-md-3">
-                        <h3 class="pulse">??</h3>
+                        <h3 class="pulse"><i class="bi bi-bullseye"></i></h3>
                         <h4>Precise</h4>
                         <p>Extracts exactly what you need</p>
                     </div>
@@ -158,6 +158,7 @@
     </div>
 </div>
 
+@section Scripts {
 <script>
     function performPowerSearch() {
         const searchTerm = document.getElementById('searchInput').value;
@@ -168,7 +169,7 @@
             return;
         }
         
-        resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Scanning database...</div>';
+        resultsDiv.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div> Scanning database...</div>';
         
         fetch('/Superhero/PowerSearch', {
             method: 'POST',
@@ -188,7 +189,7 @@
                         html += '<div class="card mb-2">';
                         html += '<div class="card-body p-2">';
                         html += '<strong>' + hero.codename + '</strong> (' + hero.real_name + ')<br>';
-                        html += '<small class="text-muted">' + hero.base_location + ' • ' + hero.threat_level + '</small>';
+                        html += '<small class="text-muted">' + hero.base_location + ' - ' + hero.threat_level + '</small>';
                         html += '</div></div>';
                     });
                     resultsDiv.innerHTML = html;
@@ -209,3 +210,4 @@
         }
     });
 </script>
+}

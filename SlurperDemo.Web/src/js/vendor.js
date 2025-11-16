@@ -7,8 +7,8 @@ import "jquery-validation-unobtrusive";
 // Import Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.css";
 
-// Import Font Awesome
-import "@fortawesome/fontawesome-free/css/all.css";
+// Import Bootstrap Icons
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 // Make jQuery globally available for ASP.NET validation
 window.jQuery = $;

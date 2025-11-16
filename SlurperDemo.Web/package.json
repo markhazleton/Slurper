@@ -8,7 +8,7 @@
     "build:dev": "webpack --mode development",
     "watch": "webpack --mode development --watch",
     "serve": "webpack serve --mode development --open",
-    "clean": "rimraf wwwroot/css/site.css wwwroot/css/site.css.map wwwroot/js/site.js wwwroot/js/site.js.map wwwroot/fonts wwwroot/images"
+    "clean": "rimraf wwwroot"
   },
   "keywords": [
     "slurper",
@@ -22,6 +22,7 @@
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "babel-loader": "^10.0.0",
+    "bootstrap-icons": "1.13.1",
     "css-loader": "^7.1.2",
     "css-minimizer-webpack-plugin": "^7.0.2",
     "mini-css-extract-plugin": "^2.9.4",
@@ -34,7 +35,6 @@
     "webpack-dev-server": "^5.2.2"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^7.1.0",
     "bootstrap": "^5.3.8",
     "jquery": "^3.7.1",
     "jquery-validation": "^1.21.0",

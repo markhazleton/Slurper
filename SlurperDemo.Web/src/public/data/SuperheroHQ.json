@@ -1,0 +1,97 @@
+{
+  "superhero_database": {
+    "heroes": [
+      {
+        "id": "hero001",
+        "codename": "Captain Slurper",
+        "real_name": "Data Knight",
+        "powers": ["Super Data Extraction", "Format Transformation", "Error Immunity"],
+        "origin_story": "Bitten by a radioactive parsing spider, gained the ability to extract data from any format instantly.",
+        "base_location": "Silicon Valley",
+        "threat_level": "Cosmic",
+        "favorite_food": "JSON cookies",
+        "weakness": "Corrupted data",
+        "team": "Data Defenders",
+        "first_appearance": "Amazing Data Tales #1",
+        "costume_colors": ["blue", "silver", "electric green"]
+      },
+      {
+        "id": "hero002", 
+        "codename": "The XML Warrior",
+        "real_name": "Marcus Parser",
+        "powers": ["Tag Manipulation", "Schema Validation", "Namespace Control"],
+        "origin_story": "Fell into a vat of XML while working late at a tech company. Emerged with the power to understand any markup language.",
+        "base_location": "Cloud City",
+        "threat_level": "Galactic",
+        "favorite_food": "Element soup",
+        "weakness": "Malformed tags",
+        "team": "Data Defenders", 
+        "first_appearance": "Web Standards Weekly #42",
+        "costume_colors": ["orange", "white", "gold"]
+      },
+      {
+        "id": "hero003",
+        "codename": "CSV Lightning",
+        "real_name": "Taylor Delimiter", 
+        "powers": ["Column Separation", "Row Multiplication", "Comma Mastery"],
+        "origin_story": "Struck by lightning while holding a spreadsheet during a thunderstorm. Now moves data at the speed of light.",
+        "base_location": "Excel-sior City",
+        "threat_level": "Planetary",
+        "favorite_food": "Comma-separated vegetables",
+        "weakness": "Missing headers",
+        "team": "Data Defenders",
+        "first_appearance": "Spreadsheet Spectacular #7",
+        "costume_colors": ["yellow", "black", "electric blue"]
+      },
+      {
+        "id": "hero004",
+        "codename": "HTML Spider",
+        "real_name": "Penny Parker",
+        "powers": ["DOM Traversal", "CSS Styling", "JavaScript Injection"],
+        "origin_story": "While debugging a website, got caught in her own web of nested divs. Gained spider-like abilities to navigate any HTML structure.",
+        "base_location": "Browser Heights",
+        "threat_level": "Global",
+        "favorite_food": "Tag soup",
+        "weakness": "Internet Explorer",
+        "team": "Data Defenders",
+        "first_appearance": "Web Dev Weekly #365",
+        "costume_colors": ["red", "blue", "web-silver"]
+      },
+      {
+        "id": "hero005",
+        "codename": "Doctor Dynamic",
+        "real_name": "Danny Object",
+        "powers": ["Type Transformation", "Property Injection", "Runtime Binding"],
+        "origin_story": "Experimental accident with a prototype dynamic language compiler gave him the ability to adapt to any data structure.",
+        "base_location": "Memory Heap Headquarters",
+        "threat_level": "Universal",
+        "favorite_food": "Polymorphic pizza",
+        "weakness": "Null reference exceptions",
+        "team": "Data Defenders",
+        "first_appearance": "Dynamic Data Comics #1",
+        "costume_colors": ["purple", "silver", "neon green"]
+      },
+      {
+        "id": "hero006",
+        "codename": "The Extractor",
+        "real_name": "Sam Ple",
+        "powers": ["Pattern Recognition", "Data Mining", "Information Synthesis"],
+        "origin_story": "Born with the rare ability to see patterns in chaos. Uses this gift to extract meaning from the most complex data structures.",
+        "base_location": "Algorithm Alley",
+        "threat_level": "Multiversal",
+        "favorite_food": "Regex rolls",
+        "weakness": "Infinite loops",
+        "team": "Data Defenders",
+        "first_appearance": "Pattern Recognition #13",
+        "costume_colors": ["green", "black", "binary blue"]
+      }
+    ],
+    "team_stats": {
+      "total_heroes": 6,
+      "formation_date": "2024-01-01",
+      "headquarters": "The Slurper Tower",
+      "motto": "No data format is too complex!",
+      "emergency_hotline": "1-800-SLURPER"
+    }
+  }
+}

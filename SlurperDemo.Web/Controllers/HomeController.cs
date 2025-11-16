@@ -52,9 +52,17 @@ public class HomeController : Controller
             }
 
             var books = _xmlExtractor.ExtractFromFile(filePath);
-            // Use dynamic to handle dynamic properties
-            dynamic firstBook = books.First();
-            ViewBag.BookList = firstBook.bookList;
+
+            if (books?.Any() == true)
+            {
+                // Use dynamic to handle dynamic properties
+                dynamic? firstBook = books.FirstOrDefault();
+                if (firstBook != null)
+                {
+                    ViewBag.BookList = firstBook.bookList;
+                }
+            }
+            
             ViewBag.Success = true;
             ViewBag.Message = "Successfully extracted book data from XML";
         }
@@ -103,125 +111,41 @@ public class HomeController : Controller
         {
             var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "books.html");
 
-            // Read and store raw HTML content for display
             if (System.IO.File.Exists(filePath))
             {
                 ViewBag.RawHtmlContent = System.IO.File.ReadAllText(filePath);
             }
 
             var books = _htmlExtractor.ExtractFromFile(filePath);
-
-            // Create a proper List<dynamic> that's safely enumerable by the view
             var bookCollection = new List<dynamic>();
 
             try
             {
-                // First, let's examine what we actually have
-                dynamic firstBook = books.First();
+                dynamic? firstBook = books.FirstOrDefault();
+                if (firstBook == null)
+                {
+                    ViewBag.Success = false;
+                    ViewBag.Message = "HTML structure did not yield any extractable content.";
+                    return View();
+                }
 
-                // Get a dictionary representation for debugging
-                var members = firstBook.Members as IDictionary<string, object>;
+                if (firstBook.Members is not IDictionary<string, object> members)
+                {
+                    ViewBag.Success = false;
+                    ViewBag.Message = "Could not read members of the extracted HTML object.";
+                    return View();
+                }
+
                 ViewBag.AvailableKeys = string.Join(", ", members.Keys);
+                
+                // Attempt to find books in various possible structures
+                bool booksFound = FindBooksInCatalog(firstBook, bookCollection);
 
-                // Try to traverse the structure based on what's actually available
-                dynamic rootNode = firstBook;
-
-                // Attempt to find catalog and book nodes
-                try
+                if (!booksFound)
                 {
-                    // Look for the catalog node at various possible paths
-                    dynamic catalog = null;
-
-                    // Path option 1: directly in the root
-                    if (members.ContainsKey("catalog"))
-                    {
-                        catalog = rootNode.catalog;
-                    }
-                    // Path option 2: in the body > div path
-                    else if (members.ContainsKey("body"))
-                    {
-                        try { catalog = rootNode.body.div.catalog; } catch { /* ignore */ }
-                    }
-                    // Path option 3: html > body > div path
-                    else if (members.ContainsKey("html"))
-                    {
-                        try { catalog = rootNode.html.body.div.catalog; } catch { /* ignore */ }
-                    }
-
-                    // If catalog is found, look for book divs
-                    if (catalog != null)
-                    {
-                        try
-                        {
-                            // Try direct div access
-                            if (catalog.Members.ContainsKey("div"))
-                            {
-                                dynamic divs = catalog.div;
-
-                                // Check if divs is an array/list
-                                try
-                                {
-                                    for (int i = 0; i < 2; i++) // Assuming 2 books
-                                    {
-                                        ExtractBookInfo(divs[i], bookCollection);
-                                    }
-                                }
-                                catch
-                                {
-                                    // Maybe it's a single element, not an array
-                                    ExtractBookInfo(divs, bookCollection);
-                                }
-                            }
-                            // Try divList for list of divs
-                            else if (catalog.Members.ContainsKey("divList"))
-                            {
-                                foreach (dynamic book in (IEnumerable)catalog.divList)
-                                {
-                                    ExtractBookInfo(book, bookCollection);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Error extracting books from catalog");
-                        }
-                    }
-                    else
-                    {
-                        // If catalog not found, maybe books are directly in the root
-                        if (members.ContainsKey("div"))
-                        {
-                            try
-                            {
-                                dynamic divs = rootNode.div;
-
-                                // Check if it's a collection
-                                try
-                                {
-                                    for (int i = 0; i < 2; i++) // Assuming 2 books
-                                    {
-                                        ExtractBookInfo(divs[i], bookCollection);
-                                    }
-                                }
-                                catch
-                                {
-                                    // Maybe it's a single element, not an array
-                                    ExtractBookInfo(divs, bookCollection);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogWarning(ex, "Error extracting books from root divs");
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error navigating HTML structure");
+                    FindBooksInRoot(firstBook, bookCollection);
                 }
 
-                // If we still don't have books, dump the entire structure
                 if (!bookCollection.Any())
                 {
                     ViewBag.CompleteStructure = SerializeExpandoObject(firstBook);
@@ -235,7 +159,6 @@ public class HomeController : Controller
             }
             catch (RuntimeBinderException ex)
             {
-                // More detailed error for debugging
                 _logger.LogError(ex, "Runtime binding error accessing HTML properties");
                 ViewBag.Success = false;
                 ViewBag.Message = $"Error accessing HTML structure: {ex.Message}";
@@ -250,61 +173,121 @@ public class HomeController : Controller
         return View();
     }
 
+    private bool FindBooksInCatalog(dynamic rootNode, List<dynamic> bookCollection)
+    {
+        if (rootNode?.Members is not IDictionary<string, object> members) return false;
+
+        dynamic? catalog = null;
+        if (members.ContainsKey("catalog"))
+        {
+            catalog = rootNode.catalog;
+        }
+        else if (members.ContainsKey("body") && rootNode.body?.div?.catalog != null)
+        {
+            catalog = rootNode.body.div.catalog;
+        }
+        else if (members.ContainsKey("html") && rootNode.html?.body?.div?.catalog != null)
+        {
+            catalog = rootNode.html.body.div.catalog;
+        }
+
+        if (catalog == null) return false;
+
+        if (catalog.Members is not IDictionary<string, object> catalogMembers) return false;
+
+        if (catalogMembers.ContainsKey("div"))
+        {
+            if (catalog.div is IEnumerable divEnumerable)
+            {
+                foreach (var d in divEnumerable) ExtractBookInfo(d, bookCollection);
+            }
+            else
+            {
+                ExtractBookInfo(catalog.div, bookCollection);
+            }
+            return true;
+        }
+        
+        if (catalogMembers.ContainsKey("divList") && catalog.divList is IEnumerable divList)
+        {
+            foreach (dynamic book in divList) ExtractBookInfo(book, bookCollection);
+            return true;
+        }
+        
+        return false;
+    }
+
+    private void FindBooksInRoot(dynamic rootNode, List<dynamic> bookCollection)
+    {
+        if (rootNode?.Members is not IDictionary<string, object> members) return;
+
+        if (members.ContainsKey("div"))
+        {
+            if (rootNode.div is IEnumerable divEnumerable)
+            {
+                foreach (var d in divEnumerable) ExtractBookInfo(d, bookCollection);
+            }
+            else
+            {
+                ExtractBookInfo(rootNode.div, bookCollection);
+            }
+        }
+    }
+
     // Helper method to extract book information
     private void ExtractBookInfo(dynamic bookNode, List<dynamic> collection)
     {
         try
         {
+            if (bookNode == null) return;
+
             dynamic bookItem = new ExpandoObject();
-            var dict = bookItem as IDictionary<string, object>;
+            if (bookItem is not IDictionary<string, object> dict) return;
 
-            // Try to get the title
-            try { dict["title"] = bookNode.h2.ToString(); }
-            catch { dict["title"] = "Unknown Title"; }
+            dict["title"] = "Unknown Title";
+            try { if(bookNode.h2 != null) dict["title"] = bookNode.h2.ToString() ?? "Unknown Title"; } catch { }
 
-            // Try to get author from p elements
+            dict["author"] = "Unknown Author";
+            dict["genre"] = "Unknown Genre";
+            dict["price"] = "0.00";
+            dict["publish_date"] = "Unknown Date";
+
             try
             {
-                var pElements = bookNode.p;
-                dict["author"] = pElements[0].ToString();
-                dict["genre"] = pElements[1].ToString();
-                dict["price"] = pElements[2].ToString();
-                dict["publish_date"] = pElements[3].ToString();
+                if (bookNode.p is IList<object> pElements && pElements.Count > 3)
+                {
+                    if(pElements[0] != null) dict["author"] = pElements[0].ToString() ?? "Unknown Author";
+                    if(pElements[1] != null) dict["genre"] = pElements[1].ToString() ?? "Unknown Genre";
+                    if(pElements[2] != null) dict["price"] = pElements[2].ToString() ?? "0.00";
+                    if(pElements[3] != null) dict["publish_date"] = pElements[3].ToString() ?? "Unknown Date";
+                }
+                else
+                {
+                    try { if(bookNode.author != null) dict["author"] = bookNode.author.ToString() ?? "Unknown Author"; } catch { }
+                    try { if(bookNode.genre != null) dict["genre"] = bookNode.genre.ToString() ?? "Unknown Genre"; } catch { }
+                    try { if(bookNode.price != null) dict["price"] = bookNode.price.ToString() ?? "0.00"; } catch { }
+                    try { if(bookNode.publish_date != null) dict["publish_date"] = bookNode.publish_date.ToString() ?? "Unknown Date"; } catch { }
+                }
             }
             catch
             {
-                // Fallback to class-based access if available
-                try { dict["author"] = bookNode.author.ToString(); }
-                catch { dict["author"] = "Unknown Author"; }
-
-                try { dict["genre"] = bookNode.genre.ToString(); }
-                catch { dict["genre"] = "Unknown Genre"; }
-
-                try { dict["price"] = bookNode.price.ToString(); }
-                catch { dict["price"] = "0.00"; }
-
-                try { dict["publish_date"] = bookNode.publish_date.ToString(); }
-                catch { dict["publish_date"] = "Unknown Date"; }
+                // Final fallback already set
             }
 
-            // Try to get description
-            try { dict["description"] = bookNode.div.ToString(); }
-            catch
-            {
-                try { dict["description"] = bookNode.description.ToString(); }
-                catch { dict["description"] = "No description available"; }
+            dict["description"] = "No description available";
+            try { if(bookNode.div != null) dict["description"] = bookNode.div.ToString() ?? "No description available"; }
+            catch {
+                try { if(bookNode.description != null) dict["description"] = bookNode.description.ToString() ?? "No description available"; } catch {}
             }
 
-            // Try to get ID
-            try { dict["id"] = bookNode.id.ToString(); }
-            catch { dict["id"] = "Unknown ID"; }
+            dict["id"] = "Unknown ID";
+            try { if(bookNode.id != null) dict["id"] = bookNode.id.ToString() ?? "Unknown ID"; } catch { }
 
             collection.Add(bookItem);
         }
         catch (Exception ex)
         {
-            // Log but don't throw to keep processing other books
-            _logger.LogWarning(ex, "Error extracting information from book node");
+            _logger.LogWarning(ex, "Error extracting information from a book node");
         }
     }
 
@@ -313,17 +296,29 @@ public class HomeController : Controller
     {
         try
         {
-            var dict = new Dictionary<string, object>();
-
-            foreach (KeyValuePair<string, object> kvp in obj.Members)
+            if (obj is not ToStringExpandoObject)
             {
-                if (kvp.Value is ToStringExpandoObject nestedObj)
+                return System.Text.Json.JsonSerializer.Serialize(obj) ?? "{}";
+            }
+
+            var dict = new Dictionary<string, object?>();
+
+            if (obj.Members is IDictionary<string, object> members)
+            {
+                foreach (var kvp in members)
                 {
-                    dict[kvp.Key] = "ToStringExpandoObject: " + SerializeExpandoObject(nestedObj);
-                }
-                else
-                {
-                    dict[kvp.Key] = kvp.Value?.ToString() ?? "null";
+                    if (kvp.Value is ToStringExpandoObject nestedObj)
+                    {
+                        dict[kvp.Key] = SerializeExpandoObject(nestedObj);
+                    }
+                    else if (kvp.Value is IEnumerable<ToStringExpandoObject> list)
+                    {
+                        dict[kvp.Key] = list.Select(SerializeExpandoObject).ToList();
+                    }
+                    else
+                    {
+                        dict[kvp.Key] = kvp.Value?.ToString();
+                    }
                 }
             }
 
@@ -339,6 +334,7 @@ public class HomeController : Controller
             return "Unable to serialize object";
         }
     }
+
     public IActionResult Privacy()
     {
         return View();
@@ -358,69 +354,46 @@ public class HomeController : Controller
             var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.json");
 
             // Demonstrate legacy XmlSlurper static method
-            dynamic? xmlResult = null;
             if (System.IO.File.Exists(xmlFilePath))
             {
-                // Read and store raw XML content for display
                 ViewBag.RawXmlContent = System.IO.File.ReadAllText(xmlFilePath);
-
-                xmlResult = XmlSlurper.ParseFile(xmlFilePath);
-                // XML structure: The root <catalog> element becomes the object itself
-                // Multiple <book> elements become "bookList" property directly on the root
-                ViewBag.XmlBooks = xmlResult?.bookList;
-
-                // For debugging: show the structure if books are null
-                if (ViewBag.XmlBooks == null && xmlResult != null)
+                dynamic? xmlResult = XmlSlurper.ParseFile(xmlFilePath);
+                if (xmlResult != null)
                 {
-                    ViewBag.XmlStructure = SerializeExpandoObject(xmlResult);
+                    ViewBag.XmlBooks = xmlResult.bookList;
+                    if (ViewBag.XmlBooks == null)
+                    {
+                        ViewBag.XmlStructure = SerializeExpandoObject(xmlResult);
+                    }
                 }
             }
 
             // Demonstrate legacy JsonSlurper static method
-            dynamic? jsonResult = null;
             if (System.IO.File.Exists(jsonFilePath))
             {
-                // Read and store raw JSON content for display
                 ViewBag.RawJsonContent = System.IO.File.ReadAllText(jsonFilePath);
-
-                jsonResult = JsonSlurper.ParseFile(jsonFilePath);
-
-                // Debug: Let's see what the actual structure is
-                ViewBag.JsonStructure = SerializeExpandoObject(jsonResult);
-
-                // Try multiple possible paths based on how JsonSlurper might structure the data
-                ViewBag.JsonBooks = null;
-
-                try
+                dynamic? jsonResult = JsonSlurper.ParseFile(jsonFilePath);
+                if (jsonResult != null)
                 {
-                    // Option 1: catalog.book (direct array)
-                    if (jsonResult?.catalog?.book != null)
+                    ViewBag.JsonStructure = SerializeExpandoObject(jsonResult);
+                    ViewBag.JsonBooks = null;
+
+                    try
                     {
-                        ViewBag.JsonBooks = jsonResult.catalog.book;
+                        dynamic? catalog = jsonResult.catalog;
+                        if (catalog != null)
+                        {
+                            if (catalog.book != null) ViewBag.JsonBooks = catalog.book;
+                            else if (catalog.bookList != null) ViewBag.JsonBooks = catalog.bookList;
+                            else ViewBag.JsonBooks = catalog;
+                        }
+                        else if (jsonResult.book != null) ViewBag.JsonBooks = jsonResult.book;
+                        else if (jsonResult.bookList != null) ViewBag.JsonBooks = jsonResult.bookList;
                     }
-                    // Option 2: catalog.bookList (array with List suffix)
-                    else if (jsonResult?.catalog?.bookList != null)
+                    catch (Exception ex)
                     {
-                        ViewBag.JsonBooks = jsonResult.catalog.bookList;
+                        _logger.LogWarning(ex, "Error accessing JSON structure");
                     }
-                    // Option 3: Just catalog (if catalog itself contains the books)
-                    else if (jsonResult?.catalog != null)
-                    {
-                        ViewBag.JsonBooks = jsonResult.catalog;
-                    }
-                    // Option 4: Root level books
-                    else if (jsonResult?.book != null)
-                    {
-                        ViewBag.JsonBooks = jsonResult.book;
-                    }
-                    else if (jsonResult?.bookList != null)
-                    {
-                        ViewBag.JsonBooks = jsonResult.bookList;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error accessing JSON structure");
                 }
             }
 

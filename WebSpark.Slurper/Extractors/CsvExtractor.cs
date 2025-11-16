@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebSpark.Slurper.Configuration;
 using WebSpark.Slurper.Exceptions;
@@ -106,7 +107,7 @@ namespace WebSpark.Slurper.Extractors
                 else if (dialect.HasHeaderRow)
                 {
                     headers = ParseCsvLine(lines[0], dialect)
-                        .Select(h => dialect.TrimValues ? h.Trim() : h)
+                        .Select(h => SanitizePropertyName(dialect.TrimValues ? h.Trim() : h))
                         .ToArray();
                     dataStartIndex = 1;
                 }
@@ -278,6 +279,28 @@ namespace WebSpark.Slurper.Extractors
         }
 
         /// <summary>
+        /// Sanitizes a property name by removing invalid characters
+        /// </summary>
+        /// <param name="name">The original property name</param>
+        /// <returns>A sanitized property name safe for use as a C# identifier</returns>
+        private static string SanitizePropertyName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return "prop";
+
+            // Remove all non-alphanumeric characters
+            string sanitized = Regex.Replace(name, "[^0-9a-zA-Z]+", string.Empty);
+
+            // If sanitizing produced an empty string or started with a digit, prefix it
+            if (string.IsNullOrEmpty(sanitized) || char.IsDigit(sanitized[0]))
+            {
+                sanitized = "prop" + sanitized;
+            }
+
+            return sanitized;
+        }
+
+        /// <summary>
         /// Parses a CSV line, properly handling quoted values and custom delimiters
         /// </summary>
         private string[] ParseCsvLine(string line, CsvDialect dialect)
@@ -396,7 +419,7 @@ namespace WebSpark.Slurper.Extractors
                 {
                     string headerLine = reader.ReadLine();
                     headers = ParseCsvLine(headerLine, dialect)
-                        .Select(h => dialect.TrimValues ? h.Trim() : h)
+                        .Select(h => SanitizePropertyName(dialect.TrimValues ? h.Trim() : h))
                         .ToArray();
                 }
                 else

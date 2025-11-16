@@ -42,7 +42,9 @@ public class SuperheroController : Controller
             {
                 var jsonResult = _jsonExtractor.ExtractFromFile(jsonPath);
                 dynamic firstItem = jsonResult.First();
-                var heroes = firstItem.superhero_database.heroes;
+                // Note: Slurper sanitizes property names by removing non-alphanumeric characters
+                // Arrays become accessible as propertyName.propertyNameList
+                var heroes = firstItem.superherodatabase.heroes.heroesList;
                 
                 foreach (var hero in heroes)
                 {
@@ -117,13 +119,15 @@ public class SuperheroController : Controller
             {
                 var jsonResult = _jsonExtractor.ExtractFromFile(jsonPath);
                 dynamic firstItem = jsonResult.First();
-                var allHeroes = firstItem.superhero_database.heroes;
+                // Note: Slurper sanitizes property names by removing non-alphanumeric characters
+                // Arrays become accessible as propertyName.propertyNameList
+                var allHeroes = firstItem.superherodatabase.heroes.heroesList;
                 
                 foreach (var hero in allHeroes)
                 {
-                    // Search in codename, real_name, and powers
+                    // Search in codename, realname, and powers
                     var codenameMatch = hero.codename.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-                    var realNameMatch = hero.real_name.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
+                    var realNameMatch = hero.realname.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
                     var powerMatch = false;
                     
                     try
@@ -150,9 +154,9 @@ public class SuperheroController : Controller
                 success = true, 
                 heroes = heroes.Select(h => new {
                     codename = h.codename.ToString(),
-                    real_name = h.real_name.ToString(),
-                    threat_level = h.threat_level.ToString(),
-                    base_location = h.base_location.ToString(),
+                    real_name = h.realname.ToString(),
+                    threat_level = h.threatlevel.ToString(),
+                    base_location = h.baselocation.ToString(),
                     id = h.id.ToString()
                 }).ToArray(),
                 count = heroes.Count,

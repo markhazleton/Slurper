@@ -1,5 +1,26 @@
+@using WebSpark.Slurper
 @{
-    ViewData["Title"] = "??? Superhero Database Extraction";
+    ViewData["Title"] = "Superhero Database Extraction";
+}
+
+@functions {
+    string GetPropertySafe(dynamic hero, string propertyName, string defaultValue = "Unknown")
+    {
+        try
+        {
+            var obj = hero as ToStringExpandoObject;
+            if (obj != null && obj.Members.ContainsKey(propertyName))
+            {
+                var value = obj.Members[propertyName];
+                return value?.ToString() ?? defaultValue;
+            }
+            return defaultValue;
+        }
+        catch
+        {
+            return defaultValue;
+        }
+    }
 }
 
 <style>
@@ -108,7 +129,7 @@
 @if (ViewBag.Success)
 {
     <div class="extraction-complete">
-        <h2>?? Database Extraction Complete! ??</h2>
+        <h2><i class="bi bi-shield-check"></i> Database Extraction Complete! <i class="bi bi-shield-check"></i></h2>
         <p class="mb-0">Successfully extracted superhero data from multiple formats using Slurper technology!</p>
         <div class="stats-grid mt-4">
             <div class="stat-card">
@@ -134,22 +155,22 @@
     <div class="format-section">
         <div class="card">
             <div class="card-header json-header text-white">
-                <h3><i class="fas fa-code"></i> JSON Database (SuperheroHQ.json)</h3>
+                <h3><i class="bi bi-braces"></i> JSON Database (SuperheroHQ.json)</h3>
                 <small>Advanced structured data with nested arrays</small>
             </div>
             <div class="card-body">
-                <p><strong>Extraction Method:</strong> <code>jsonExtractor.ExtractFromFile()</code> ? Navigate to <code>superhero_database.heroes</code></p>
+                <p><strong>Extraction Method:</strong> <code>jsonExtractor.ExtractFromFile()</code> <i class="bi bi-arrow-right-short"></i> Navigate to <code>superhero_database.heroes</code></p>
                 <div class="row">
                     @foreach (var hero in ViewBag.JsonHeroes)
                     {
                         <div class="col-lg-6 col-xl-4">
-                            <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                            <div class="hero-card threat-@GetPropertySafe(hero, "threatlevel", "unknown").ToLower()">
                                 <h5>
-                                    ????? @hero.codename
-                                    <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                    <i class="bi bi-person-badge"></i> @GetPropertySafe(hero, "codename")
+                                    <span class="badge bg-dark float-end">@GetPropertySafe(hero, "threatlevel")</span>
                                 </h5>
-                                <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
-                                <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                <p class="mb-2"><strong>Real Name:</strong> @GetPropertySafe(hero, "realname")</p>
+                                <p class="mb-2"><strong>Base:</strong> @GetPropertySafe(hero, "baselocation")</p>
                                 <p class="mb-2"><strong>Powers:</strong></p>
                                 <div class="mb-2">
                                     @try
@@ -164,7 +185,7 @@
                                         <span class="power-badge">Powers data unavailable</span>
                                     }
                                 </div>
-                                <small class="text-muted">@hero.origin_story</small>
+                                <small class="text-muted">@GetPropertySafe(hero, "originstory", "")</small>
                             </div>
                         </div>
                     }
@@ -177,24 +198,24 @@
     <div class="format-section">
         <div class="card">
             <div class="card-header xml-header text-white">
-                <h3><i class="fas fa-code"></i> XML Database (SuperheroHQ.xml)</h3>
+                <h3><i class="bi bi-file-code"></i> XML Database (SuperheroHQ.xml)</h3>
                 <small>Hierarchical markup with element attributes</small>
             </div>
             <div class="card-body">
-                <p><strong>Extraction Method:</strong> <code>xmlExtractor.ExtractFromFile()</code> ? Access <code>heroList</code> array</p>
+                <p><strong>Extraction Method:</strong> <code>xmlExtractor.ExtractFromFile()</code> <i class="bi bi-arrow-right-short"></i> Access <code>heroList</code> array</p>
                 @if (ViewBag.XmlHeroes != null && ViewBag.XmlHeroes.Count > 0)
                 {
                     <div class="row">
-                        @foreach (var hero in ViewBag.XmlHeroes)
-                        {
-                            <div class="col-lg-6 col-xl-4">
-                                <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                            @foreach (var hero in ViewBag.XmlHeroes)
+                            {
+                                <div class="col-lg-6 col-xl-4">
+                                <div class="hero-card threat-@GetPropertySafe(hero, "threatlevel", "unknown").ToLower()">
                                     <h5>
-                                        ????? @hero.codename
-                                        <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                        <i class="bi bi-person-badge"></i> @GetPropertySafe(hero, "codename")
+                                        <span class="badge bg-dark float-end">@GetPropertySafe(hero, "threatlevel")</span>
                                     </h5>
-                                    <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
-                                    <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                    <p class="mb-2"><strong>Real Name:</strong> @GetPropertySafe(hero, "realname")</p>
+                                    <p class="mb-2"><strong>Base:</strong> @GetPropertySafe(hero, "baselocation")</p>
                                     <p class="mb-2"><strong>Powers:</strong></p>
                                     <div class="mb-2">
                                         @try
@@ -216,7 +237,7 @@
                                             <span class="power-badge">Powers data unavailable</span>
                                         }
                                     </div>
-                                    <small class="text-muted">@hero.origin_story</small>
+                                    <small class="text-muted">@GetPropertySafe(hero, "originstory", "")</small>
                                 </div>
                             </div>
                         }
@@ -225,7 +246,7 @@
                 else
                 {
                     <div class="alert alert-info">
-                        <h5>?? XML Structure Analysis</h5>
+                        <h5><i class="bi bi-info-circle-fill"></i> XML Structure Analysis</h5>
                         <p>XML extraction successful, but the structure differs from JSON. This demonstrates how different formats organize the same data!</p>
                         <ul>
                             <li>XML uses element attributes (id="hero001")</li>
@@ -242,27 +263,27 @@
     <div class="format-section">
         <div class="card">
             <div class="card-header csv-header text-white">
-                <h3><i class="fas fa-table"></i> CSV Database (superheroes.csv)</h3>
+                <h3><i class="bi bi-table"></i> CSV Database (superheroes.csv)</h3>
                 <small>Tabular data with column headers</small>
             </div>
             <div class="card-body">
-                <p><strong>Extraction Method:</strong> <code>csvExtractor.ExtractFromFile()</code> ? Direct row objects</p>
+                <p><strong>Extraction Method:</strong> <code>csvExtractor.ExtractFromFile()</code> <i class="bi bi-arrow-right-short"></i> Direct row objects</p>
                 @if (ViewBag.CsvHeroes != null && ViewBag.CsvHeroes.Count > 0)
                 {
                     <div class="row">
-                        @foreach (var hero in ViewBag.CsvHeroes)
-                        {
-                            <div class="col-lg-6 col-xl-4">
-                                <div class="hero-card threat-@hero.threat_level.ToString().ToLower()">
+                            @foreach (var hero in ViewBag.CsvHeroes)
+                            {
+                                <div class="col-lg-6 col-xl-4">
+                                <div class="hero-card threat-@GetPropertySafe(hero, "threatlevel", "unknown").ToLower()">
                                     <h5>
-                                        ?? @hero.codename
-                                        <span class="badge bg-dark float-end">@hero.threat_level</span>
+                                        <i class="bi bi-person-badge"></i> @GetPropertySafe(hero, "codename")
+                                        <span class="badge bg-dark float-end">@GetPropertySafe(hero, "threatlevel")</span>
                                     </h5>
-                                    <p class="mb-2"><strong>Real Name:</strong> @hero.real_name</p>
-                                    <p class="mb-2"><strong>Base:</strong> @hero.base_location</p>
+                                    <p class="mb-2"><strong>Real Name:</strong> @GetPropertySafe(hero, "realname")</p>
+                                    <p class="mb-2"><strong>Base:</strong> @GetPropertySafe(hero, "baselocation")</p>
                                     <p class="mb-2"><strong>Primary Power:</strong></p>
                                     <div class="mb-2">
-                                        <span class="power-badge">@hero.primary_power</span>
+                                        <span class="power-badge">@GetPropertySafe(hero, "primarypower")</span>
                                     </div>
                                     <small class="text-muted">CSV format stores simplified data structure</small>
                                 </div>
@@ -283,17 +304,17 @@
     <div class="text-center mt-4">
         <div class="card bg-light">
             <div class="card-body">
-                <h4>?? Mission Accomplished! ??</h4>
+                <h4><i class="bi bi-check-circle-fill"></i> Mission Accomplished! <i class="bi bi-check-circle-fill"></i></h4>
                 <p class="lead">Slurper successfully extracted superhero data from multiple formats with a unified API!</p>
                 <div class="row mt-4">
                     <div class="col-md-6">
                         <a asp-action="Index" class="btn btn-primary btn-lg w-100">
-                            ?? Return to Command Center
+                            <i class="bi bi-arrow-left-circle-fill"></i> Return to Command Center
                         </a>
                     </div>
                     <div class="col-md-6">
                         <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg w-100">
-                            ??? Back to Detective Agency
+                            <i class="bi bi-house-fill"></i> Back to Detective Agency
                         </a>
                     </div>
                 </div>
@@ -304,7 +325,7 @@
 else
 {
     <div class="alert alert-danger">
-        <h4>?? Database Extraction Failed! ??</h4>
+        <h4><i class="bi bi-exclamation-triangle-fill"></i> Database Extraction Failed! <i class="bi bi-exclamation-triangle-fill"></i></h4>
         <p><strong>Error:</strong> @ViewBag.ErrorMessage</p>
         <a asp-action="Index" class="btn btn-warning">Try Again</a>
     </div>
