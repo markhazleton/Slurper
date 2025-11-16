@@ -12,7 +12,7 @@ module.exports = (env, argv) => {
       site: ["./src/js/vendor.js", "./src/js/site.js"],
     },
     output: {
-      filename: "js/site.js",
+      filename: "js/[name].js",
       path: path.resolve(__dirname, "wwwroot"),
       clean: false, // Clean is handled by the npm script
       publicPath: "/",
@@ -56,7 +56,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new MiniCssExtractPlugin({
-        filename: "css/site.css",
+        filename: "css/[name].css",
       }),
       new CopyPlugin({
         patterns: [
@@ -76,6 +76,16 @@ module.exports = (env, argv) => {
         }),
         new CssMinimizerPlugin(),
       ],
+      splitChunks: {
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            priority: 10,
+          },
+        },
+      },
     },
     devServer: {
       static: {
@@ -99,8 +109,8 @@ module.exports = (env, argv) => {
     },
     performance: {
       hints: isProduction ? "warning" : false,
-      maxEntrypointSize: 512000,
-      maxAssetSize: 512000,
+      maxEntrypointSize: 600000,
+      maxAssetSize: 350000,
     },
   };
 };
