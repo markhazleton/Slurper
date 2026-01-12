@@ -89,21 +89,25 @@ dotnet add package WebSpark.Slurper
 Install-Package WebSpark.Slurper
 
 # Using PackageReference in your project file
-<PackageReference Include="WebSpark.Slurper" Version="1.0.0" />
+<PackageReference Include="WebSpark.Slurper" Version="3.5.1" />
 ```
 
 ### Package Version History
 
-| Version | Release Date | Changes |
-|---------|-------------|---------|
-| 3.1.1   | 2025-04-01  | Initial public release with support for XML, JSON, CSV, and HTML data extraction |
+| Version | Release Date | Changes                                                                                              |
+|---------|--------------|------------------------------------------------------------------------------------------------------|
+| 3.5.1   | 2026-01-12   | Security updates: Fixed multiple HIGH severity vulnerabilities in npm dependencies (qs, node-forge, glob) |
+| 3.5.0   | 2025-11-16   | Added .NET 10.0 support, multi-targeting for .NET 8.0, 9.0, and 10.0                               |
+| 3.3.0   | 2025-10-01   | Enhanced features including plugin system, performance optimizations, and comprehensive error handling |
+| 3.1.1   | 2025-04-01   | Initial public release with support for XML, JSON, CSV, and HTML data extraction                    |
 
 ### Dependencies
 
 This package has the following dependencies:
 
-- None for the core functionality
-- Optional dependencies for specific extractors may be included in future versions
+- **Core .NET Dependencies**: Microsoft.Extensions.* packages (v10.0.0)
+- **Demo Web Application**: All npm dependencies are actively maintained and free of known security vulnerabilities (verified via npm audit)
+- **Security**: The project follows security best practices with regular dependency updates and vulnerability scanning
 
 ### Package Contents
 
@@ -126,15 +130,17 @@ WebSpark.Slurper follows [Semantic Versioning](https://semver.org/) principles:
 
 The WebSpark.Slurper NuGet package is:
 
-- Code signed with a trusted certificate
 - Built with deterministic builds for verification
 - Scanned for vulnerabilities before each release
+- Regularly updated to address security vulnerabilities in dependencies
+- All dependencies are monitored via Dependabot for security alerts
+- npm audit reports 0 vulnerabilities for the demo web application (as of v3.5.1)
 
 ### Package Compatibility
 
 | Framework       | Supported Versions | Notes                                     |
 |-----------------|-------------------|-------------------------------------------|
-| .NET Core       | ✅ 8.0, 9.0       | Fully supported                           |
+| .NET            | ✅ 8.0, 9.0, 10.0 | Fully supported                           |
 | .NET Framework  | ❌                | Not supported, use alternative libraries  |
 | Xamarin/MAUI    | ✅                | Supported via .NET 8.0+ compatibility     |
 | Blazor          | ✅                | Fully compatible                          |

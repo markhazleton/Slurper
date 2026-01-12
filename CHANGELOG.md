@@ -5,6 +5,29 @@ All notable changes to the WebSpark.Slurper project will be documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.1] - 2026-01-12
+
+### Security
+
+- Fixed HIGH severity DoS vulnerability in `qs` dependency (CVE - arrayLimit bypass)
+- Fixed HIGH severity command injection vulnerability in `glob` dependency
+- Fixed HIGH severity ASN.1 Validator Desynchronization in `node-forge`
+- Fixed HIGH severity ASN.1 Unbounded Recursion in `node-forge`
+- Fixed MEDIUM severity ASN.1 OID Integer Truncation in `node-forge`
+
+### Changed
+
+- Updated npm package `qs` from 6.13.0 to 6.14.1
+- Updated npm package `express` from 4.21.2 to 4.22.1
+- Updated npm package `node-forge` from 1.3.1 to 1.3.2
+- Updated npm package `glob` from 11.0.3 to 11.1.0
+- Added npm overrides to force secure `qs` version across all transitive dependencies
+
+### Infrastructure Updates
+
+- All npm dependencies are now free of known security vulnerabilities
+- npm audit reports 0 vulnerabilities
+
 ## [3.5.0] - 2025-11-16
 
 ### Added
@@ -44,5 +67,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Symbol package (snupkg) generation
 - SourceLink integration for debugging
 
+[3.5.1]: https://github.com/MarkHazleton/Slurper/compare/v3.5.0...v3.5.1
 [3.5.0]: https://github.com/MarkHazleton/Slurper/compare/v3.3.0...v3.5.0
 [3.3.0]: https://github.com/MarkHazleton/Slurper/releases/tag/v3.3.0
