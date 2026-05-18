@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace WebSpark.Slurper.Tests;
 
-/// <summary>
-/// Test data generator for theory-based tests
-/// </summary>
 public static class TestDataGenerator
 {
     public static IEnumerable<object[]> GetBooleanTestData()
@@ -26,23 +24,17 @@ public static class TestDataGenerator
 
     public static IEnumerable<object[]> GetConversionExceptionTestData()
     {
-        // Bool to numeric conversion failures
         yield return new object[] { "true", typeof(int) };
         yield return new object[] { "true", typeof(decimal) };
         yield return new object[] { "true", typeof(double) };
-
-        // Numeric to bool conversion failures
         yield return new object[] { "2", typeof(bool) };
     }
 
     public static IEnumerable<object[]> GetTestDataFiles()
     {
-        // XML Files
         yield return new object[] { "CityInfo.xml" };
         yield return new object[] { "Book.xml" };
         yield return new object[] { "BookCatalog.xml" };
-
-        // JSON Files
         yield return new object[] { "City.json" };
         yield return new object[] { "Book.json" };
         yield return new object[] { "BookCatalog.json" };
@@ -50,11 +42,8 @@ public static class TestDataGenerator
 
     public static IEnumerable<object[]> GetEdgeCaseData()
     {
-        // Empty objects
         yield return new object[] { "{}", "Empty JSON object" };
         yield return new object[] { "<root></root>", "Empty XML root" };
-
-        // Null values
         yield return new object[] { "{ \"nullValue\": null }", "JSON with null value" };
     }
 }

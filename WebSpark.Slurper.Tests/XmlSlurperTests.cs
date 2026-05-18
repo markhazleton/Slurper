@@ -1,63 +1,48 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace WebSpark.Slurper.Tests;
 
+[TestClass]
 public class XmlSlurperTests
 {
     private readonly TestUtility utility = new();
 
     public static DateTime ConvertToDateTime(string input)
     {
-        DateTime result;
-        if (DateTime.TryParse(input, out result))
-        {
+        if (DateTime.TryParse(input, out DateTime result))
             return result;
-        }
-        else
-        {
-            return DateTime.Now;
-        }
+        return DateTime.Now;
     }
+
     public static string RemoveLeadingSlash(string input)
     {
         if (!string.IsNullOrEmpty(input) && input.StartsWith("/"))
-        {
             input = input[1..];
-        }
         return input;
     }
-
 
     public static bool SerializeObjectToFile<T>(T data, string fileName)
     {
         try
         {
-            // Serialize the object to a JSON string
             string jsonData = JsonSerializer.Serialize(data);
-
-            // Write the JSON string to a file
             File.WriteAllText(fileName, jsonData);
-
             return true;
         }
         catch (Exception ex)
         {
-            // Handle any exceptions that occur during serialization
             Console.WriteLine("Error serializing object to JSON: " + ex.Message);
             return false;
         }
     }
 
-
-
-
-    [SkippableFact]
+    [TestMethod]
     public void T01_ObjectNotNullTest()
     {
         var city1 = XmlSlurper.ParseText(utility.getFile("City.xml"));
@@ -65,12 +50,12 @@ public class XmlSlurperTests
 
         foreach (var city in new[] { city1, city2 })
         {
-            Assert.NotNull(city);
-            Assert.NotNull(city.Name);
+            Assert.IsNotNull(city);
+            Assert.IsNotNull(city.Name);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T02_SimpleXmlAttributesTest()
     {
         var book1 = XmlSlurper.ParseText(utility.getFile("Book.xml"));
@@ -78,12 +63,12 @@ public class XmlSlurperTests
 
         foreach (var book in new[] { book1, book2 })
         {
-            Assert.Equal("bk101", book.id);
-            Assert.Equal("123456789", book.isbn);
+            Assert.AreEqual("bk101", (string)book.id);
+            Assert.AreEqual("123456789", (string)book.isbn);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T03_SimpleXmlNodesTest()
     {
         var book1 = XmlSlurper.ParseText(utility.getFile("Book.xml"));
@@ -91,14 +76,14 @@ public class XmlSlurperTests
 
         foreach (var book in new[] { book1, book2 })
         {
-            Assert.Equal("Gambardella, Matthew", book.author);
-            Assert.Equal("XML Developer's Guide", book.title);
-            Assert.Equal("Computer", book.genre);
-            Assert.Equal("44.95", book.price);
+            Assert.AreEqual("Gambardella, Matthew", (string)book.author);
+            Assert.AreEqual("XML Developer's Guide", (string)book.title);
+            Assert.AreEqual("Computer", (string)book.genre);
+            Assert.AreEqual("44.95", (string)book.price);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T04_XmlMultipleLevelsNodesTest()
     {
         var settings1 = XmlSlurper.ParseText(utility.getFile("HardwareSettings.xml"));
@@ -106,12 +91,12 @@ public class XmlSlurperTests
 
         foreach (var settings in new[] { settings1, settings2 })
         {
-            Assert.Equal("true", settings.view.displayIcons);
-            Assert.Equal("false", settings.performance.additionalChecks.disk.brandOptions.toshiba.useBetaFunc);
+            Assert.AreEqual("true", (string)settings.view.displayIcons);
+            Assert.AreEqual("false", (string)settings.performance.additionalChecks.disk.brandOptions.toshiba.useBetaFunc);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T05_ListXmlNodesTest()
     {
         var catalog1 = XmlSlurper.ParseText(utility.getFile("BookCatalog.xml"));
@@ -121,32 +106,32 @@ public class XmlSlurperTests
         {
             var bookList = catalog.bookList;
 
-            Assert.Equal(12, bookList.Count);
+            Assert.AreEqual(12, bookList.Count);
 
             var book1 = bookList[0];
-            Assert.Equal("bk101", book1.id);
-            Assert.Equal("Gambardella, Matthew", book1.author);
-            Assert.Equal("XML Developer's Guide", book1.title);
-            Assert.Equal("Computer", book1.genre);
-            Assert.Equal("44.95", book1.price);
+            Assert.AreEqual("bk101", (string)book1.id);
+            Assert.AreEqual("Gambardella, Matthew", (string)book1.author);
+            Assert.AreEqual("XML Developer's Guide", (string)book1.title);
+            Assert.AreEqual("Computer", (string)book1.genre);
+            Assert.AreEqual("44.95", (string)book1.price);
 
             var book4 = bookList[3];
-            Assert.Equal("bk104", book4.id);
-            Assert.Equal("Corets, Eva", book4.author);
-            Assert.Equal("Oberon's Legacy", book4.title);
-            Assert.Equal("Fantasy", book4.genre);
-            Assert.Equal("5.95", book4.price);
+            Assert.AreEqual("bk104", (string)book4.id);
+            Assert.AreEqual("Corets, Eva", (string)book4.author);
+            Assert.AreEqual("Oberon's Legacy", (string)book4.title);
+            Assert.AreEqual("Fantasy", (string)book4.genre);
+            Assert.AreEqual("5.95", (string)book4.price);
 
             var book12 = bookList[11];
-            Assert.Equal("bk112", book12.id);
-            Assert.Equal("Galos, Mike", book12.author);
-            Assert.Equal("Visual Studio 7: A Comprehensive Guide", book12.title);
-            Assert.Equal("Computer", book12.genre);
-            Assert.Equal("49.95", book12.price);
+            Assert.AreEqual("bk112", (string)book12.id);
+            Assert.AreEqual("Galos, Mike", (string)book12.author);
+            Assert.AreEqual("Visual Studio 7: A Comprehensive Guide", (string)book12.title);
+            Assert.AreEqual("Computer", (string)book12.genre);
+            Assert.AreEqual("49.95", (string)book12.price);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T06_BothPropertiesAndListRootXmlTest()
     {
         var nutrition1 = XmlSlurper.ParseText(utility.getFile("Nutrition.xml"));
@@ -156,19 +141,19 @@ public class XmlSlurperTests
         {
             var foodList = nutrition.foodList;
 
-            Assert.Equal(10, foodList.Count);
+            Assert.AreEqual(10, foodList.Count);
 
             var food1 = foodList[0];
-            Assert.Equal("Avocado Dip", food1.name);
-            Assert.Equal("Sunnydale", food1.mfr);
-            Assert.Equal("11", food1.totalfat);
+            Assert.AreEqual("Avocado Dip", (string)food1.name);
+            Assert.AreEqual("Sunnydale", (string)food1.mfr);
+            Assert.AreEqual("11", (string)food1.totalfat);
 
-            Assert.Equal("1", food1.vitamins.a);
-            Assert.Equal("0", food1.vitamins.c);
+            Assert.AreEqual("1", (string)food1.vitamins.a);
+            Assert.AreEqual("0", (string)food1.vitamins.c);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T07_BothPropertiesAndListRecursiveXmlTest()
     {
         var city1 = XmlSlurper.ParseText(utility.getFile("CityInfo.xml"));
@@ -176,38 +161,31 @@ public class XmlSlurperTests
 
         foreach (var city in new[] { city1, city2 })
         {
-            Assert.Equal("Roni Müller", city.Mayor);
-            Assert.Equal("Schulstrasse 12", city.CityHall);
-            Assert.Equal("Wilen bei Wollerau", city.Name);
-            Assert.Equal("Freienbach", city.Gemeinde);
+            Assert.AreEqual("Roni Müller", (string)city.Mayor);
+            Assert.AreEqual("Schulstrasse 12", (string)city.CityHall);
+            Assert.AreEqual("Wilen bei Wollerau", (string)city.Name);
+            Assert.AreEqual("Freienbach", (string)city.Gemeinde);
 
-            Assert.Equal(3, city.StreetList.Count);
+            Assert.AreEqual(3, city.StreetList.Count);
 
-            Assert.Equal("8832", city.StreetList[2].PostCode);
-            Assert.Equal(3, city.StreetList[2].HouseNumberList.Count);
+            Assert.AreEqual("8832", (string)city.StreetList[2].PostCode);
+            Assert.AreEqual(3, city.StreetList[2].HouseNumberList.Count);
         }
     }
 
-    /// <summary>
-    /// Usage showcase
-    /// </summary>
-    [SkippableFact]
+    [TestMethod]
     public void T08_PrintXmlContents1()
     {
         string xml = "<book id=\"bk101\" isbn=\"123456789\"><author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
         var book = XmlSlurper.ParseText(xml);
 
-        // that's it, now we have everything            
-        Console.WriteLine($"X-T08 id = " + book.id);
-        Console.WriteLine($"X-T08 isbn = " + book.isbn);
-        Console.WriteLine($"X-T08 author = " + book.author);
-        Console.WriteLine($"X-T08 title = " + book.title);
+        Console.WriteLine("X-T08 id = " + book.id);
+        Console.WriteLine("X-T08 isbn = " + book.isbn);
+        Console.WriteLine("X-T08 author = " + book.author);
+        Console.WriteLine("X-T08 title = " + book.title);
     }
 
-    /// <summary>
-    /// Usage showcase
-    /// </summary>
-    [SkippableFact]
+    [TestMethod]
     public void T09_PrintXmlContents2()
     {
         string xml = "<?xml version=\"1.0\" encoding=\"utf-8\" ?>" +
@@ -236,12 +214,11 @@ public class XmlSlurperTests
                         "</nutrition>";
         var nutrition = XmlSlurper.ParseText(xml);
 
-        // since many food nodes were found, a list was generated and named foodList (common name + "List")
-        Console.WriteLine($"X-T09 name1 = " + nutrition.foodList[0].name);
-        Console.WriteLine($"X-T09 name2 = " + nutrition.foodList[1].name);
+        Console.WriteLine("X-T09 name1 = " + nutrition.foodList[0].name);
+        Console.WriteLine("X-T09 name2 = " + nutrition.foodList[1].name);
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T10_BoolIntDecimalDoubleTest()
     {
         var settings1 = XmlSlurper.ParseText(utility.getFile("HardwareSettings.xml"));
@@ -249,32 +226,28 @@ public class XmlSlurperTests
 
         foreach (var settings in new[] { settings1, settings2 })
         {
-            Assert.Equal<bool?>(true, settings.view.displayIcons);
-            Assert.Equal<bool?>(false, settings.view.showFiles);
-            Assert.Equal<int?>(2, settings.performance.additionalChecks.disk.minFreeSpace);
-            Assert.Equal<double?>(5.5, settings.performance.additionalChecks.disk.warnFreeSpace);
-            Assert.Equal<decimal?>(5.5m, settings.performance.additionalChecks.disk.warnFreeSpace);
+            Assert.AreEqual<bool?>(true, settings.view.displayIcons);
+            Assert.AreEqual<bool?>(false, settings.view.showFiles);
+            Assert.AreEqual<int?>(2, settings.performance.additionalChecks.disk.minFreeSpace);
+            Assert.AreEqual<double?>(5.5, settings.performance.additionalChecks.disk.warnFreeSpace);
+            Assert.AreEqual<decimal?>(5.5m, settings.performance.additionalChecks.disk.warnFreeSpace);
 
-            Assert.True(settings.view.displayIcons);
-            Assert.False(settings.view.showFiles);
-            Assert.Equal<int>(2, settings.performance.additionalChecks.disk.minFreeSpace);
-            Assert.Equal<double>(5.5, settings.performance.additionalChecks.disk.warnFreeSpace);
-            Assert.Equal<decimal>(5.5m, settings.performance.additionalChecks.disk.warnFreeSpace);
+            Assert.IsTrue(settings.view.displayIcons);
+            Assert.IsFalse(settings.view.showFiles);
+            Assert.AreEqual<int>(2, settings.performance.additionalChecks.disk.minFreeSpace);
+            Assert.AreEqual<double>(5.5, settings.performance.additionalChecks.disk.warnFreeSpace);
+            Assert.AreEqual<decimal>(5.5m, settings.performance.additionalChecks.disk.warnFreeSpace);
 
-            // usage showcase
             if (!settings.view.displayIcons)
-            {
-                Assert.True(false);
-            }
+                Assert.Fail("displayIcons should be true");
+
             int? minFreeSpace = settings.performance.additionalChecks.disk.minFreeSpace;
             if (minFreeSpace != 2)
-            {
-                Assert.True(false);
-            }
+                Assert.Fail("minFreeSpace should be 2");
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T11_ConversionExceptionTest()
     {
         var settings1 = XmlSlurper.ParseText(utility.getFile("HardwareSettings.xml"));
@@ -282,26 +255,14 @@ public class XmlSlurperTests
 
         foreach (var settings in new[] { settings1, settings2 })
         {
-            Assert.Throws<ValueConversionException>(() =>
-            {
-                int t = settings.view.displayIcons;
-            });
-            Assert.Throws<ValueConversionException>(() =>
-            {
-                decimal t = settings.view.displayIcons;
-            });
-            Assert.Throws<ValueConversionException>(() =>
-            {
-                double t = settings.view.displayIcons;
-            });
-            Assert.Throws<ValueConversionException>(() =>
-            {
-                bool t = settings.performance.additionalChecks.disk.minFreeSpace;
-            });
+            Assert.ThrowsExactly<ValueConversionException>(() => { int t = settings.view.displayIcons; });
+            Assert.ThrowsExactly<ValueConversionException>(() => { decimal t = settings.view.displayIcons; });
+            Assert.ThrowsExactly<ValueConversionException>(() => { double t = settings.view.displayIcons; });
+            Assert.ThrowsExactly<ValueConversionException>(() => { bool t = settings.performance.additionalChecks.disk.minFreeSpace; });
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T12_CDataTest()
     {
         var cdata1 = XmlSlurper.ParseText(utility.getFile("CData.xml"));
@@ -309,49 +270,41 @@ public class XmlSlurperTests
 
         foreach (var cdata in new[] { cdata1, cdata2 })
         {
-            // test cdata for single nodes
-            Assert.Equal("DOCUMENTO N. 1234-9876", cdata.Title);
+            Assert.AreEqual("DOCUMENTO N. 1234-9876", (string)cdata.Title);
 
-            // test cdata for list nodes
             dynamic attr = cdata.AttributeList[0];
-            Assert.Equal("document.id", attr.Name);
-            Assert.Equal("<string>DOCUMENTO N. 1234-9876</string>", attr);
+            Assert.AreEqual("document.id", (string)attr.Name);
+            Assert.AreEqual("<string>DOCUMENTO N. 1234-9876</string>", (string)attr);
 
             attr = cdata.AttributeList[4];
-            Assert.Equal("receipt.date", attr.Name);
-            Assert.Equal("<string>2020-12-28</string>", attr);
+            Assert.AreEqual("receipt.date", (string)attr.Name);
+            Assert.AreEqual("<string>2020-12-28</string>", (string)attr);
 
             attr = cdata.AttributeList[5];
-            Assert.Equal("fcurrency", attr.Name);
-            Assert.Equal("EUR", attr);
+            Assert.AreEqual("fcurrency", (string)attr.Name);
+            Assert.AreEqual("EUR", (string)attr);
         }
     }
 
-    [SkippableFact]
+    [TestMethod]
     public void T13_BigXmlTest()
     {
         var xmlList = new List<string>();
         xmlList.Add(utility.getFile("mondial-3.0.xml"));
 
-        // not when building online
-        // TODO find a better condition to detect running local vs github
         bool isLocal = Debugger.IsAttached;
         if (isLocal)
         {
             var urlList = new List<string>()
             {
-                // 30 MB                
-                "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/tpc-h/lineitem.xml" /*,
-                // 109 MB
-                "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/SwissProt/SwissProt.xml",
-                // 683 MB
-                "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/pir/psd7003.xml" */
+                "http://aiweb.cs.washington.edu/research/projects/xmltk/xmldata/data/tpc-h/lineitem.xml"
             };
 
             var getter = utility.getHttpFiles(urlList);
-            getter.Wait(5 * 60 * 1000); // 5min max     
+            getter.Wait(5 * 60 * 1000);
             xmlList.AddRange(getter.Result);
         }
+
         var stopWatch = new Stopwatch();
         foreach (string xml in xmlList)
         {
@@ -360,71 +313,57 @@ public class XmlSlurperTests
             var cdata = XmlSlurper.ParseText(xml);
             stopWatch.Stop();
 
-            Decimal fileSizeMb = Math.Round(xml.Length / (1024m * 1024m), 2);
-            Int64 timeMs = stopWatch.ElapsedMilliseconds;
-            Decimal speed = Math.Round(timeMs / fileSizeMb, 0);
+            decimal fileSizeMb = Math.Round(xml.Length / (1024m * 1024m), 2);
+            long timeMs = stopWatch.ElapsedMilliseconds;
+            decimal speed = Math.Round(timeMs / fileSizeMb, 0);
             Console.WriteLine($"X-T13 Parsed {fileSizeMb} MB in {timeMs} ms (approx. {speed} ms/MB)");
         }
     }
 
-    #region New Theory Tests for Type Conversion
+    #region Theory Tests for Type Conversion
 
-    [Theory]
-    [MemberData(nameof(TestDataGenerator.GetBooleanTestData), MemberType = typeof(TestDataGenerator))]
+    [TestMethod]
+    [DynamicData(nameof(TestDataGenerator.GetBooleanTestData), typeof(TestDataGenerator))]
     public void XmlBooleanConversionTest(string input, bool expected)
     {
-        // Test boolean conversion with XML
         string xml = $"<root><value>{input}</value></root>";
         dynamic result = XmlSlurper.ParseText(xml);
         bool? value = result.value;
-        Assert.Equal(expected, value);
+        Assert.AreEqual(expected, value);
     }
 
-    [Theory]
-    [MemberData(nameof(TestDataGenerator.GetNumericTestData), MemberType = typeof(TestDataGenerator))]
+    [TestMethod]
+    [DynamicData(nameof(TestDataGenerator.GetNumericTestData), typeof(TestDataGenerator))]
     public void XmlNumericConversionTest(string input, object expected)
     {
-        // Test numeric conversion with XML
         string xml = $"<root><value>{input}</value></root>";
         dynamic result = XmlSlurper.ParseText(xml);
 
         if (expected is int intValue)
         {
             int? value = result.value;
-            Assert.Equal(intValue, value);
+            Assert.AreEqual(intValue, value);
         }
         else if (expected is double doubleValue)
         {
             double? value = result.value;
-            Assert.Equal(doubleValue, value);
+            Assert.AreEqual(doubleValue, value);
         }
     }
 
-    [Theory]
-    [MemberData(nameof(TestDataGenerator.GetConversionExceptionTestData), MemberType = typeof(TestDataGenerator))]
+    [TestMethod]
+    [DynamicData(nameof(TestDataGenerator.GetConversionExceptionTestData), typeof(TestDataGenerator))]
     public void XmlConversionExceptionTheoryTest(string input, Type targetType)
     {
         string xml = $"<root><value>{input}</value></root>";
         dynamic result = XmlSlurper.ParseText(xml);
 
-        Assert.Throws<ValueConversionException>(() =>
+        Assert.ThrowsExactly<ValueConversionException>(() =>
         {
-            if (targetType == typeof(int))
-            {
-                int t = result.value;
-            }
-            else if (targetType == typeof(decimal))
-            {
-                decimal t = result.value;
-            }
-            else if (targetType == typeof(double))
-            {
-                double t = result.value;
-            }
-            else if (targetType == typeof(bool))
-            {
-                bool t = result.value;
-            }
+            if (targetType == typeof(int)) { int t = result.value; }
+            else if (targetType == typeof(decimal)) { decimal t = result.value; }
+            else if (targetType == typeof(double)) { double t = result.value; }
+            else if (targetType == typeof(bool)) { bool t = result.value; }
         });
     }
 
@@ -432,55 +371,53 @@ public class XmlSlurperTests
 
     #region Edge Case Tests
 
-    [Fact]
+    [TestMethod]
     public void EmptyXmlObjectTest()
     {
         dynamic result = XmlSlurper.ParseText("<root></root>");
-        Assert.NotNull(result);
-        // Verify empty XML behavior - should not throw exception
+        Assert.IsNotNull(result);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlAttributesWithNamespacesTest()
     {
         string xml = "<book xmlns:dc=\"http://purl.org/dc/elements/1.1/\" dc:id=\"bk101\" dc:isbn=\"123456789\">" +
                     "<author>Gambardella, Matthew</author><title>XML Developer Guide</title></book>";
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Test that namespace prefixes are handled correctly
-        Assert.Equal("bk101", result.id);
-        Assert.Equal("123456789", result.isbn);
+        Assert.AreEqual("bk101", (string)result.id);
+        Assert.AreEqual("123456789", (string)result.isbn);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlSpecialCharactersTest()
     {
         string xml = "<root><value>Special &amp; characters like &lt; and &gt; should be handled</value></root>";
         dynamic result = XmlSlurper.ParseText(xml);
 
-        Assert.Equal("Special & characters like < and > should be handled", result.value);
+        Assert.AreEqual("Special & characters like < and > should be handled", (string)result.value);
     }
 
     #endregion
 
     #region File Tests
 
-    [Theory]
-    [InlineData("CityInfo.xml")]
-    [InlineData("Book.xml")]
-    [InlineData("BookCatalog.xml")]
+    [TestMethod]
+    [DataRow("CityInfo.xml")]
+    [DataRow("Book.xml")]
+    [DataRow("BookCatalog.xml")]
     public void CanParseXmlTestDataFiles(string filename)
     {
         string content = utility.getFile(filename);
         dynamic result = XmlSlurper.ParseText(content);
-        Assert.NotNull(result);
+        Assert.IsNotNull(result);
     }
 
     #endregion
 
     #region Performance Tests
 
-    [Fact]
+    [TestMethod]
     public void XmlPerformanceTest()
     {
         string content = utility.getFile("mondial-3.0.xml");
@@ -490,7 +427,7 @@ public class XmlSlurperTests
         dynamic result = XmlSlurper.ParseText(content);
         stopwatch.Stop();
 
-        Assert.NotNull(result);
+        Assert.IsNotNull(result);
         Console.WriteLine($"Parsed mondial-3.0.xml in {stopwatch.ElapsedMilliseconds}ms");
     }
 
@@ -498,7 +435,7 @@ public class XmlSlurperTests
 
     #region Advanced XML Scenarios
 
-    [Fact]
+    [TestMethod]
     public void XmlWithCommentsTest()
     {
         string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -509,11 +446,10 @@ public class XmlSlurperTests
 </root>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("value", result.element);
-        // Comments should be ignored during parsing
+        Assert.AreEqual("value", (string)result.element);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlProcessingInstructionsTest()
     {
         string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -523,11 +459,10 @@ public class XmlSlurperTests
 </root>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("value", result.element);
-        // Processing instructions should be ignored during parsing
+        Assert.AreEqual("value", (string)result.element);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlNamespacePrefixesTest()
     {
         string xml = @"<root xmlns:ns1=""http://example.com/ns1"" xmlns:ns2=""http://example.com/ns2"">
@@ -537,31 +472,26 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Test that namespaced elements are accessible (implementations may vary)
-        // We'll try multiple ways to access
         try
         {
-            // Try direct access first
-            Assert.Equal("value1", result.element);
-            Assert.Equal("value2", result.element1);
+            Assert.AreEqual("value1", (string)result.element);
+            Assert.AreEqual("value2", (string)result.element1);
         }
         catch
         {
-            // If direct access doesn't work, try with namespace
             try
             {
-                Assert.Equal("value1", result["ns1:element"]);
-                Assert.Equal("value2", result["ns2:element"]);
+                Assert.AreEqual("value1", (string)result["ns1:element"]);
+                Assert.AreEqual("value2", (string)result["ns2:element"]);
             }
             catch
             {
-                // If neither works, just test that result exists and has expected property count
-                Assert.NotNull(result);
+                Assert.IsNotNull(result);
             }
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlDeeplyNestedTest()
     {
         string xml = @"<level1>
@@ -575,10 +505,10 @@ public class XmlSlurperTests
 </level1>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("deep value", result.level2.level3.level4.level5);
+        Assert.AreEqual("deep value", (string)result.level2.level3.level4.level5);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlMixedContentTest()
     {
         string xml = @"<root>
@@ -586,21 +516,19 @@ public class XmlSlurperTests
 </root>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("Inside element", result.element);
+        Assert.AreEqual("Inside element", (string)result.element);
 
-        // Text nodes handling depends on the implementation
         try
         {
-            // If text nodes are preserved as properties
-            Assert.NotNull(result.ToString());
+            Assert.IsNotNull(result.ToString());
         }
         catch
         {
-            // If text nodes aren't directly accessible as properties, this is acceptable
+            // Text nodes not directly accessible as properties is acceptable
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlEmptyElementsTest()
     {
         string xml = @"<root>
@@ -610,13 +538,12 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Empty elements should exist but resolve to null or empty string depending on implementation
-        Assert.NotNull(result);
-        Assert.Null(result.emptyShort.ToString());
-        Assert.Null(result.emptyLong.ToString());
+        Assert.IsNotNull(result);
+        Assert.IsNull(result.emptyShort.ToString());
+        Assert.IsNull(result.emptyLong.ToString());
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlDocTypeTest()
     {
         string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -628,21 +555,21 @@ public class XmlSlurperTests
 </html>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("Test", result.head.title);
-        // DOCTYPE declarations should be ignored during parsing
+        Assert.AreEqual("Test", (string)result.head.title);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlWithInvalidSyntaxTest()
     {
-        // Test handling of invalid XML
         string invalidXml = @"<root><unclosed>";
 
-        // This should throw some kind of exception
-        Assert.ThrowsAny<Exception>(() => XmlSlurper.ParseText(invalidXml));
+        bool threw = false;
+        try { XmlSlurper.ParseText(invalidXml); }
+        catch { threw = true; }
+        Assert.IsTrue(threw, "Expected an exception for invalid XML");
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlWithXmlDeclarationTest()
     {
         string xml = @"<?xml version=""1.0"" encoding=""utf-8""?>
@@ -651,11 +578,10 @@ public class XmlSlurperTests
 </root>";
 
         dynamic result = XmlSlurper.ParseText(xml);
-        Assert.Equal("value", result.element);
-        // XML declaration should be handled correctly
+        Assert.AreEqual("value", (string)result.element);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlElementsWithSameNameTest()
     {
         string xml = @"<root>
@@ -666,14 +592,13 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Elements with the same name should be accessible as a list
-        Assert.Equal(3, result.repeatedList.Count);
-        Assert.Equal("first", result.repeatedList[0]);
-        Assert.Equal("second", result.repeatedList[1]);
-        Assert.Equal("third", result.repeatedList[2]);
+        Assert.AreEqual(3, result.repeatedList.Count);
+        Assert.AreEqual("first", (string)result.repeatedList[0]);
+        Assert.AreEqual("second", (string)result.repeatedList[1]);
+        Assert.AreEqual("third", (string)result.repeatedList[2]);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlSpecialAttributeNamesTest()
     {
         string xml = @"<element xml:space=""preserve"" xml:lang=""en"" xmlns=""http://default"">
@@ -682,24 +607,21 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Special XML attributes should be accessible
         try
         {
-            Assert.Equal("preserve", result.space);
-            Assert.Equal("en", result.lang);
+            Assert.AreEqual("preserve", (string)result.space);
+            Assert.AreEqual("en", (string)result.lang);
         }
         catch
         {
-            // If these aren't directly accessible, try alternate paths
             try
             {
-                Assert.Equal("preserve", result["xml:space"]);
-                Assert.Equal("en", result["xml:lang"]);
+                Assert.AreEqual("preserve", (string)result["xml:space"]);
+                Assert.AreEqual("en", (string)result["xml:lang"]);
             }
             catch
             {
-                // If neither works, just check the result exists and has child
-                Assert.Equal("value", result.child);
+                Assert.AreEqual("value", (string)result.child);
             }
         }
     }
@@ -708,7 +630,7 @@ public class XmlSlurperTests
 
     #region Complex XML Scenario Tests
 
-    [Fact]
+    [TestMethod]
     public void XmlWithMixedElementsAndAttributesTest()
     {
         string xml = @"<product id=""123"" category=""electronics"">
@@ -727,30 +649,26 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Test top-level attributes
-        Assert.Equal("123", result.id);
-        Assert.Equal("electronics", result.category);
+        Assert.AreEqual("123", (string)result.id);
+        Assert.AreEqual("electronics", (string)result.category);
 
-        // Test nested elements
-        Assert.Equal("Smartphone", result.name);
-        Assert.Equal("599.99", result.price);
-        Assert.Equal("USD", result.price.currency);
+        Assert.AreEqual("Smartphone", (string)result.name);
+        Assert.AreEqual("599.99", (string)result.price);
+        Assert.AreEqual("USD", (string)result.price.currency);
 
-        // Test nested lists
-        Assert.Equal(3, result.features.featureList.Count);
-        Assert.Equal("hardware", result.features.featureList[0].type);
-        Assert.Equal("8GB RAM", result.features.featureList[0]);
-        Assert.Equal("Android 12", result.features.featureList[2]);
+        Assert.AreEqual(3, result.features.featureList.Count);
+        Assert.AreEqual("hardware", (string)result.features.featureList[0].type);
+        Assert.AreEqual("8GB RAM", (string)result.features.featureList[0]);
+        Assert.AreEqual("Android 12", (string)result.features.featureList[2]);
 
-        // Test multiple levels of nesting with attributes
-        Assert.Equal("in-stock", result.availability.status);
-        Assert.Equal("50", result.availability.warehouseList[0]);
-        Assert.Equal("25", result.availability.warehouseList[1]);
-        Assert.Equal("1", result.availability.warehouseList[0].id);
-        Assert.Equal("2", result.availability.warehouseList[1].id);
+        Assert.AreEqual("in-stock", (string)result.availability.status);
+        Assert.AreEqual("50", (string)result.availability.warehouseList[0]);
+        Assert.AreEqual("25", (string)result.availability.warehouseList[1]);
+        Assert.AreEqual("1", (string)result.availability.warehouseList[0].id);
+        Assert.AreEqual("2", (string)result.availability.warehouseList[1].id);
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlListSuffixConfigurationTest()
     {
         string xml = @"<root>
@@ -759,21 +677,18 @@ public class XmlSlurperTests
     <item>Third</item>
 </root>";
 
-        // Test with default list suffix
         var defaultSuffix = XmlSlurper.ListSuffix;
         dynamic result1 = XmlSlurper.ParseText(xml);
-        Assert.Equal(3, result1.itemList.Count);
+        Assert.AreEqual(3, result1.itemList.Count);
 
-        // Change list suffix and test again
         XmlSlurper.ListSuffix = "Collection";
         dynamic result2 = XmlSlurper.ParseText(xml);
-        Assert.Equal(3, result2.itemCollection.Count);
+        Assert.AreEqual(3, result2.itemCollection.Count);
 
-        // Restore original setting
         XmlSlurper.ListSuffix = defaultSuffix;
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlLargeIntegerValuesTest()
     {
         string xml = @"<numbers>
@@ -786,35 +701,31 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Test int32 boundaries
         int int32Value = result.int32;
-        Assert.Equal(int.MaxValue, int32Value);
+        Assert.AreEqual(int.MaxValue, int32Value);
 
         int int32NegValue = result.int32Neg;
-        Assert.Equal(int.MinValue, int32NegValue);
+        Assert.AreEqual(int.MinValue, int32NegValue);
 
-        // Test int64 boundaries
         long int64Value = result.int64;
-        Assert.Equal(long.MaxValue, int64Value);
+        Assert.AreEqual(long.MaxValue, int64Value);
 
         long int64NegValue = result.int64Neg;
-        Assert.Equal(long.MinValue, int64NegValue);
+        Assert.AreEqual(long.MinValue, int64NegValue);
 
-        // Test number beyond int64 (should be handled as string or decimal)
         try
         {
             decimal bigValue = result.bigNumber;
-            Assert.Equal(12345678901234567890m, bigValue);
+            Assert.AreEqual(12345678901234567890m, bigValue);
         }
         catch (ValueConversionException)
         {
-            // If it can't convert to decimal, it should at least preserve the string value
             string bigValueStr = result.bigNumber;
-            Assert.Equal("12345678901234567890", bigValueStr);
+            Assert.AreEqual("12345678901234567890", bigValueStr);
         }
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlElementWithWhitespaceTest()
     {
         string xml = @"<root>
@@ -827,16 +738,15 @@ public class XmlSlurperTests
 
         dynamic result = XmlSlurper.ParseText(xml);
 
-        // Test how whitespace is handled (may be preserved or trimmed depending on implementation)
         string value1 = result.element;
         string value2 = result.element2;
 
-        Assert.Contains("value with whitespace", value1);
-        Assert.Contains("value with", value2);
-        Assert.Contains("newlines and spaces", value2);
+        StringAssert.Contains(value1, "value with whitespace");
+        StringAssert.Contains(value2, "value with");
+        StringAssert.Contains(value2, "newlines and spaces");
     }
 
-    [Fact]
+    [TestMethod]
     public void XmlIteratingChildrenTest()
     {
         string xml = @"<catalog>
@@ -853,20 +763,18 @@ public class XmlSlurperTests
         dynamic result = XmlSlurper.ParseText(xml);
         var bookList = result.bookList;
 
-        // Test that we can enumerate the list
         int count = 0;
         foreach (var book in bookList)
         {
             count++;
-            Assert.NotNull(book.author);
-            Assert.NotNull(book.title);
+            Assert.IsNotNull(book.author);
+            Assert.IsNotNull(book.title);
         }
 
-        Assert.Equal(2, count);
+        Assert.AreEqual(2, count);
 
-        // Test accessing properties after iteration
-        Assert.Equal("bk101", bookList[0].id);
-        Assert.Equal("Gambardella, Matthew", bookList[0].author);
+        Assert.AreEqual("bk101", (string)bookList[0].id);
+        Assert.AreEqual("Gambardella, Matthew", (string)bookList[0].author);
     }
 
     #endregion

@@ -4,17 +4,18 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using WebSpark.Slurper.Configuration;
 using WebSpark.Slurper.Exceptions;
-using Xunit;
 
 namespace WebSpark.Slurper.Tests
 {
+    [TestClass]
     public class JsonSlurperTests
     {
         private TestUtility utility = new();
 
-        [SkippableFact]
+        [TestMethod]
         public void T01_ObjectNotNullTest()
         {
             var city1 = JsonSlurper.ParseText(utility.getFile("City.json"));
@@ -22,55 +23,50 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var jsonData in new[] { city1, city2 })
             {
-                Assert.NotNull(jsonData);
-                Assert.NotNull(jsonData.City);
-                Assert.Null(jsonData.City.ToString());
-                Assert.NotNull(jsonData.City.Name);
+                Assert.IsNotNull(jsonData);
+                Assert.IsNotNull(jsonData.City);
+                Assert.IsNull(jsonData.City.ToString());
+                Assert.IsNotNull(jsonData.City.Name);
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T02_BaseJsonElementsTest()
         {
             var person1 = JsonSlurper.ParseText(utility.getFile("BaseJson.json"));
 
-            // assert simple elements
-            Assert.Equal("Joe", person1.Name);
-            Assert.Equal(22, person1.Age);
-            Assert.Equal(true, person1.CanDrive);
+            Assert.AreEqual("Joe", (string)person1.Name);
+            Assert.AreEqual(22, (int)person1.Age);
+            Assert.AreEqual(true, (bool)person1.CanDrive);
 
-            Assert.Null(person1.ContactDetails.ToString());
+            Assert.IsNull(person1.ContactDetails.ToString());
 
-            // assert object
-            Assert.Equal("joe@hotmail.com", person1.ContactDetails.Email);
-            Assert.Equal("07738277382", person1.ContactDetails.Mobile);
-            Assert.Null(person1.ContactDetails.Fax?.ToString());
+            Assert.AreEqual("joe@hotmail.com", (string)person1.ContactDetails.Email);
+            Assert.AreEqual("07738277382", (string)person1.ContactDetails.Mobile);
+            Assert.IsNull(person1.ContactDetails.Fax?.ToString());
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T03_BaseJsonArrayTest()
         {
             var person2 = JsonSlurper.ParseText(utility.getFile("BaseJsonArray.json"));
 
-            // assert simple elements
-            Assert.Null(person2.Addresses.ToString());
+            Assert.IsNull(person2.Addresses.ToString());
 
-            // assert array        
-            Assert.Equal("15 Beer Bottle Street", person2.Addresses.AddressesList[0].Line1);
-            Assert.Equal("Shell Cottage", person2.Addresses.AddressesList[1].Line1);
+            Assert.AreEqual("15 Beer Bottle Street", (string)person2.Addresses.AddressesList[0].Line1);
+            Assert.AreEqual("Shell Cottage", (string)person2.Addresses.AddressesList[1].Line1);
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T03b_BareJsonArrayTest()
         {
-            // Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!)
             var jsonObj = JsonSlurper.ParseText(utility.getFile("BareJsonArray.json"));
 
-            Assert.Equal(10, jsonObj.List.Count);
-            Assert.Equal(4862, jsonObj.List[9]);
+            Assert.AreEqual(10, jsonObj.List.Count);
+            Assert.AreEqual(4862, jsonObj.List[9]);
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T04_SimpleJsonElementsTest()
         {
             var bookInfo1 = JsonSlurper.ParseText(utility.getFile("Book.json"));
@@ -78,14 +74,14 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var bookInfo in new[] { bookInfo1, bookInfo2 })
             {
-                Assert.Equal("bk101", bookInfo.book.id);
-                Assert.Equal("123456789", bookInfo.book.isbn);
-                Assert.Equal(44.95, bookInfo.book.price);
-                Assert.Equal(true, bookInfo.book.instock);
+                Assert.AreEqual("bk101", (string)bookInfo.book.id);
+                Assert.AreEqual("123456789", (string)bookInfo.book.isbn);
+                Assert.AreEqual(44.95, (double)bookInfo.book.price);
+                Assert.AreEqual(true, (bool)bookInfo.book.instock);
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T05_SimpleJsonNodesTest()
         {
             var bookInfo1 = JsonSlurper.ParseText(utility.getFile("Book.json"));
@@ -93,14 +89,14 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var bookInfo in new[] { bookInfo1, bookInfo2 })
             {
-                Assert.Equal("Gambardella, Matthew", bookInfo.book.author);
-                Assert.Equal("XML Developer's Guide", bookInfo.book.title);
-                Assert.Equal("Computer", bookInfo.book.genre);
-                Assert.Equal("44.95", bookInfo.book.price);
+                Assert.AreEqual("Gambardella, Matthew", (string)bookInfo.book.author);
+                Assert.AreEqual("XML Developer's Guide", (string)bookInfo.book.title);
+                Assert.AreEqual("Computer", (string)bookInfo.book.genre);
+                Assert.AreEqual("44.95", (string)bookInfo.book.price);
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T06_JsonMultipleLevelsNodesTest()
         {
             var settingsInfo1 = JsonSlurper.ParseText(utility.getFile("HardwareSettings.json"));
@@ -108,55 +104,28 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var settingsInfo in new[] { settingsInfo1, settingsInfo2 })
             {
-                Assert.Equal("true", settingsInfo.settings.view.displayIcons);
-                Assert.Equal("false", settingsInfo.settings.performance.additionalChecks.disk.brandOptions.toshiba.useBetaFunc);
+                Assert.AreEqual("true", (string)settingsInfo.settings.view.displayIcons);
+                Assert.AreEqual("false", (string)settingsInfo.settings.performance.additionalChecks.disk.brandOptions.toshiba.useBetaFunc);
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
+        [Ignore("Test requires further implementation changes in dynamic property access")]
         public void T07_ListJsonNodesTest()
         {
-            Skip.If(true, "Test requires further implementation changes in dynamic property access");
             var catalogInfo1 = JsonSlurper.ParseText(utility.getFile("BookCatalog.json"));
             var catalogInfo2 = JsonSlurper.ParseFile(utility.getFileFullPath("BookCatalog.json"));
-
-            /* After migration to WebSpark, this test needs to be updated to handle
-               the dynamic property access differently
-            foreach (var catalogInfo in new[] { catalogInfo1, catalogInfo2 })
-            {
-                var bookList = catalogInfo.catalog.book.bookList;
-
-                Assert.Equal(12, bookList.Count);
-                
-                // ...existing code...
-            }
-            */
         }
 
-        [SkippableFact]
+        [TestMethod]
+        [Ignore("Test requires further implementation changes in dynamic property access")]
         public void T08_BothPropertiesAndListRootJsonTest()
         {
-            Skip.If(true, "Test requires further implementation changes in dynamic property access");
             var nutritionInfo1 = JsonSlurper.ParseText(utility.getFile("Nutrition.json"));
             var nutritionInfo2 = JsonSlurper.ParseFile(utility.getFileFullPath("Nutrition.json"));
-
-            /* After migration to WebSpark, this test needs to be updated to handle
-               the dynamic property access differently
-            foreach (var nutritionInfo in new[] { nutritionInfo1, nutritionInfo2 })
-            {
-                var dailyvalues = nutritionInfo.nutrition.dailyvalues;
-                Assert.Equal("g", dailyvalues.totalfat.units);
-                Assert.Equal(65, dailyvalues.totalfat.text);
-
-                var foodList = nutritionInfo.nutrition.food.foodList;
-
-                Assert.Equal(10, foodList.Count);
-                // ...existing code...
-            }
-            */
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T09_BothPropertiesAndListRecursiveJsonTest()
         {
             var cityInfo1 = JsonSlurper.ParseText(utility.getFile("Cityinfo.json"));
@@ -164,24 +133,20 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var cityInfo in new[] { cityInfo1, cityInfo2 })
             {
-                Assert.Equal("Roni Müller", cityInfo.City.Mayor);
-                Assert.Equal("Schulstrasse 12", cityInfo.City.CityHall);
-                Assert.Equal("Wilen bei Wollerau", cityInfo.City.Name);
-                Assert.Equal("Freienbach", cityInfo.City.Gemeinde);
+                Assert.AreEqual("Roni Müller", (string)cityInfo.City.Mayor);
+                Assert.AreEqual("Schulstrasse 12", (string)cityInfo.City.CityHall);
+                Assert.AreEqual("Wilen bei Wollerau", (string)cityInfo.City.Name);
+                Assert.AreEqual("Freienbach", (string)cityInfo.City.Gemeinde);
 
-                Assert.Equal(3, cityInfo.City.Street.StreetList.Count);
+                Assert.AreEqual(3, cityInfo.City.Street.StreetList.Count);
 
-                // note that the underscore ("_name" in the file) gets removed
-                Assert.Equal("Wolleraustrasse", cityInfo.City.Street.StreetList[0].name);
-                Assert.Equal("8832", cityInfo.City.Street.StreetList[2].PostCode);
-                Assert.Equal(3, cityInfo.City.Street.StreetList[2].HouseNumber.HouseNumberList.Count);
+                Assert.AreEqual("Wolleraustrasse", (string)cityInfo.City.Street.StreetList[0].name);
+                Assert.AreEqual("8832", (string)cityInfo.City.Street.StreetList[2].PostCode);
+                Assert.AreEqual(3, cityInfo.City.Street.StreetList[2].HouseNumber.HouseNumberList.Count);
             }
         }
 
-        /// <summary>
-        /// Usage showcase 1
-        /// </summary>
-        [SkippableFact]
+        [TestMethod]
         public void T10_Usage_PrintJsonContents1_Simple()
         {
             string json =
@@ -193,22 +158,18 @@ namespace WebSpark.Slurper.Tests
 }".Replace("'", "\"");
             var book = JsonSlurper.ParseText(json);
 
-            // that's it, now we have everything            
             Console.WriteLine("J-T10 id = " + book.id);
             Console.WriteLine("J-T10 isbn = " + book.isbn);
             Console.WriteLine("J-T10 author = " + book.author);
             Console.WriteLine("J-T10 title = " + book.title);
         }
 
-        /// <summary>
-        /// Usage showcase 2
-        /// </summary>
-        [SkippableFact]
+        [TestMethod]
         public void T11_Usage_PrintJsonContents2_Array()
         {
             string json =
 @"{
-'Groceries': 
+'Groceries':
     [
         {
             'name': 'Avocado Dip',
@@ -236,21 +197,13 @@ namespace WebSpark.Slurper.Tests
             JsonSlurper.ListSuffix = "Inventory";
             var nutrition = JsonSlurper.ParseText(json);
 
-            // Since many nodes were found, a list was generated. 
-            // It's named common name + "List", so in this case GroceriesList.
-            // But note that we've changed the value of ListSuffix to Inventory,
-            // so the list name will become GroceriesInventory.
             Console.WriteLine("J-T11 name1 = " + nutrition.Groceries.GroceriesInventory[0].name);
             Console.WriteLine("J-T11 name2 = " + nutrition.Groceries.GroceriesInventory[1].name);
         }
 
-        /// <summary>
-        /// Usage showcase 3
-        /// </summary>
-        [SkippableFact]
+        [TestMethod]
         public void T12_Usage_PrintJsonContents3_TopLevelArray()
         {
-            // No longer skipped as we've implemented top-level array support
             string json =
 @"[
   {
@@ -277,17 +230,15 @@ namespace WebSpark.Slurper.Tests
 ]".Replace("'", "\"");
             var nutrition = JsonSlurper.ParseText(json);
 
-            // Now accessing top-level array items through the 'items' property
             Console.WriteLine("J-T12 name1 = " + nutrition.items[0].name);
             Console.WriteLine("J-T12 name2 = " + nutrition.items[1].name);
 
-            // Verify array content
-            Assert.Equal("Avocado Dip", nutrition.items[0].name);
-            Assert.Equal("Bagels, New York Style", nutrition.items[1].name);
-            Assert.Equal("Beef Frankfurter, Quarter Pound", nutrition.items[2].name);
+            Assert.AreEqual("Avocado Dip", (string)nutrition.items[0].name);
+            Assert.AreEqual("Bagels, New York Style", (string)nutrition.items[1].name);
+            Assert.AreEqual("Beef Frankfurter, Quarter Pound", (string)nutrition.items[2].name);
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T13_BoolIntDecimalDoubleTest()
         {
             var settingsInfo1 = JsonSlurper.ParseText(utility.getFile("HardwareSettings.json"));
@@ -295,32 +246,28 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var settingsInfo in new[] { settingsInfo1, settingsInfo2 })
             {
-                Assert.Equal<bool?>(true, settingsInfo.settings.view.displayIcons);
-                Assert.Equal<bool?>(false, settingsInfo.settings.view.showFiles);
-                Assert.Equal<int?>(2, settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace);
-                Assert.Equal<double?>(5.5, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
-                Assert.Equal<decimal?>(5.5m, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
+                Assert.AreEqual<bool?>(true, settingsInfo.settings.view.displayIcons);
+                Assert.AreEqual<bool?>(false, settingsInfo.settings.view.showFiles);
+                Assert.AreEqual<int?>(2, settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace);
+                Assert.AreEqual<double?>(5.5, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
+                Assert.AreEqual<decimal?>(5.5m, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
 
-                Assert.True(settingsInfo.settings.view.displayIcons);
-                Assert.False(settingsInfo.settings.view.showFiles);
-                Assert.Equal<int>(2, settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace);
-                Assert.Equal<double>(5.5, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
-                Assert.Equal<decimal>(5.5m, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
+                Assert.IsTrue(settingsInfo.settings.view.displayIcons);
+                Assert.IsFalse(settingsInfo.settings.view.showFiles);
+                Assert.AreEqual<int>(2, settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace);
+                Assert.AreEqual<double>(5.5, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
+                Assert.AreEqual<decimal>(5.5m, settingsInfo.settings.performance.additionalChecks.disk.warnFreeSpace);
 
-                // usage showcase
                 if (!settingsInfo.settings.view.displayIcons)
-                {
-                    Assert.True(false);
-                }
+                    Assert.Fail("displayIcons should be true");
+
                 int? minFreeSpace = settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace;
                 if (minFreeSpace != 2)
-                {
-                    Assert.True(false);
-                }
+                    Assert.Fail("minFreeSpace should be 2");
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T14_ConversionExceptionTest()
         {
             var settingsInfo1 = JsonSlurper.ParseText(utility.getFile("HardwareSettings.json"));
@@ -328,46 +275,30 @@ namespace WebSpark.Slurper.Tests
 
             foreach (var settingsInfo in new[] { settingsInfo1, settingsInfo2 })
             {
-                Assert.Throws<ValueConversionException>(() =>
-                {
-                    int t = settingsInfo.settings.view.displayIcons;
-                });
-                Assert.Throws<ValueConversionException>(() =>
-                {
-                    decimal t = settingsInfo.settings.view.displayIcons;
-                });
-                Assert.Throws<ValueConversionException>(() =>
-                {
-                    double t = settingsInfo.settings.view.displayIcons;
-                });
-                Assert.Throws<ValueConversionException>(() =>
-                {
-                    bool t = settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace;
-                });
+                Assert.ThrowsExactly<ValueConversionException>(() => { int t = settingsInfo.settings.view.displayIcons; });
+                Assert.ThrowsExactly<ValueConversionException>(() => { decimal t = settingsInfo.settings.view.displayIcons; });
+                Assert.ThrowsExactly<ValueConversionException>(() => { double t = settingsInfo.settings.view.displayIcons; });
+                Assert.ThrowsExactly<ValueConversionException>(() => { bool t = settingsInfo.settings.performance.additionalChecks.disk.minFreeSpace; });
             }
         }
 
-        [SkippableFact]
+        [TestMethod]
         public void T15_BigJsonTest()
         {
             var jsonList = new List<string>();
             jsonList.Add(utility.getFile("socialsample.json"));
 
-            // not when building online
-            // TODO find a better condition to detect running local vs github
             bool isLocal = Debugger.IsAttached;
             if (isLocal)
             {
                 var urlList = new List<string>()
                 {
-                    // 2.15MB
-                    "https://github.com/miloyip/nativejson-benchmark/blob/master/data/canada.json?raw=true", 
-                    // 25MB
+                    "https://github.com/miloyip/nativejson-benchmark/blob/master/data/canada.json?raw=true",
                     "https://github.com/json-iterator/test-data/blob/master/large-file.json?raw=true"
                 };
 
                 var getter = utility.getHttpFiles(urlList);
-                getter.Wait(5 * 60 * 1000); // 5min max
+                getter.Wait(5 * 60 * 1000);
                 jsonList.AddRange(getter.Result);
             }
 
@@ -379,31 +310,26 @@ namespace WebSpark.Slurper.Tests
                 var cdata = JsonSlurper.ParseText(json);
                 stopWatch.Stop();
 
-                Decimal fileSizeMb = Math.Round(json.Length / (1024m * 1024m), 2);
-                Int64 timeMs = stopWatch.ElapsedMilliseconds;
-                Decimal speed = Math.Round(timeMs / fileSizeMb, 0);
+                decimal fileSizeMb = Math.Round(json.Length / (1024m * 1024m), 2);
+                long timeMs = stopWatch.ElapsedMilliseconds;
+                decimal speed = Math.Round(timeMs / fileSizeMb, 0);
                 Console.WriteLine($"J-T15 Parsed {fileSizeMb} MB in {timeMs} ms (approx. {speed} ms/MB)");
             }
         }
 
-        [Theory]
-        [MemberData(nameof(TestDataGenerator.GetBooleanTestData), MemberType = typeof(TestDataGenerator))]
+        [TestMethod]
+        [DynamicData(nameof(TestDataGenerator.GetBooleanTestData), typeof(TestDataGenerator))]
         public void BooleanConversionTest(string input, bool expected)
         {
-            // Ensure boolean values are properly formatted for JSON
             string jsonValue = input.ToLower();
-            if (input == "True" || input == "False")
-            {
-                jsonValue = input.ToLower();
-            }
 
             dynamic result = JsonSlurper.ParseText($"{{ \"value\": {jsonValue} }}");
             bool? value = result.value;
-            Assert.Equal(expected, value);
+            Assert.AreEqual(expected, value);
         }
 
-        [Theory]
-        [MemberData(nameof(TestDataGenerator.GetNumericTestData), MemberType = typeof(TestDataGenerator))]
+        [TestMethod]
+        [DynamicData(nameof(TestDataGenerator.GetNumericTestData), typeof(TestDataGenerator))]
         public void NumericConversionTest(string input, object expected)
         {
             dynamic result = JsonSlurper.ParseText($"{{ \"value\": {input} }}");
@@ -411,58 +337,46 @@ namespace WebSpark.Slurper.Tests
             if (expected is int intValue)
             {
                 int? value = result.value;
-                Assert.Equal(intValue, value);
+                Assert.AreEqual(intValue, value);
             }
             else if (expected is double doubleValue)
             {
                 double? value = result.value;
-                Assert.Equal(doubleValue, value);
+                Assert.AreEqual(doubleValue, value);
             }
         }
 
-        [Theory]
-        [MemberData(nameof(TestDataGenerator.GetConversionExceptionTestData), MemberType = typeof(TestDataGenerator))]
+        [TestMethod]
+        [DynamicData(nameof(TestDataGenerator.GetConversionExceptionTestData), typeof(TestDataGenerator))]
         public void ConversionExceptionTheoryTest(string input, Type targetType)
         {
             dynamic result = JsonSlurper.ParseText($"{{ \"value\": {input} }}");
 
-            Assert.Throws<ValueConversionException>(() =>
+            Assert.ThrowsExactly<ValueConversionException>(() =>
             {
-                if (targetType == typeof(int))
-                {
-                    int t = result.value;
-                }
-                else if (targetType == typeof(decimal))
-                {
-                    decimal t = result.value;
-                }
-                else if (targetType == typeof(double))
-                {
-                    double t = result.value;
-                }
-                else if (targetType == typeof(bool))
-                {
-                    bool t = result.value;
-                }
+                if (targetType == typeof(int)) { int t = result.value; }
+                else if (targetType == typeof(decimal)) { decimal t = result.value; }
+                else if (targetType == typeof(double)) { double t = result.value; }
+                else if (targetType == typeof(bool)) { bool t = result.value; }
             });
         }
 
-        [Fact]
+        [TestMethod]
         public void EmptyJsonObjectTest()
         {
             dynamic result = JsonSlurper.ParseText("{}");
-            Assert.NotNull(result);
+            Assert.IsNotNull(result);
         }
 
-        [Fact]
+        [TestMethod]
         public void NullValueHandlingTest()
         {
             dynamic result = JsonSlurper.ParseText("{ \"nullValue\": null }");
             object nullValue = result.nullValue;
-            Assert.Null(nullValue);
+            Assert.IsNull(nullValue);
         }
 
-        [Fact]
+        [TestMethod]
         public void DeepNestedJsonTest()
         {
             string json = @"{
@@ -478,13 +392,12 @@ namespace WebSpark.Slurper.Tests
             }";
 
             dynamic result = JsonSlurper.ParseText(json);
-            Assert.Equal("deep value", result.level1.level2.level3.level4.level5);
+            Assert.AreEqual("deep value", (string)result.level1.level2.level3.level4.level5);
         }
 
-        [Fact]
+        [TestMethod]
         public void ConfigurationOptionsTest()
         {
-            // Create options to test config parameters
             var options = new SlurperOptions
             {
                 ExtractorOptions = new Dictionary<string, object>
@@ -507,18 +420,17 @@ namespace WebSpark.Slurper.Tests
             }";
 
             dynamic result = JsonSlurper.ParseText(json, options);
-            Assert.Equal("deep value", result.level1.level2.level3.level4.level5);
+            Assert.AreEqual("deep value", (string)result.level1.level2.level3.level4.level5);
         }
 
-        [Fact]
+        [TestMethod]
         public void MaxDepthExceededTest()
         {
-            // Set a very low max depth to trigger the exception
             var options = new SlurperOptions
             {
                 ExtractorOptions = new Dictionary<string, object>
                 {
-                    ["MaxJsonDepth"] = 2 // Only allow 2 levels deep
+                    ["MaxJsonDepth"] = 2
                 }
             };
 
@@ -534,11 +446,10 @@ namespace WebSpark.Slurper.Tests
                 }
             }";
 
-            // This should throw an exception because we exceed max depth
-            Assert.Throws<DataExtractionException>(() => JsonSlurper.ParseText(json, options));
+            Assert.ThrowsExactly<DataExtractionException>(() => JsonSlurper.ParseText(json, options));
         }
 
-        [Fact]
+        [TestMethod]
         public void PropertyNameSanitizationTest()
         {
             string json = @"{
@@ -547,13 +458,11 @@ namespace WebSpark.Slurper.Tests
                 ""space in name"": ""spaced""
             }";
 
-            // With sanitization enabled (default)
             dynamic resultSanitized = JsonSlurper.ParseText(json);
-            Assert.Equal("value", resultSanitized.invalidpropertyname);
-            Assert.Equal("numeric", resultSanitized.prop123numericstart);
-            Assert.Equal("spaced", resultSanitized.spaceinname);
+            Assert.AreEqual("value", (string)resultSanitized.invalidpropertyname);
+            Assert.AreEqual("numeric", (string)resultSanitized.prop123numericstart);
+            Assert.AreEqual("spaced", (string)resultSanitized.spaceinname);
 
-            // With sanitization disabled
             var options = new SlurperOptions
             {
                 ExtractorOptions = new Dictionary<string, object>
@@ -562,11 +471,10 @@ namespace WebSpark.Slurper.Tests
                 }
             };
 
-            // Should throw because property names contain invalid characters
-            Assert.Throws<InvalidConfigurationException>(() => JsonSlurper.ParseText(json, options));
+            Assert.ThrowsExactly<InvalidConfigurationException>(() => JsonSlurper.ParseText(json, options));
         }
 
-        [Fact]
+        [TestMethod]
         public async Task AsyncParsingTest()
         {
             string json = @"{
@@ -575,11 +483,11 @@ namespace WebSpark.Slurper.Tests
             }";
 
             dynamic result = await JsonSlurper.ParseTextAsync(json);
-            Assert.Equal("Async Test", result.name);
-            Assert.Equal(42, result.value);
+            Assert.AreEqual("Async Test", (string)result.name);
+            Assert.AreEqual(42, (int)result.value);
         }
 
-        [Fact]
+        [TestMethod]
         public async Task CancellationTokenTest()
         {
             string json = @"{
@@ -587,16 +495,14 @@ namespace WebSpark.Slurper.Tests
                 ""value"": 42
             }";
 
-            // Create a cancelled token
             using var cts = new CancellationTokenSource();
             cts.Cancel();
 
-            // Should throw OperationCanceledException when token is already cancelled
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
                 await JsonSlurper.ParseTextAsync(json, cancellationToken: cts.Token));
         }
 
-        [Fact]
+        [TestMethod]
         public void MalformedJsonTest()
         {
             string malformedJson = @"{
@@ -604,11 +510,10 @@ namespace WebSpark.Slurper.Tests
                 ""value"": 42
             }";
 
-            // Should throw DataExtractionException due to JSON syntax error
-            Assert.Throws<DataExtractionException>(() => JsonSlurper.ParseText(malformedJson));
+            Assert.ThrowsExactly<DataExtractionException>(() => JsonSlurper.ParseText(malformedJson));
         }
 
-        [Fact]
+        [TestMethod]
         public void CommentsInJsonTest()
         {
             string jsonWithComments = @"{
@@ -618,13 +523,12 @@ namespace WebSpark.Slurper.Tests
                 ""value"": 42
             }";
 
-            // JsonDocument.Parse with JsonCommentHandling.Skip should handle this
             dynamic result = JsonSlurper.ParseText(jsonWithComments);
-            Assert.Equal("Test", result.name);
-            Assert.Equal(42, result.value);
+            Assert.AreEqual("Test", (string)result.name);
+            Assert.AreEqual(42, (int)result.value);
         }
 
-        [Fact]
+        [TestMethod]
         public void TrailingCommasTest()
         {
             string jsonWithTrailingCommas = @"{
@@ -638,51 +542,45 @@ namespace WebSpark.Slurper.Tests
                 },
             }";
 
-            // Should not throw with AllowTrailingCommas=true
             dynamic result = JsonSlurper.ParseText(jsonWithTrailingCommas);
-            Assert.Equal("item1", result.items[0]);
-            Assert.Equal("value2", result.obj.prop2);
+            Assert.AreEqual("item1", (string)result.items[0]);
+            Assert.AreEqual("value2", (string)result.obj.prop2);
         }
 
-        [Fact(Skip = "This test requires file creation permissions that may not be available in all environments")]
+        [TestMethod]
+        [Ignore("This test requires file creation permissions that may not be available in all environments")]
         public void LargeJsonFileStreamingTest()
         {
-            // Skip if no large file available locally
             string filename = "large-test.json";
             string path = Path.Combine(Path.GetTempPath(), filename);
 
             try
             {
-                // Create a large JSON file (5MB) for testing
                 bool created = CreateLargeJsonFile(path, 5);
-                Skip.If(!created, "Could not create large test file");
+                if (!created)
+                {
+                    Assert.Inconclusive("Could not create large test file");
+                    return;
+                }
 
-                // Create options with streaming enabled
                 var options = new SlurperOptions
                 {
                     UseStreaming = true,
                     StreamingBufferSize = 4096
                 };
 
-                // Test that we can parse the large file
                 dynamic result = JsonSlurper.ParseFile(path, options);
-                Assert.NotNull(result);
-                Assert.NotNull(result.items);
-                Assert.True(result.items.Count > 0);
+                Assert.IsNotNull(result);
+                Assert.IsNotNull(result.items);
+                Assert.IsTrue(result.items.Count > 0);
             }
             finally
             {
-                // Clean up
                 if (File.Exists(path))
-                {
                     File.Delete(path);
-                }
             }
         }
 
-        /// <summary>
-        /// Helper method to create a large JSON file for testing streaming
-        /// </summary>
         private bool CreateLargeJsonFile(string path, int sizeMB)
         {
             try
@@ -693,8 +591,7 @@ namespace WebSpark.Slurper.Tests
                     writer.WriteLine("{");
                     writer.WriteLine("  \"items\": [");
 
-                    // Create enough items to reach the target size
-                    int itemCount = sizeMB * 100; // Approximate number of items for target size
+                    int itemCount = sizeMB * 100;
                     for (int i = 0; i < itemCount; i++)
                     {
                         writer.WriteLine("    {");
@@ -702,34 +599,22 @@ namespace WebSpark.Slurper.Tests
                         writer.WriteLine($"      \"name\": \"Item {i}\",");
                         writer.WriteLine($"      \"description\": \"This is a test item with a longer description to consume more space in the file. Item number {i}.\",");
                         writer.WriteLine($"      \"tags\": [\"test\", \"large\", \"file\", \"streaming\", \"item{i}\"],");
-                        writer.WriteLine($"      \"created\": \"{DateTime.Now.AddDays(-i).ToString("yyyy-MM-ddTHH:mm:ss")}\",");
-
-                        // Add a nested object
+                        writer.WriteLine($"      \"created\": \"{DateTime.Now.AddDays(-i):yyyy-MM-ddTHH:mm:ss}\",");
                         writer.WriteLine("      \"details\": {");
                         writer.WriteLine($"        \"manufacturer\": \"Test Corp {i % 10}\",");
                         writer.WriteLine($"        \"price\": {Math.Round(10.0 + (i % 100) / 10.0, 2)},");
                         writer.WriteLine($"        \"inStock\": {(i % 2 == 0 ? "true" : "false")},");
                         writer.WriteLine($"        \"color\": \"{(i % 5 == 0 ? "red" : i % 4 == 0 ? "blue" : i % 3 == 0 ? "green" : i % 2 == 0 ? "yellow" : "black")}\"");
                         writer.WriteLine("      }");
-
-                        // If not the last item, add a comma
-                        if (i < itemCount - 1)
-                        {
-                            writer.WriteLine("    },");
-                        }
-                        else
-                        {
-                            writer.WriteLine("    }");
-                        }
+                        writer.WriteLine(i < itemCount - 1 ? "    }," : "    }");
                     }
 
                     writer.WriteLine("  ]");
                     writer.WriteLine("}");
                 }
 
-                // Verify the file size is at least approximately what we want
                 var fileInfo = new FileInfo(path);
-                return fileInfo.Length >= sizeMB * 1024 * 1024 * 0.8; // At least 80% of target size
+                return fileInfo.Length >= sizeMB * 1024 * 1024 * 0.8;
             }
             catch
             {
