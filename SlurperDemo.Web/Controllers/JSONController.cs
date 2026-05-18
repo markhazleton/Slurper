@@ -4,7 +4,6 @@ using SlurperDemo.Web.Models;
 using System.Collections;
 using System.Diagnostics;
 using System.Text.Json;
-using WebSpark.Slurper;
 using WebSpark.Slurper.Extractors;
 
 namespace SlurperDemo.Web.Controllers;
@@ -13,118 +12,78 @@ public class JSONController : Controller
 {
     private readonly ILogger<JSONController> _logger;
     private readonly IJsonExtractor _jsonExtractor;
-    private readonly ISlurperFactory _slurperFactory;
 
-    public JSONController(
-        ILogger<JSONController> logger,
-        IJsonExtractor jsonExtractor,
-        ISlurperFactory slurperFactory)
+    public JSONController(ILogger<JSONController> logger, IJsonExtractor jsonExtractor)
     {
         _logger = logger;
         _jsonExtractor = jsonExtractor;
-        _slurperFactory = slurperFactory;
     }
 
     public IActionResult Index()
     {
         try
         {
-            // Use the new superhero JSON file
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "SuperheroHQ.json");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "ProductCatalog.json");
 
-            // 1. First, read the raw JSON content to display the "before" state
-            var rawJsonContent = System.IO.File.ReadAllText(filePath);
-            ViewBag.RawJson = rawJsonContent;
+            var rawJson = System.IO.File.ReadAllText(filePath);
+            ViewBag.RawJson = rawJson;
 
-            // Pretty print the JSON for better display
-            var jsonDocument = JsonDocument.Parse(rawJsonContent);
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
-                {
-                    jsonDocument.WriteTo(writer);
-                }
-                stream.Position = 0;
-                using (var reader = new StreamReader(stream))
-                {
-                    ViewBag.FormattedJson = reader.ReadToEnd();
-                }
-            }
+            using var doc = JsonDocument.Parse(rawJson);
+            using var stream = new MemoryStream();
+            using (var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
+                doc.WriteTo(writer);
+            stream.Position = 0;
+            using var reader = new StreamReader(stream);
+            ViewBag.FormattedJson = reader.ReadToEnd();
 
-            // 2. Now, process with Slurper - this is the "after" state
-            var heroes = _jsonExtractor.ExtractFromFile(filePath);
-
-            // Prepare a collection that will hold our extracted superhero data
-            var heroCollection = new List<dynamic>();
+            var results = _jsonExtractor.ExtractFromFile(filePath);
+            var productCollection = new List<dynamic>();
             var processingSteps = new List<string>();
 
-            try
+            processingSteps.Add("IJsonExtractor.ExtractFromFile() parses the JSON and returns a collection of dynamic objects.");
+
+            dynamic first = results.First();
+            processingSteps.Add("Call .First() to get the root object — the top-level JSON object maps to a single dynamic.");
+
+            // Slurper sanitizes "product_catalog" (underscore stripped) → "productcatalog"
+            dynamic catalog = first.productcatalog;
+            processingSteps.Add("Access .productcatalog (Slurper sanitizes 'product_catalog' by stripping non-alphanumeric chars).");
+
+            // The "products" array becomes products.productsList
+            dynamic productsList = catalog.products.productsList;
+            processingSteps.Add("Arrays become <name>List: 'products' array → catalog.products.productsList.");
+
+            processingSteps.Add("Iterate the list — each element is a dynamic object with typed dot-notation access.");
+
+            ViewBag.ProcessingSteps = processingSteps;
+
+            if (productsList is IEnumerable && productsList is not string)
             {
-                // Track the processing steps to explain what Slurper is doing
-                processingSteps.Add("💧 Slurper extracts the JSON intelligence into dynamic objects");
-
-                // Use dynamic to handle dynamic properties
-                dynamic firstResult = heroes.First();
-                processingSteps.Add("👉 We access the first object from the extracted collection");
-
-                // Note: Slurper sanitizes property names by removing non-alphanumeric characters
-                // So "superhero_database" becomes "superherodatabase"
-                dynamic database = firstResult.superherodatabase;
-                processingSteps.Add("➡️➡️ Navigate to the 'superherodatabase' property (sanitized from 'superhero_database')");
-
-                // Arrays in JSON become List properties with "List" suffix
-                // So "heroes": [...] becomes accessible as heroes.heroesList
-                dynamic heroesArray = database.heroes.heroesList;
-                processingSteps.Add("🎯👥 Access the 'heroes.heroesList' property, which contains an array of superhero profiles");
-
-                processingSteps.Add("🔍 Processing individual superhero profiles from the intelligence data");
-
-                // Show the structure navigation
-                ViewBag.ProcessingSteps = processingSteps;
-
-                // Handle the heroes array
-                if (heroesArray is IEnumerable && !(heroesArray is string))
-                {
-                    processingSteps.Add("🔁 Since 'heroes' contains multiple profiles, we decode each superhero");
-                    foreach (var hero in (IEnumerable)heroesArray)
-                    {
-                        heroCollection.Add(hero);
-                    }
-                }
-                else
-                {
-                    processingSteps.Add("👤 Since 'heroes' contains a single profile, we decode it directly");
-                    heroCollection.Add(heroesArray);
-                }
-
-                ViewBag.BookList = heroCollection; // Keep the same ViewBag name for compatibility
-                ViewBag.BookCount = heroCollection.Count;
-                ViewBag.Success = true;
-                ViewBag.Message = $"Successfully extracted {heroCollection.Count} superhero profiles from encrypted JSON intelligence";
-
-                // Additional explanation of what Slurper does for superheroes
-                ViewBag.SlurperExplanation = @"
-                    <p><strong>🦸‍♂️📊 What Slurper Does for Superhero Intelligence:</strong></p>
-                    <ul>
-                        <li>🔓 Decodes encrypted intelligence files (JSON, XML, CSV, HTML) into accessible dynamic objects</li>
-                        <li>🧭 Navigates complex nested superhero database structures with simple dot notation</li>
-                        <li>🎯 Allows you to access hero profiles, powers, and classified info without predefined schemas</li>
-                        <li>🔄 Automatically handles single heroes or entire superhero teams</li>
-                        <li>✨🔧 Provides a unified way to extract intelligence from various sources without format-specific decoding</li>
-                        <li>⚡ Perfect for rapid intelligence gathering operations across multiple data formats</li>
-                    </ul>";
+                foreach (var p in (IEnumerable)productsList)
+                    productCollection.Add(p);
             }
-            catch (RuntimeBinderException ex)
+            else
             {
-                // More detailed error for debugging
-                _logger.LogError(ex, "Runtime binding error accessing JSON superhero properties");
-                ViewBag.Success = false;
-                ViewBag.Message = $"Error accessing JSON superhero structure: {ex.Message}";
+                productCollection.Add(productsList);
             }
+
+            ViewBag.ProductList = productCollection;
+            ViewBag.ProductCount = productCollection.Count;
+            ViewBag.Success = true;
+            ViewBag.Message = $"Extracted {productCollection.Count} products from ProductCatalog.json";
+
+            ViewBag.MetadataVersion = TryGet(catalog, "metadata", "version");
+            ViewBag.MetadataSource = TryGet(catalog, "metadata", "source");
+        }
+        catch (RuntimeBinderException ex)
+        {
+            _logger.LogError(ex, "Runtime binding error navigating JSON structure");
+            ViewBag.Success = false;
+            ViewBag.Message = $"Property access error: {ex.Message}";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error extracting JSON superhero data");
+            _logger.LogError(ex, "Error extracting JSON product data");
             ViewBag.Success = false;
             ViewBag.Message = $"Error: {ex.Message}";
         }
@@ -136,5 +95,17 @@ public class JSONController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    private static string TryGet(dynamic parent, string child, string grandchild)
+    {
+        try
+        {
+            dynamic? c = null;
+            try { c = parent?[child]; } catch { }
+            if (c == null) return "";
+            try { return c[grandchild]?.ToString() ?? ""; } catch { return ""; }
+        }
+        catch { return ""; }
     }
 }

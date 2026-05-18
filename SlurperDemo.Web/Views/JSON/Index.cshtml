@@ -1,284 +1,195 @@
 @{
-    ViewData["Title"] = "🔍 JSON Enigma Investigation";
+    ViewData["Title"] = "JSON Extraction — WebSpark.Slurper";
 }
 
-<style>
-    .slurp-effect {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .slurp-effect::before {
-        content: '💧';
-        position: absolute;
-        top: 50%;
-        left: -100%;
-        transform: translateY(-50%);
-        font-size: 3em;
-        animation: slurping 3s ease-in-out infinite;
-        z-index: 1;
-    }
-    
-    @@keyframes slurping {
-        0% { left: -100%; opacity: 0; }
-        25% { opacity: 1; }
-        75% { opacity: 1; }
-        100% { left: 100%; opacity: 0; }
-    }
-    
-    .investigation-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 40px 0;
-        margin: -20px -15px 30px -15px;
-        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-    }
-    
-    .evidence-box {
-        background: rgba(255,255,255,0.95);
-        border-radius: 15px;
-        padding: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .evidence-box:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    }
-    
-    .extraction-step {
-        background: linear-gradient(45deg, #4ecdc4, #44a08d);
-        color: white;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px 0;
-        position: relative;
-        animation: fadeInUp 0.5s ease forwards;
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    
-    .extraction-step:nth-child(1) { animation-delay: 0.2s; }
-    .extraction-step:nth-child(2) { animation-delay: 0.4s; }
-    .extraction-step:nth-child(3) { animation-delay: 0.6s; }
-    .extraction-step:nth-child(4) { animation-delay: 0.8s; }
-    .extraction-step:nth-child(5) { animation-delay: 1.0s; }
-    
-    @@keyframes fadeInUp {
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .hero-display {
-        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-        border-radius: 15px;
-        margin-bottom: 15px;
-        padding: 20px;
-        border: none;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-    
-    .hero-display:hover {
-        transform: translateY(-3px) rotateY(5deg);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    }
-    
-    .code-comparison {
-        background: #1e1e1e;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-    
-    .code-header {
-        background: #333;
-        color: white;
-        padding: 15px;
-        font-weight: bold;
-    }
-    
-    .code-content {
-        color: #d4d4d4;
-        padding: 20px;
-        font-family: 'Courier New', monospace;
-        line-height: 1.6;
-    }
-    
-    .pulse { animation: pulse 2s infinite; }
-    @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-    }
-</style>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Overview</a></li>
+        <li class="breadcrumb-item active">JSON Extraction</li>
+    </ol>
+</nav>
 
-<div class="investigation-header text-center">
-        <h1 class="display-3">🔍 JSON Enigma Investigation 🔍</h1>
-    <p class="lead fs-4">
-        <span class="badge bg-light text-dark pulse">
-                        📁 Case File #002: Classified Intelligence Extraction 📁
-        </span>
-    </p>
-    <p class="mt-3">Detective, your mission is to extract superhero intelligence from encrypted JSON files!</p>
+<div class="d-flex align-items-center mb-3 gap-2">
+    <span class="badge bg-success fs-6">JSON</span>
+    <h1 class="h3 mb-0 fw-bold">JSON Extraction</h1>
+    <code class="ms-auto small text-muted">IJsonExtractor.ExtractFromFile()</code>
 </div>
 
-<div class="container">
-    <div class="card mb-4 evidence-box">
-        <div class="card-header bg-primary text-white">
-            <h3>📋 Investigation Briefing</h3>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Before: raw JSON source</h6>
+                @if (!string.IsNullOrEmpty(ViewBag.MetadataVersion as string))
+                {
+                    <small class="text-muted">v@ViewBag.MetadataVersion &middot; @ViewBag.MetadataSource</small>
+                }
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.FormattedJson != null)
+                {
+                    <details>
+                        <summary class="btn btn-link btn-sm m-2">Show / Hide Raw JSON</summary>
+                        <pre class="bg-dark text-light p-3 m-0 rounded-bottom"
+                             style="font-size:0.78em; max-height:320px; overflow-y:auto;"><code>@ViewBag.FormattedJson</code></pre>
+                    </details>
+                }
+            </div>
         </div>
-        <div class="card-body">
-            <p class="lead">This case demonstrates extracting superhero data from a JSON file using WebSpark.Slurper's JSON
-                extractor. Watch as we decode the encrypted intelligence files with before/after analysis.</p>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">How Slurper navigates the structure</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="bg-dark rounded-bottom p-3">
+                    <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#569CD6;">var</span> results = _jsonExtractor.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"ProductCatalog.json"</span>);
 
-            @if (ViewBag.SlurperExplanation != null)
-            {
-                <div class="alert alert-info">
-                    @Html.Raw(ViewBag.SlurperExplanation)
+<span style="color:#6A9955;">// Step 1 — get the root dynamic</span>
+<span style="color:#569CD6;">dynamic</span> root = results.<span style="color:#DCDCAA;">First</span>();
+
+<span style="color:#6A9955;">// Step 2 — underscores stripped: "product_catalog" → "productcatalog"</span>
+<span style="color:#569CD6;">dynamic</span> catalog = root.productcatalog;
+
+<span style="color:#6A9955;">// Step 3 — arrays become &lt;name&gt;List: "products" → productsList</span>
+<span style="color:#569CD6;">var</span> list = catalog.products.productsList;
+
+<span style="color:#6A9955;">// Step 4 — iterate, access nested pricing</span>
+<span style="color:#569CD6;">foreach</span> (<span style="color:#569CD6;">var</span> p <span style="color:#569CD6;">in</span> list)
+    Console.<span style="color:#DCDCAA;">WriteLine</span>($<span style="color:#CE9178;">"{p.id}: {p.name} ${p.pricing.monthly}/mo"</span>);</code></pre>
                 </div>
-            }
+            </div>
+        </div>
+    </div>
+</div>
 
-            @if (ViewBag.Success)
-            {
-                <div class="alert alert-success">
-                    <strong>✅ Mission Accomplished!</strong> @ViewBag.Message
+@if (ViewBag.Success == true)
+{
+    <div class="mb-3">
+        <div class="row g-2 mb-3">
+            <div class="col-auto">
+                <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-0">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <span class="small">@ViewBag.Message</span>
                 </div>
+            </div>
+        </div>
 
-                <div class="row mb-4">
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 fw-semibold">Manual approach (without Slurper)</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="bg-dark rounded-bottom p-3">
+                            <pre class="mb-0 text-light" style="font-size:0.78em; line-height:1.6;"><code><span style="color:#6A9955;">// Must declare model classes up front</span>
+<span style="color:#569CD6;">public record</span> ProductCatalog(
+    <span style="color:#4EC9B0;">Metadata</span> Metadata,
+    <span style="color:#4EC9B0;">Product</span>[] Products);
+
+<span style="color:#569CD6;">public record</span> Product(
+    <span style="color:#569CD6;">string</span> Id, <span style="color:#569CD6;">string</span> Sku, <span style="color:#569CD6;">string</span> Name,
+    <span style="color:#4EC9B0;">Pricing</span> Pricing, <span style="color:#4EC9B0;">Specs</span> Specs, <span style="color:#4EC9B0;">string[]</span> Tags);
+
+<span style="color:#6A9955;">// Then deserialize</span>
+<span style="color:#569CD6;">var</span> options = <span style="color:#569CD6;">new</span> <span style="color:#4EC9B0;">JsonSerializerOptions</span>
+    { PropertyNameCaseInsensitive = <span style="color:#569CD6;">true</span> };
+<span style="color:#569CD6;">var</span> catalog = JsonSerializer.Deserialize
+    &lt;<span style="color:#4EC9B0;">ProductCatalog</span>&gt;(json, options);</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card border-0 bg-light">
+                    <div class="card-header bg-light border-0">
+                        <h6 class="mb-0 fw-semibold">With Slurper (no classes needed)</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="bg-dark rounded-bottom p-3">
+                            <pre class="mb-0 text-light" style="font-size:0.78em; line-height:1.6;"><code><span style="color:#6A9955;">// Zero model classes — just extract and navigate</span>
+<span style="color:#569CD6;">var</span> results = _jsonExtractor
+    .<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"ProductCatalog.json"</span>);
+
+<span style="color:#569CD6;">dynamic</span> first = results.<span style="color:#DCDCAA;">First</span>();
+<span style="color:#569CD6;">var</span> list = first.productcatalog
+                   .products.productsList;
+
+<span style="color:#6A9955;">// Works with any JSON structure — no schema lock-in</span>
+<span style="color:#569CD6;">foreach</span> (<span style="color:#569CD6;">var</span> p <span style="color:#569CD6;">in</span> list)
+    <span style="color:#4EC9B0;">DoWork</span>(p.id, p.name, p.pricing.monthly);</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="h5 fw-semibold mb-3">Extracted records</h2>
+
+        <div class="mb-3">
+            <div class="row g-2 mb-2">
+                @foreach (var step in ViewBag.ProcessingSteps)
+                {
                     <div class="col-12">
-                        <h4>🔎 Investigation Process</h4>
-                        <div class="alert alert-secondary">
-                            @foreach (var step in ViewBag.ProcessingSteps)
+                        <div class="d-flex align-items-start gap-2 small text-muted">
+                            <i class="bi bi-arrow-right-short flex-shrink-0 mt-1"></i>
+                            <span>@step</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var product in ViewBag.ProductList)
+            {
+                <div class="col-md-6 col-lg-4">
+                    @{
+                        string name = "—", id = "", sku = "", category = "", status = "";
+                        string monthly = "", annual = "", released = "";
+                        try { name = product.name?.ToString() ?? "—"; } catch { }
+                        try { id = product.id?.ToString() ?? ""; } catch { }
+                        try { sku = product.sku?.ToString() ?? ""; } catch { }
+                        try { category = product.category?.ToString() ?? ""; } catch { }
+                        try { status = product.status?.ToString() ?? ""; } catch { }
+                        try { monthly = product.pricing?.monthly?.ToString() ?? ""; } catch { }
+                        try { annual = product.pricing?.annual?.ToString() ?? ""; } catch { }
+                        try { released = product.released?.ToString() ?? ""; } catch { }
+                    }
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-semibold small">@name</h6>
+                            @if (!string.IsNullOrEmpty(status))
                             {
-                                <div class="extraction-step">
-                                    <i class="bi bi-search"></i> @step
-                                </div>
+                                <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
                             }
                         </div>
-                    </div>
-                </div>
-
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card slurp-effect">
-                            <div class="card-header bg-secondary text-white">
-                                <h4>🔒 Before: Encrypted Evidence</h4>
-                            </div>
-                            <div class="card-body">
-                                <p>This is the raw JSON intelligence file we intercepted:</p>
-                                <pre class="bg-dark text-light p-3"
-                                    style="max-height: 400px; overflow-y: auto;"><code>@ViewBag.FormattedJson</code></pre>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-header bg-success text-white">
-                                                                <h4>🔓✨ After: Decoded Intelligence</h4>
-                            </div>
-                            <div class="card-body">
-                                <p>Slurper successfully decoded <strong>@ViewBag.BookCount superhero profiles</strong> from the encrypted files:</p>
-                                <div style="max-height: 400px; overflow-y: auto;">
-                                    @foreach (var hero in ViewBag.BookList)
-                                    {
-                                        <div class="hero-display">
-                                                                                        <h5>🦸 @hero.codename</h5>
-                                            <p><strong>Real Identity:</strong> @hero.realname</p>
-                                            <p><strong>Threat Level:</strong> <span class="badge bg-warning">@hero.threatlevel</span></p>
-                                            <p><strong>Base:</strong> @hero.baselocation</p>
-                                            <p><strong>Weakness:</strong> @hero.weakness</p>
-                                            <small class="text-muted">@hero.originstory</small>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h4>🧠 Slurper Intelligence Analysis</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="code-comparison">
-                                    <div class="code-header">? Without Slurper (Manual Decoding)</div>
-                                    <div class="code-content">
-<span style="color: #569cd6;">// Manual JSON decoding - complex and brittle</span>
-<span style="color: #ce9178;">var</span> json = File.ReadAllText(<span style="color: #ce9178;">"intelligence.json"</span>);
-<span style="color: #ce9178;">var</span> data = JsonSerializer.Deserialize&lt;SuperheroDatabase&gt;(json);
-<span style="color: #ce9178;">var</span> heroes = data.SuperheroDatabase.Heroes;
-
-<span style="color: #569cd6;">// Need custom classes for each structure:</span>
-<span style="color: #4ec9b0;">public class</span> <span style="color: #4ec9b0;">SuperheroDatabase</span> {
-    <span style="color: #4ec9b0;">public</span> DatabaseInfo SuperheroDatabase { <span style="color: #569cd6;">get</span>; <span style="color: #569cd6;">set</span>; }
-}
-
-<span style="color: #4ec9b0;">public class</span> <span style="color: #4ec9b0;">DatabaseInfo</span> {
-    <span style="color: #4ec9b0;">public</span> Hero[] Heroes { <span style="color: #569cd6;">get</span>; <span style="color: #569cd6;">set</span>; }
-}
-<span style="color: #569cd6;">// ...and many more classes needed!</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="code-comparison">
-                                    <div class="code-header">? With Slurper (Intelligence Extraction)</div>
-                                    <div class="code-content">
-<span style="color: #569cd6;">// Slurper - unified intelligence extraction</span>
-<span style="color: #ce9178;">var</span> intelligence = jsonExtractor.ExtractFromFile(<span style="color: #ce9178;">"data.json"</span>);
-
-<span style="color: #569cd6;">// Navigate with simple dot notation</span>
-<span style="color: #569cd6;">// Note: Slurper sanitizes property names (removes underscores)</span>
-<span style="color: #569cd6;">// Arrays become propertyName.propertyNameList</span>
-<span style="color: #ce9178;">dynamic</span> decoded = intelligence.First();
-<span style="color: #ce9178;">var</span> heroes = decoded.superherodatabase.heroes.heroesList;
-
-<span style="color: #569cd6;">// Access any property dynamically</span>
-<span style="color: #4ec9b0;">foreach</span> (<span style="color: #ce9178;">var</span> hero <span style="color: #4ec9b0;">in</span> heroes) {
-    Console.WriteLine($<span style="color: #ce9178;">"{hero.codename} - {hero.threatlevel}"</span>);
-}
-
-<span style="color: #569cd6;">// No custom classes required!</span>
-<span style="color: #569cd6;">// Works with any JSON structure!</span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="card-body small">
+                            <dl class="row mb-0">
+                                @if (!string.IsNullOrEmpty(id)) { <dt class="col-5 text-muted fw-normal">ID</dt><dd class="col-7 mb-1"><code>@id</code></dd> }
+                                @if (!string.IsNullOrEmpty(sku)) { <dt class="col-5 text-muted fw-normal">SKU</dt><dd class="col-7 mb-1"><code>@sku</code></dd> }
+                                @if (!string.IsNullOrEmpty(category)) { <dt class="col-5 text-muted fw-normal">Category</dt><dd class="col-7 mb-1">@category</dd> }
+                                @if (!string.IsNullOrEmpty(monthly)) { <dt class="col-5 text-muted fw-normal">Monthly</dt><dd class="col-7 mb-1">$@monthly</dd> }
+                                @if (!string.IsNullOrEmpty(annual)) { <dt class="col-5 text-muted fw-normal">Annual</dt><dd class="col-7 mb-1">$@annual</dd> }
+                                @if (!string.IsNullOrEmpty(released)) { <dt class="col-5 text-muted fw-normal">Released</dt><dd class="col-7 mb-0">@released</dd> }
+                            </dl>
                         </div>
                     </div>
                 </div>
             }
-            else
-            {
-                <div class="alert alert-danger">
-                    <strong>❌ Investigation Failed!</strong> @ViewBag.Message
-                </div>
-            }
         </div>
     </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Extraction error:</strong> @ViewBag.Message
+    </div>
+}
 
-    <div class="text-center">
-        <div class="row">
-            <div class="col-md-4">
-                <a asp-controller="Superhero" asp-action="Index" class="btn btn-warning btn-lg w-100 mb-2">
-                    🦸💾 Access Full Superhero Database
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a asp-controller="Home" asp-action="Index" class="btn btn-primary btn-lg w-100 mb-2">
-                    🏠 Return to Detective HQ
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a asp-action="XmlDemo" class="btn btn-secondary btn-lg w-100 mb-2">
-                    📄 Next Case: XML Archives
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="mt-4 d-flex gap-2 flex-wrap">
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Overview</a>
+    <a asp-controller="Home" asp-action="CsvDemo" class="btn btn-outline-info btn-sm">Next: CSV Extraction</a>
 </div>

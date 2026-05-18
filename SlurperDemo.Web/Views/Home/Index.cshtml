@@ -1,222 +1,194 @@
-﻿@{
-    ViewData["Title"] = "🕵️ Slurper Detective Agency";
+@{
+    ViewData["Title"] = "WebSpark.Slurper — Zero-Config Data Extraction for .NET";
 }
 
-<style>
-    .detective-badge {
-        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-        border-radius: 20px;
-        padding: 10px 20px;
-        color: white;
-        font-weight: bold;
-        text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-    
-    .case-file {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-left: 5px solid transparent;
-    }
-    
-    .case-file:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        border-left-color: #ff6b6b;
-    }
-    
-    .evidence-icon {
-        font-size: 2em;
-        margin-right: 15px;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));
-    }
-    
-    .slurp-animation {
-        animation: slurp 2s ease-in-out infinite;
-    }
-    
-    @@keyframes slurp {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-    }
-    
-    .agency-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 40px 0;
-        margin: -20px -15px 30px -15px;
-        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
-    }
-    
-    .special-mission {
-        background: linear-gradient(135deg, #ff6b6b, #feca57);
-        border: none;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .special-mission::before {
-        content: '⭐ SPECIAL MISSION ⭐';
-        position: absolute;
-        top: 10px;
-        right: -30px;
-        background: rgba(255,255,255,0.9);
-        color: #333;
-        padding: 5px 40px;
-        font-size: 0.8em;
-        font-weight: bold;
-        transform: rotate(15deg);
-    }
-</style>
-
-<div class="agency-header text-center">
-    <h1 class="display-3">🕵️‍♀️ Slurper Detective Agency 🕵️‍♂️</h1>
-    <p class="lead fs-4">
-        <span class="detective-badge">
-            🔍 Solving Data Mysteries Since 2024 🔍
-        </span>
-    </p>
-    <p class="mt-3">Welcome, Detective! Your mission: Extract valuable intelligence from various data formats using the powerful Slurper toolkit.</p>
-</div>
-
-<div class="row">
-    <div class="col-lg-8 offset-lg-2">
-        <!-- Special Mission Card -->
-        <div class="card shadow-lg mb-4 special-mission">
-            <div class="card-body text-center text-white p-4">
-                <h3>🦸‍♂️ CLASSIFIED: Superhero Database 🦸‍♀️</h3>
-                <p class="lead">New mission available! Access the secret superhero database using advanced Slurper technology.</p>
-                <a asp-controller="Superhero" asp-action="Index" class="btn btn-light btn-lg">
-                    🚀 Launch Superhero Mission
-                </a>
-            </div>
+<div class="row mb-4">
+    <div class="col-lg-8">
+        <h1 class="h2 fw-bold">WebSpark.Slurper</h1>
+        <p class="lead text-muted mb-3">
+            Zero-configuration data extraction from XML, JSON, CSV, and HTML into dynamic C# objects.
+            No model classes. No boilerplate. Just dot-notation property access.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <a href="https://www.nuget.org/packages/WebSpark.Slurper" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+                <i class="bi bi-box-seam me-1"></i>NuGet Package
+            </a>
+            <a href="https://github.com/MarkHazleton/Slurper" target="_blank" rel="noopener" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-github me-1"></i>Source on GitHub
+            </a>
         </div>
-        
-        <div class="card shadow-lg">
-            <div class="card-header bg-dark text-white text-center">
-                <h3>🗂️ Active Case Files 📋</h3>
-                <small>Choose your investigation method</small>
-            </div>
-            <div class="card-body p-0">
-                <div class="list-group list-group-flush">
-                    <a asp-action="XmlDemo" class="list-group-item list-group-item-action case-file p-4">
-                        <div class="d-flex align-items-center">
-                            <span class="evidence-icon">📄</span>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-2">🔍 Case #001: The XML Archives</h5>
-                                <p class="mb-1 text-muted">
-                                    <strong>Evidence Type:</strong> Ancient XML scrolls containing mysterious book catalog data
-                                </p>
-                                <small class="text-success">
-                                    <i class="bi bi-clock"></i> Difficulty: Beginner Detective
-                                </small>
-                            </div>
-                            <span class="badge bg-primary rounded-pill">XML</span>
-                        </div>
-                    </a>
-                    
-                    <a asp-controller="JSON" asp-action="Index" class="list-group-item list-group-item-action case-file p-4">
-                        <div class="d-flex align-items-center">
-                            <span class="evidence-icon">🧩</span>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-2">🔎 Case #002: The JSON Enigma</h5>
-                                <p class="mb-1 text-muted">
-                                    <strong>Evidence Type:</strong> Encrypted JSON intelligence files with nested secrets
-                                </p>
-                                <small class="text-warning">
-                                    <i class="bi bi-star"></i> Special Feature: Before & After Analysis
-                                </small>
-                            </div>
-                            <span class="badge bg-success rounded-pill">JSON</span>
-                        </div>
-                    </a>
-                    
-                    <a asp-action="CsvDemo" class="list-group-item list-group-item-action case-file p-4">
-                        <div class="d-flex align-items-center">
-                            <span class="evidence-icon">📊</span>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-2">📈 Case #003: The Spreadsheet Caper</h5>
-                                <p class="mb-1 text-muted">
-                                    <strong>Evidence Type:</strong> Tabular CSV evidence from the crime scene database
-                                </p>
-                                <small class="text-info">
-                                    <i class="bi bi-table"></i> Specialty: Structured Data Analysis
-                                </small>
-                            </div>
-                            <span class="badge bg-info rounded-pill">CSV</span>
-                        </div>
-                    </a>
-                    
-                    <a asp-action="HtmlDemo" class="list-group-item list-group-item-action case-file p-4">
-                        <div class="d-flex align-items-center">
-                            <span class="evidence-icon">🌐</span>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-2">🕸️ Case #004: The Web Page Mystery</h5>
-                                <p class="mb-1 text-muted">
-                                    <strong>Evidence Type:</strong> HTML documents with hidden clues buried in markup
-                                </p>
-                                <small class="text-danger">
-                                    <i class="bi bi-exclamation-triangle"></i> Difficulty: Expert Detective
-                                </small>
-                            </div>
-                            <span class="badge bg-warning rounded-pill">HTML</span>
-                        </div>
-                    </a>
-                    
-                    <a asp-action="LegacyDemo" class="list-group-item list-group-item-action case-file p-4">
-                        <div class="d-flex align-items-center">
-                            <span class="evidence-icon">🏛️</span>
-                            <div class="flex-grow-1">
-                                <h5 class="mb-2">📜 Case #005: The Legacy Files</h5>
-                                <p class="mb-1 text-muted">
-                                    <strong>Evidence Type:</strong> Cold case files using old-school static investigation methods
-                                </p>
-                                <small class="text-secondary">
-                                    <i class="bi bi-hourglass-split"></i> Historical Methods: XmlSlurper & JsonSlurper
-                                </small>
-                            </div>
-                            <span class="badge bg-secondary rounded-pill">LEGACY</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+        <div class="bg-dark rounded p-3">
+            <pre class="mb-0 text-light" style="font-size:0.85em; line-height:1.6;"><code><span style="color:#6A9955;">// Install</span>
+dotnet add package WebSpark.Slurper
+
+<span style="color:#6A9955;">// In Program.cs</span>
+<span style="color:#4FC1FF;">builder</span>.<span style="color:#DCDCAA;">Services</span>.<span style="color:#DCDCAA;">AddSlurper</span>();
+
+<span style="color:#6A9955;">// In your controller or service</span>
+<span style="color:#569CD6;">var</span> result = _xmlExtractor.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"catalog.xml"</span>);
+<span style="color:#569CD6;">dynamic</span> first = result.<span style="color:#DCDCAA;">First</span>();
+Console.<span style="color:#DCDCAA;">WriteLine</span>(first.product.name);   <span style="color:#6A9955;">// no class declaration needed</span></code></pre>
         </div>
-        
-        <div class="text-center mt-4">
-            <div class="card bg-light border-0">
-                <div class="card-body">
-                    <h4 class="text-muted mb-3">🎯 Your Detective Toolkit</h4>
-                    <div class="row">
-                        <div class="col-md-3 mb-2">
-                            <span class="slurp-animation d-inline-block">🔧</span>
-                            <small class="d-block">Universal Extractor</small>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <span class="slurp-animation d-inline-block">⚡</span>
-                            <small class="d-block">Lightning Fast</small>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <span class="slurp-animation d-inline-block">🎯</span>
-                            <small class="d-block">Precise Targeting</small>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <span class="slurp-animation d-inline-block">🛡️</span>
-                            <small class="d-block">Error Resistant</small>
-                        </div>
-                    </div>
-                </div>
+    </div>
+    <div class="col-lg-4 mt-3 mt-lg-0">
+        <div class="card h-100 border-0 bg-light">
+            <div class="card-body">
+                <h6 class="text-uppercase text-muted fw-semibold mb-3 small">Key capabilities</h6>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>XML, JSON, CSV &amp; HTML sources</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Dynamic property access — no POCO required</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Unified extractor interface across all formats</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Async + streaming for large files</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Full .NET DI container integration</li>
+                    <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Plugin system for custom formats</li>
+                    <li class="mb-0"><i class="bi bi-check-circle-fill text-success me-2"></i>Targets .NET 8, 9 &amp; 10</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    // Add some interactive effects
-    document.querySelectorAll('.case-file').forEach(function(caseFile) {
-        caseFile.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f8f9fa';
-        });
-        
-        caseFile.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
-        });
-    });
-</script>
+<hr class="my-4" />
+
+<h2 class="h5 fw-semibold mb-3">Live Extraction Demos</h2>
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-4">
+        <a asp-action="XmlDemo" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-primary me-2">XML</span>
+                        <small class="text-muted">IXmlExtractor</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">XML Extraction</h6>
+                    <p class="card-text small text-muted mb-0">
+                        Parse a structured XML catalog. Inspect the raw source, then see how Slurper maps elements to navigable dynamic properties.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a asp-controller="JSON" asp-action="Index" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2">JSON</span>
+                        <small class="text-muted">IJsonExtractor</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">JSON Extraction</h6>
+                    <p class="card-text small text-muted mb-0">
+                        Side-by-side comparison: raw JSON vs. Slurper extraction. Includes a code diff showing manual deserialization vs. Slurper.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a asp-action="CsvDemo" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-info me-2">CSV</span>
+                        <small class="text-muted">ICsvExtractor</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">CSV Extraction</h6>
+                    <p class="card-text small text-muted mb-0">
+                        Extract tabular data from a CSV file. Column headers become property names with no configuration.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a asp-action="HtmlDemo" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning text-dark me-2">HTML</span>
+                        <small class="text-muted">IHtmlExtractor</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">HTML Extraction</h6>
+                    <p class="card-text small text-muted mb-0">
+                        Traverse an HTML document's DOM tree as a dynamic object graph. No CSS selectors or XPath required.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a asp-controller="ApiDemo" asp-action="Index" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger me-2">Multi</span>
+                        <small class="text-muted">All extractors</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">Multi-Format Demo</h6>
+                    <p class="card-text small text-muted mb-0">
+                        The same product catalog loaded simultaneously from JSON, XML, and CSV. Compare field access patterns across formats.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-6 col-lg-4">
+        <a asp-action="LegacyDemo" class="text-decoration-none">
+            <div class="card h-100 border-0 shadow-sm demo-card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-secondary me-2">Legacy</span>
+                        <small class="text-muted">Static API</small>
+                    </div>
+                    <h6 class="card-title fw-semibold text-dark">Legacy Static API</h6>
+                    <p class="card-text small text-muted mb-0">
+                        Demonstrates the pre-3.x <code>XmlSlurper.ParseFile()</code> and <code>JsonSlurper.ParseFile()</code> static methods, still supported for backward compatibility.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<hr class="my-4" />
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <h2 class="h5 fw-semibold mb-3">Array Handling</h2>
+        <p class="small text-muted mb-2">
+            When Slurper encounters a repeated element or JSON array, it generates a list property named
+            <code>&lt;element&gt;List</code> by default. The suffix is configurable.
+        </p>
+        <div class="bg-dark rounded p-3">
+            <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#6A9955;">// XML with repeated &lt;product&gt; elements</span>
+<span style="color:#569CD6;">var</span> catalog = _xmlExtractor.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"catalog.xml"</span>).<span style="color:#DCDCAA;">First</span>();
+<span style="color:#569CD6;">foreach</span> (<span style="color:#569CD6;">var</span> p <span style="color:#569CD6;">in</span> catalog.productList)
+{
+    Console.<span style="color:#DCDCAA;">WriteLine</span>($<span style="color:#CE9178;">"{p.id}: {p.name} — ${p.pricing.monthly}/mo"</span>);
+}</code></pre>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h2 class="h5 fw-semibold mb-3">Dependency Injection</h2>
+        <p class="small text-muted mb-2">
+            Register all extractors in one call, then inject the interface you need into controllers or services.
+        </p>
+        <div class="bg-dark rounded p-3">
+            <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#6A9955;">// Program.cs</span>
+<span style="color:#4FC1FF;">builder</span>.<span style="color:#DCDCAA;">Services</span>.<span style="color:#DCDCAA;">AddSlurper</span>();
+
+<span style="color:#6A9955;">// Controller constructor</span>
+<span style="color:#569CD6;">public</span> CatalogController(
+    <span style="color:#4EC9B0;">IXmlExtractor</span> xml,
+    <span style="color:#4EC9B0;">IJsonExtractor</span> json,
+    <span style="color:#4EC9B0;">ICsvExtractor</span> csv,
+    <span style="color:#4EC9B0;">IHtmlExtractor</span> html)
+{ ... }</code></pre>
+        </div>
+    </div>
+</div>
+
+<style>
+    .demo-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .demo-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important; transform: translateY(-2px); }
+</style>

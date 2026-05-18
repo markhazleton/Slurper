@@ -1,0 +1,226 @@
+@using WebSpark.Slurper
+@{
+    ViewData["Title"] = "Multi-Format Extraction Results — WebSpark.Slurper";
+}
+
+@functions {
+    string Safe(dynamic obj, string key, string fallback = "—")
+    {
+        try
+        {
+            if (obj is ToStringExpandoObject tse && tse.Members.ContainsKey(key))
+                return tse.Members[key]?.ToString() ?? fallback;
+        }
+        catch { }
+        return fallback;
+    }
+}
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Overview</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Multi-Format Demo</a></li>
+        <li class="breadcrumb-item active">Extraction Results</li>
+    </ol>
+</nav>
+
+@if (ViewBag.Success == true)
+{
+    <div class="d-flex align-items-center mb-4 gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Extraction Results</h1>
+            <p class="text-muted mb-0">
+                @ViewBag.TotalRecords records extracted across 3 formats at
+                <code>@ViewBag.ExtractionTime</code>
+            </p>
+        </div>
+        <div class="ms-auto d-flex gap-2">
+            <span class="badge bg-success fs-6">@((ViewBag.JsonProducts as List<dynamic>)?.Count ?? 0) JSON</span>
+            <span class="badge bg-primary fs-6">@((ViewBag.XmlProducts as List<dynamic>)?.Count ?? 0) XML</span>
+            <span class="badge bg-info text-dark fs-6">@((ViewBag.CsvProducts as List<dynamic>)?.Count ?? 0) CSV</span>
+        </div>
+    </div>
+
+    <!-- JSON results -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-braces me-2 text-success"></i>JSON — <code class="small">ProductCatalog.json</code></h5>
+            <small class="text-muted">_jsonExtractor.ExtractFromFile() → .productcatalog.products.productsList</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle small mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th><th>SKU</th><th>Name</th><th>Category</th><th>Status</th>
+                            <th>Monthly</th><th>Annual</th><th>SLA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in ViewBag.JsonProducts)
+                        {
+                            string status = Safe(p, "status");
+                            <tr>
+                                <td><code>@Safe(p, "id")</code></td>
+                                <td><code>@Safe(p, "sku")</code></td>
+                                <td class="fw-medium">@Safe(p, "name")</td>
+                                <td>@Safe(p, "category")</td>
+                                <td>
+                                    <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
+                                </td>
+                                <td>
+                                    @{
+                                        string monthly = "—";
+                                        try { monthly = p.pricing?.monthly?.ToString() ?? "—"; } catch { }
+                                    }
+                                    $@monthly
+                                </td>
+                                <td>
+                                    @{
+                                        string annual = "—";
+                                        try { annual = p.pricing?.annual?.ToString() ?? "—"; } catch { }
+                                    }
+                                    $@annual
+                                </td>
+                                <td>
+                                    @{
+                                        string sla = "—";
+                                        try { sla = p.specs?.sluptime?.ToString() ?? "—"; } catch { }
+                                    }
+                                    @sla
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- XML results -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-file-code me-2 text-primary"></i>XML — <code class="small">ProductCatalog.xml</code></h5>
+            <small class="text-muted">_xmlExtractor.ExtractFromFile() → .productList</small>
+        </div>
+        <div class="card-body p-0">
+            @if ((ViewBag.XmlProducts as List<dynamic>)?.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID (attr)</th><th>SKU (attr)</th><th>Name</th><th>Category</th>
+                                <th>Status (attr)</th><th>Monthly</th><th>Annual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in ViewBag.XmlProducts)
+                            {
+                                string status = Safe(p, "status");
+                                <tr>
+                                    <td><code>@Safe(p, "id")</code></td>
+                                    <td><code>@Safe(p, "sku")</code></td>
+                                    <td class="fw-medium">@Safe(p, "name")</td>
+                                    <td>@Safe(p, "category")</td>
+                                    <td>
+                                        <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            string monthly = "—";
+                                            try { monthly = p.pricing?.monthly?.ToString() ?? "—"; } catch { }
+                                        }
+                                        $@monthly
+                                    </td>
+                                    <td>
+                                        @{
+                                            string annual = "—";
+                                            try { annual = p.pricing?.annual?.ToString() ?? "—"; } catch { }
+                                        }
+                                        $@annual
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-3 py-2 bg-light border-top">
+                    <small class="text-muted">
+                        XML attributes (<code>id</code>, <code>sku</code>, <code>status</code>) surface as sibling properties alongside child elements.
+                    </small>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info m-3 small">
+                    XML extraction returned no records — check that <code>ProductCatalog.xml</code> is present in <code>wwwroot/data/</code>.
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- CSV results -->
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-table me-2 text-info"></i>CSV — <code class="small">products.csv</code></h5>
+            <small class="text-muted">_csvExtractor.ExtractFromFile() → each row is a dynamic object</small>
+        </div>
+        <div class="card-body p-0">
+            @if ((ViewBag.CsvProducts as List<dynamic>)?.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle small mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>id</th><th>sku</th><th>name</th><th>category</th>
+                                <th>status</th><th>monthly_price</th><th>annual_price</th><th>released</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (dynamic row in ViewBag.CsvProducts)
+                            {
+                                string status = "";
+                                try { status = row.status?.ToString() ?? ""; } catch { }
+                                <tr>
+                                    <td><code>@try { @row.id } catch { <text>—</text> }</code></td>
+                                    <td><code>@try { @row.sku } catch { <text>—</text> }</code></td>
+                                    <td class="fw-medium">@try { @row.name } catch { <text>—</text> }</td>
+                                    <td>@try { @row.category } catch { <text>—</text> }</td>
+                                    <td>
+                                        <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
+                                    </td>
+                                    <td>$@try { @row.monthly_price } catch { <text>—</text> }</td>
+                                    <td>$@try { @row.annual_price } catch { <text>—</text> }</td>
+                                    <td>@try { @row.released } catch { <text>—</text> }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-3 py-2 bg-light border-top">
+                    <small class="text-muted">
+                        CSV column headers become property names directly — <code>monthly_price</code> stays as-is.
+                    </small>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info m-3 small">
+                    CSV extraction returned no records — check that <code>products.csv</code> is present in <code>wwwroot/data/</code>.
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Extraction failed:</strong> @ViewBag.ErrorMessage
+    </div>
+}
+
+<div class="mt-4 d-flex gap-2 flex-wrap">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Multi-Format Demo</a>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Overview</a>
+</div>

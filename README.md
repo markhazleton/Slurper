@@ -1,28 +1,26 @@
-# 🚀 Slurper: The Magical Data Extractor for .NET
+# WebSpark.Slurper
 
-<img src="icon.png" alt="Slurper Logo" width="120" align="right" />
-
-**Live Site**: [https://slurper.makeboldspark.com](https://slurper.makeboldspark.com)
-
+[![NuGet](https://img.shields.io/nuget/v/WebSpark.Slurper.svg)](https://www.nuget.org/packages/WebSpark.Slurper)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/WebSpark.Slurper.svg)](https://www.nuget.org/packages/WebSpark.Slurper)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MarkHazleton/Slurper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+**Live Demo**: [https://slurper.makeboldspark.com](https://slurper.makeboldspark.com) |
+**GitHub Pages**: [https://markhazleton.github.io/Slurper](https://markhazleton.github.io/Slurper)
+
 ## About
 
-SlurperSpark demonstrates zero-configuration data extraction from XML, JSON, CSV, and HTML into dynamic C# objects using the WebSpark.Slurper NuGet library. The live demo is hosted at [https://slurper.makeboldspark.com](https://slurper.makeboldspark.com).
+WebSpark.Slurper is a zero-configuration data extraction library for .NET. It converts XML, JSON, CSV, and HTML into navigable dynamic C# objects without requiring model class declarations, serializer attributes, or format-specific parsing code.
 
-> Built by [Mark Hazleton](https://markhazleton.com) — Mark Hazleton, Solutions Architect
-> SlurperSpark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio of technical demonstrations.
+The live demo application at [slurper.makeboldspark.com](https://slurper.makeboldspark.com) shows real extraction examples across all supported formats.
+
+> Built by [Mark Hazleton](https://markhazleton.com), Solutions Architect — [Make Bold Solutions](https://makeboldsolutions.com)
 
 ---
 
-Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration! Slurper is your Swiss Army knife for data extraction that makes working with structured data a breeze.
+Extract data from any structured format using a single unified API. Access fields via dot notation immediately after extraction — no `JsonSerializer.Deserialize<T>()`, no XML LINQ queries, no CSV helper libraries, no model classes.
 
-Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurper, you can dive straight into the data you care about using simple, intuitive property access.
-
-> "It's like having dynamic objects for all your data formats!" - Happy Developer
-
-## ✨ Features
+## Features
 
 - **Multiple Data Formats**: Extract data from XML, JSON, CSV, and HTML sources
 - **Unified API**: Consistent interface for all supported formats
@@ -36,7 +34,7 @@ Say goodbye to tedious model creation and XML/JSON parsing headaches. With Slurp
 - **Extensibility**: Plugin system for adding custom data extractors
 - **Performance Options**: Streaming, parallel processing, and caching options
 
-## 🧙 How It Works
+## How It Works
 
 Slurper converts structured data like XML:
 
@@ -174,7 +172,7 @@ This package is open source and maintained at [GitHub](https://github.com/MarkHa
 
 Release notes for each version are available on the [NuGet package page](https://www.nuget.org/packages/WebSpark.Slurper).
 
-## 🚀 Quick Start
+## Quick Start
 
 ```csharp
 // Create a factory
@@ -240,7 +238,7 @@ string json =
 var jsonBook = JsonSlurper.ParseText(json);
 ```
 
-## 📚 Working with Arrays
+## Working with Arrays
 
 Both slurpers have a settable string property `ListSuffix` which has the default value of "List". This is used when encountering arrays; a property is generated that is named as `<commonName><ListSuffix>`.
 
@@ -472,7 +470,7 @@ var books = await xmlExtractor.ExtractFromFileAsync("books.xml");
 
 - .NET 8.0, .NET 9.0, or .NET 10.0
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome and greatly appreciated! Here's how you can contribute:
 
@@ -521,15 +519,15 @@ dotnet test
 - Ensure code passes the existing test suite
 - Add new tests for new functionality
 
-## 📝 Code of Conduct
+## Code of Conduct
 
 Please be respectful and considerate of others when contributing to this project. Any form of harassment or inappropriate behavior will not be tolerated.
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Inspired by [Groovy's XmlSlurper](http://groovy-lang.org/processing-xml.html)
 - Thanks to all contributors who have helped improve this library

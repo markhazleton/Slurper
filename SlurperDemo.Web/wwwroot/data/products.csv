@@ -1,0 +1,7 @@
+id,sku,name,category,status,monthly_price,annual_price,currency,released
+PRD-001,SRV-BASIC-MO,Basic API Tier,SaaS,active,29.00,290.00,USD,2024-01-15
+PRD-002,SRV-PRO-MO,Pro API Tier,SaaS,active,99.00,990.00,USD,2024-03-01
+PRD-003,SRV-ENT-MO,Enterprise API Tier,SaaS,active,499.00,4990.00,USD,2024-06-01
+PRD-004,PKG-DEVTOOLS,Developer Tooling Bundle,Tooling,active,49.00,490.00,USD,2024-08-15
+PRD-005,PKG-DATAOPS,DataOps Platform,Data,beta,199.00,1990.00,USD,2025-01-10
+PRD-006,PKG-OBSERV,Observability Suite,Monitoring,active,79.00,790.00,USD,2024-11-01

@@ -1,0 +1,132 @@
+{
+  "product_catalog": {
+    "metadata": {
+      "version": "2.1.0",
+      "generated": "2026-05-18T00:00:00Z",
+      "source": "inventory-api",
+      "total_count": 6
+    },
+    "products": [
+      {
+        "id": "PRD-001",
+        "sku": "SRV-BASIC-MO",
+        "name": "Basic API Tier",
+        "category": "SaaS",
+        "status": "active",
+        "pricing": {
+          "monthly": 29.00,
+          "annual": 290.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "requests_per_month": 100000,
+          "rate_limit_rpm": 100,
+          "data_retention_days": 30,
+          "sla_uptime": "99.5%"
+        },
+        "tags": ["entry-level", "api", "rest"],
+        "released": "2024-01-15"
+      },
+      {
+        "id": "PRD-002",
+        "sku": "SRV-PRO-MO",
+        "name": "Pro API Tier",
+        "category": "SaaS",
+        "status": "active",
+        "pricing": {
+          "monthly": 99.00,
+          "annual": 990.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "requests_per_month": 1000000,
+          "rate_limit_rpm": 1000,
+          "data_retention_days": 90,
+          "sla_uptime": "99.9%"
+        },
+        "tags": ["professional", "api", "webhooks", "analytics"],
+        "released": "2024-03-01"
+      },
+      {
+        "id": "PRD-003",
+        "sku": "SRV-ENT-MO",
+        "name": "Enterprise API Tier",
+        "category": "SaaS",
+        "status": "active",
+        "pricing": {
+          "monthly": 499.00,
+          "annual": 4990.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "requests_per_month": -1,
+          "rate_limit_rpm": 10000,
+          "data_retention_days": 365,
+          "sla_uptime": "99.99%"
+        },
+        "tags": ["enterprise", "api", "sso", "dedicated-support"],
+        "released": "2024-06-01"
+      },
+      {
+        "id": "PRD-004",
+        "sku": "PKG-DEVTOOLS",
+        "name": "Developer Tooling Bundle",
+        "category": "Tooling",
+        "status": "active",
+        "pricing": {
+          "monthly": 49.00,
+          "annual": 490.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "seats": 5,
+          "ci_runners": 10,
+          "storage_gb": 50,
+          "sla_uptime": "99.5%"
+        },
+        "tags": ["ci-cd", "devtools", "bundle"],
+        "released": "2024-08-15"
+      },
+      {
+        "id": "PRD-005",
+        "sku": "PKG-DATAOPS",
+        "name": "DataOps Platform",
+        "category": "Data",
+        "status": "beta",
+        "pricing": {
+          "monthly": 199.00,
+          "annual": 1990.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "pipelines": 20,
+          "connectors": 50,
+          "storage_gb": 500,
+          "sla_uptime": "99.5%"
+        },
+        "tags": ["etl", "pipelines", "connectors", "beta"],
+        "released": "2025-01-10"
+      },
+      {
+        "id": "PRD-006",
+        "sku": "PKG-OBSERV",
+        "name": "Observability Suite",
+        "category": "Monitoring",
+        "status": "active",
+        "pricing": {
+          "monthly": 79.00,
+          "annual": 790.00,
+          "currency": "USD"
+        },
+        "specs": {
+          "metrics_retention_days": 90,
+          "log_retention_days": 30,
+          "alert_channels": 10,
+          "sla_uptime": "99.9%"
+        },
+        "tags": ["monitoring", "logging", "alerting", "tracing"],
+        "released": "2024-11-01"
+      }
+    ]
+  }
+}

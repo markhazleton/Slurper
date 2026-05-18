@@ -1,358 +1,212 @@
 @{
-    ViewData["Title"] = "Legacy API Demo";
+    ViewData["Title"] = "Legacy Static API — WebSpark.Slurper";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Legacy API Demo</h1>
-    <p class="lead">Demonstrating the original static methods from <code>XmlSlurper</code> and <code>JsonSlurper</code>
-        classes.</p>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Overview</a></li>
+        <li class="breadcrumb-item active">Legacy Static API</li>
+    </ol>
+</nav>
+
+<div class="d-flex align-items-center mb-3 gap-2">
+    <span class="badge bg-secondary fs-6">Legacy</span>
+    <h1 class="h3 mb-0 fw-bold">Legacy Static API</h1>
+    <code class="ms-auto small text-muted">XmlSlurper / JsonSlurper (pre-3.x)</code>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        @if (ViewBag.Success == true)
-        {
-            <div class="alert alert-success">
-                <strong>Success!</strong> @ViewBag.Message
-            </div>
-        }
-        else if (ViewBag.Success == false)
-        {
-            <div class="alert alert-danger">
-                <strong>Error!</strong> @ViewBag.Message
-            </div>
-        }
+<div class="alert alert-info d-flex gap-2 align-items-start mb-4 small">
+    <i class="bi bi-info-circle-fill mt-1 flex-shrink-0"></i>
+    <div>
+        The static <code>XmlSlurper</code> and <code>JsonSlurper</code> classes from earlier releases are still
+        fully supported. For new projects, prefer the DI-based <code>IXmlExtractor</code> / <code>IJsonExtractor</code>
+        interfaces registered via <code>services.AddSlurper()</code>.
     </div>
 </div>
 
-<div class="row">
+<div class="row g-3 mb-4">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h3>XML Legacy API - XmlSlurper.ParseFile()</h3>
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Modern API (recommended)</h6>
+                <span class="badge bg-success">New in 3.x</span>
             </div>
-            <div class="card-body">
-                @if (ViewBag.XmlFileExists == true)
-                {
-                    <div class="alert alert-info">
-                        <code>XmlSlurper.ParseFile("BookCatalog.xml")</code>
-                    </div>
+            <div class="card-body p-0">
+                <div class="bg-dark rounded-bottom p-3">
+                    <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#6A9955;">// Program.cs</span>
+<span style="color:#4FC1FF;">builder</span>.Services.<span style="color:#DCDCAA;">AddSlurper</span>();
 
-                    @if (ViewBag.RawXmlContent != null)
-                    {
-                        <div class="mb-3">
-                            <h6>Raw XML Content Being Parsed:</h6>
-                            <details>
-                                <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw XML</summary>
-                                <pre class="bg-light p-3 mt-2"
-                                    style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawXmlContent</code></pre>
-                            </details>
-                        </div>
-                    }
+<span style="color:#6A9955;">// Constructor injection</span>
+<span style="color:#569CD6;">public</span> MyController(<span style="color:#4EC9B0;">IXmlExtractor</span> xml)
+{
+    <span style="color:#569CD6;">var</span> data = xml.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"data.xml"</span>);
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold">Legacy API (backward compatible)</h6>
+                <span class="badge bg-secondary">Pre-3.x</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="bg-dark rounded-bottom p-3">
+                    <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#6A9955;">// No DI setup needed — static call</span>
+<span style="color:#569CD6;">dynamic</span> xmlData =
+    <span style="color:#4EC9B0;">XmlSlurper</span>.<span style="color:#DCDCAA;">ParseFile</span>(<span style="color:#CE9178;">"data.xml"</span>);
 
-                    @if (ViewBag.XmlBooks != null)
+<span style="color:#569CD6;">dynamic</span> jsonData =
+    <span style="color:#4EC9B0;">JsonSlurper</span>.<span style="color:#DCDCAA;">ParseFile</span>(<span style="color:#CE9178;">"data.json"</span>);</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.Success == true)
+{
+    <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-4">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@ViewBag.Message</span>
+    </div>
+}
+else if (ViewBag.Success == false)
+{
+    <div class="alert alert-danger mb-4">
+        <strong>Error:</strong> @ViewBag.Message
+    </div>
+}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">
+                    <code>XmlSlurper.ParseFile()</code>
+                    @if (ViewBag.XmlFileExists == true)
                     {
-                        <h5>Books from XML (Legacy API):</h5>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Title</th>
-                                        <th>Author</th>
-                                        <th>Genre</th>
-                                        <th>Price</th>
-                                        <th>Publish Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (dynamic book in ViewBag.XmlBooks)
-                                    {
-                                        <tr>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.id
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.title
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.author
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.genre
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.price
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                            <td>
-                                                @try
-                                                {
-                                                    @book.publish_date
-                                                }
-                                                catch
-                                                {
-                                                    <text>N/A</text>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                        <span class="badge bg-success ms-2">file found</span>
                     }
                     else
                     {
-                        <div class="alert alert-warning">
-                            No XML books data available from legacy API
-                        </div>
-                        @if (ViewBag.XmlStructure != null)
-                        {
-                            <div class="mt-3">
-                                <h6>Debug - Actual XML Structure:</h6>
-                                <pre class="bg-light p-2"
-                                    style="font-size: 0.8em; max-height: 200px; overflow-y: auto;">@ViewBag.XmlStructure</pre>
-                            </div>
-                        }
+                        <span class="badge bg-danger ms-2">file missing</span>
                     }
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.RawXmlContent != null)
+                {
+                    <details class="mb-3">
+                        <summary class="btn btn-link btn-sm px-0">Show / Hide Raw XML</summary>
+                        <pre class="bg-dark text-light p-2 mt-2 rounded"
+                             style="font-size:0.78em; max-height:220px; overflow-y:auto;"><code>@ViewBag.RawXmlContent</code></pre>
+                    </details>
+                }
+                @if (ViewBag.XmlBooks != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead class="table-dark">
+                                <tr><th>ID</th><th>Title</th><th>Author</th><th>Genre</th><th>Price</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (dynamic book in ViewBag.XmlBooks)
+                                {
+                                    <tr>
+                                        <td>@try { @book.id } catch { <text>—</text> }</td>
+                                        <td>@try { @book.title } catch { <text>—</text> }</td>
+                                        <td>@try { @book.author } catch { <text>—</text> }</td>
+                                        <td>@try { @book.genre } catch { <text>—</text> }</td>
+                                        <td>@try { @book.price } catch { <text>—</text> }</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
                 else
                 {
-                    <div class="alert alert-warning">
-                        XML file not found. Expected: <code>wwwroot/data/BookCatalog.xml</code>
-                    </div>
+                    <div class="alert alert-warning small mb-0">No records returned from legacy XML parse.</div>
+                    @if (ViewBag.XmlStructure != null)
+                    {
+                        <pre class="bg-light p-2 mt-2 small rounded"
+                             style="max-height:180px; overflow-y:auto;">@ViewBag.XmlStructure</pre>
+                    }
                 }
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h3>JSON Legacy API - JsonSlurper.ParseFile()</h3>
-            </div>
-            <div class="card-body">
-                @if (ViewBag.JsonFileExists == true)
-                {
-                    <div class="alert alert-info">
-                        <code>JsonSlurper.ParseFile("BookCatalog.json")</code>
-                    </div>
-
-                    @if (ViewBag.RawJsonContent != null)
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">
+                    <code>JsonSlurper.ParseFile()</code>
+                    @if (ViewBag.JsonFileExists == true)
                     {
-                        <div class="mb-3">
-                            <h6>Raw JSON Content Being Parsed:</h6>
-                            <details>
-                                <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw JSON</summary>
-                                <pre class="bg-light p-3 mt-2"
-                                    style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawJsonContent</code></pre>
-                            </details>
-                        </div>
-                    }
-
-                    @if (ViewBag.JsonBooks != null)
-                    {
-                        <h5>Books from JSON (Legacy API):</h5>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Title</th>
-                                        <th>Author</th>
-                                        <th>Genre</th>
-                                        <th>Price</th>
-                                        <th>Publish Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @try
-                                    {
-                                        @foreach (dynamic book in ViewBag.JsonBooks)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.id
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.title
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.author
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.genre
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.price
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    @try
-                                                    {
-                                                        @book.publish_date
-                                                    }
-                                                    catch
-                                                    {
-                                                        <text>N/A</text>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        <tr>
-                                            <td colspan="6" class="text-center">
-                                                <em>Unable to iterate JSON books data - not enumerable</em>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                        <span class="badge bg-success ms-2">file found</span>
                     }
                     else
                     {
-                        <div class="alert alert-warning">
-                            No JSON books data available from legacy API
-                        </div>
-                        @if (ViewBag.JsonStructure != null)
-                        {
-                            <div class="mt-3">
-                                <h6>Debug - Actual JSON Structure:</h6>
-                                <pre class="bg-light p-2"
-                                    style="font-size: 0.8em; max-height: 200px; overflow-y: auto;">@ViewBag.JsonStructure</pre>
-                            </div>
-                        }
+                        <span class="badge bg-danger ms-2">file missing</span>
                     }
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (ViewBag.RawJsonContent != null)
+                {
+                    <details class="mb-3">
+                        <summary class="btn btn-link btn-sm px-0">Show / Hide Raw JSON</summary>
+                        <pre class="bg-dark text-light p-2 mt-2 rounded"
+                             style="font-size:0.78em; max-height:220px; overflow-y:auto;"><code>@ViewBag.RawJsonContent</code></pre>
+                    </details>
+                }
+                @if (ViewBag.JsonBooks != null)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered align-middle small mb-0">
+                            <thead class="table-dark">
+                                <tr><th>ID</th><th>Title</th><th>Author</th><th>Genre</th><th>Price</th></tr>
+                            </thead>
+                            <tbody>
+                                @try
+                                {
+                                    @foreach (dynamic book in ViewBag.JsonBooks)
+                                    {
+                                        <tr>
+                                            <td>@try { @book.id } catch { <text>—</text> }</td>
+                                            <td>@try { @book.title } catch { <text>—</text> }</td>
+                                            <td>@try { @book.author } catch { <text>—</text> }</td>
+                                            <td>@try { @book.genre } catch { <text>—</text> }</td>
+                                            <td>@try { @book.price } catch { <text>—</text> }</td>
+                                        </tr>
+                                    }
+                                }
+                                catch
+                                {
+                                    <tr><td colspan="5" class="text-center small fst-italic">Could not iterate — not enumerable.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
                 else
                 {
-                    <div class="alert alert-warning">
-                        JSON file not found. Expected: <code>wwwroot/data/BookCatalog.json</code>
-                    </div>
+                    <div class="alert alert-warning small mb-0">No records returned from legacy JSON parse.</div>
+                    @if (ViewBag.JsonStructure != null)
+                    {
+                        <pre class="bg-light p-2 mt-2 small rounded"
+                             style="max-height:180px; overflow-y:auto;">@ViewBag.JsonStructure</pre>
+                    }
                 }
             </div>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h3>About Legacy API</h3>
-            </div>
-            <div class="card-body">
-                <p class="mb-3">
-                    The Legacy API demonstrates the original static methods that were available in the WebSpark.Slurper
-                    library before the introduction of the new dependency injection-based architecture.
-                </p>
-
-                <h5>Key Differences:</h5>
-                <ul>
-                    <li><strong>Legacy API:</strong> Uses static methods like <code>XmlSlurper.ParseFile()</code> and
-                        <code>JsonSlurper.ParseFile()</code>
-                    </li>
-                    <li><strong>New API:</strong> Uses dependency injection with <code>IXmlExtractor</code>,
-                        <code>IJsonExtractor</code>, etc.
-                    </li>
-                    <li><strong>Legacy API:</strong> Simple, direct usage but less testable and configurable</li>
-                    <li><strong>New API:</strong> More flexible, testable, and follows modern .NET patterns</li>
-                </ul>
-
-                <h5>Example Usage:</h5>
-                <pre><code>// Legacy API
-dynamic xmlData = XmlSlurper.ParseFile("data.xml");
-dynamic jsonData = JsonSlurper.ParseFile("data.json");
-
-// New API (with dependency injection)
-var xmlData = _xmlExtractor.ExtractFromFile("data.xml");
-var jsonData = _jsonExtractor.ExtractFromFile("data.json");</code></pre>
-            </div>
-        </div>
-    </div>
+<div class="mt-4 d-flex gap-2 flex-wrap">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Overview</a>
+    <a asp-controller="ApiDemo" asp-action="Index" class="btn btn-outline-danger btn-sm">Next: Multi-Format Demo</a>
 </div>
-
-<div class="row mt-4">
-    <div class="col-12 text-center">
-        <a asp-action="Index" class="btn btn-primary">← Back to Demo Menu</a>
-    </div>
-</div>
-
-
-
-
-
-
-
-

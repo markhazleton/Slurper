@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<catalog version="2.1.0" source="inventory-api" generated="2026-05-18">
+  <product id="PRD-001" sku="SRV-BASIC-MO" status="active">
+    <name>Basic API Tier</name>
+    <category>SaaS</category>
+    <pricing currency="USD">
+      <monthly>29.00</monthly>
+      <annual>290.00</annual>
+    </pricing>
+    <specs>
+      <requests_per_month>100000</requests_per_month>
+      <rate_limit_rpm>100</rate_limit_rpm>
+      <data_retention_days>30</data_retention_days>
+      <sla_uptime>99.5%</sla_uptime>
+    </specs>
+    <tags>entry-level api rest</tags>
+    <released>2024-01-15</released>
+  </product>
+  <product id="PRD-002" sku="SRV-PRO-MO" status="active">
+    <name>Pro API Tier</name>
+    <category>SaaS</category>
+    <pricing currency="USD">
+      <monthly>99.00</monthly>
+      <annual>990.00</annual>
+    </pricing>
+    <specs>
+      <requests_per_month>1000000</requests_per_month>
+      <rate_limit_rpm>1000</rate_limit_rpm>
+      <data_retention_days>90</data_retention_days>
+      <sla_uptime>99.9%</sla_uptime>
+    </specs>
+    <tags>professional api webhooks analytics</tags>
+    <released>2024-03-01</released>
+  </product>
+  <product id="PRD-003" sku="SRV-ENT-MO" status="active">
+    <name>Enterprise API Tier</name>
+    <category>SaaS</category>
+    <pricing currency="USD">
+      <monthly>499.00</monthly>
+      <annual>4990.00</annual>
+    </pricing>
+    <specs>
+      <requests_per_month>unlimited</requests_per_month>
+      <rate_limit_rpm>10000</rate_limit_rpm>
+      <data_retention_days>365</data_retention_days>
+      <sla_uptime>99.99%</sla_uptime>
+    </specs>
+    <tags>enterprise api sso dedicated-support</tags>
+    <released>2024-06-01</released>
+  </product>
+  <product id="PRD-004" sku="PKG-DEVTOOLS" status="active">
+    <name>Developer Tooling Bundle</name>
+    <category>Tooling</category>
+    <pricing currency="USD">
+      <monthly>49.00</monthly>
+      <annual>490.00</annual>
+    </pricing>
+    <specs>
+      <seats>5</seats>
+      <ci_runners>10</ci_runners>
+      <storage_gb>50</storage_gb>
+      <sla_uptime>99.5%</sla_uptime>
+    </specs>
+    <tags>ci-cd devtools bundle</tags>
+    <released>2024-08-15</released>
+  </product>
+  <product id="PRD-005" sku="PKG-DATAOPS" status="beta">
+    <name>DataOps Platform</name>
+    <category>Data</category>
+    <pricing currency="USD">
+      <monthly>199.00</monthly>
+      <annual>1990.00</annual>
+    </pricing>
+    <specs>
+      <pipelines>20</pipelines>
+      <connectors>50</connectors>
+      <storage_gb>500</storage_gb>
+      <sla_uptime>99.5%</sla_uptime>
+    </specs>
+    <tags>etl pipelines connectors beta</tags>
+    <released>2025-01-10</released>
+  </product>
+  <product id="PRD-006" sku="PKG-OBSERV" status="active">
+    <name>Observability Suite</name>
+    <category>Monitoring</category>
+    <pricing currency="USD">
+      <monthly>79.00</monthly>
+      <annual>790.00</annual>
+    </pricing>
+    <specs>
+      <metrics_retention_days>90</metrics_retention_days>
+      <log_retention_days>30</log_retention_days>
+      <alert_channels>10</alert_channels>
+      <sla_uptime>99.9%</sla_uptime>
+    </specs>
+    <tags>monitoring logging alerting tracing</tags>
+    <released>2024-11-01</released>
+  </product>
+</catalog>

@@ -43,7 +43,7 @@ public class HomeController : Controller
     {
         try
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.xml");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "ProductCatalog.xml");
 
             // Read and store raw XML content for display
             if (System.IO.File.Exists(filePath))
@@ -55,16 +55,15 @@ public class HomeController : Controller
 
             if (books?.Any() == true)
             {
-                // Use dynamic to handle dynamic properties
                 dynamic? firstBook = books.FirstOrDefault();
                 if (firstBook != null)
                 {
-                    ViewBag.BookList = firstBook.bookList;
+                    ViewBag.BookList = firstBook.productList;
                 }
             }
-            
+
             ViewBag.Success = true;
-            ViewBag.Message = "Successfully extracted book data from XML";
+            ViewBag.Message = "Successfully extracted product data from XML";
         }
         catch (Exception ex)
         {
@@ -82,7 +81,7 @@ public class HomeController : Controller
     {
         try
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "books.csv");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "products.csv");
 
             // Read and store raw CSV content for display
             if (System.IO.File.Exists(filePath))
@@ -93,7 +92,7 @@ public class HomeController : Controller
             var books = _csvExtractor.ExtractFromFile(filePath);
             ViewBag.BookList = books;
             ViewBag.Success = true;
-            ViewBag.Message = "Successfully extracted book data from CSV";
+            ViewBag.Message = "Successfully extracted product data from CSV";
         }
         catch (Exception ex)
         {
@@ -109,7 +108,7 @@ public class HomeController : Controller
     {
         try
         {
-            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "books.html");
+            var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "products.html");
 
             if (System.IO.File.Exists(filePath))
             {
@@ -350,8 +349,8 @@ public class HomeController : Controller
     {
         try
         {
-            var xmlFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.xml");
-            var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "BookCatalog.json");
+            var xmlFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "ProductCatalog.xml");
+            var jsonFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "data", "ProductCatalog.json");
 
             // Demonstrate legacy XmlSlurper static method
             if (System.IO.File.Exists(xmlFilePath))
@@ -360,7 +359,7 @@ public class HomeController : Controller
                 dynamic? xmlResult = XmlSlurper.ParseFile(xmlFilePath);
                 if (xmlResult != null)
                 {
-                    ViewBag.XmlBooks = xmlResult.bookList;
+                    ViewBag.XmlBooks = xmlResult.productList;
                     if (ViewBag.XmlBooks == null)
                     {
                         ViewBag.XmlStructure = SerializeExpandoObject(xmlResult);
@@ -380,15 +379,14 @@ public class HomeController : Controller
 
                     try
                     {
-                        dynamic? catalog = jsonResult.catalog;
+                        // Slurper strips underscores: "product_catalog" → "productcatalog"
+                        dynamic? catalog = jsonResult.productcatalog;
                         if (catalog != null)
                         {
-                            if (catalog.book != null) ViewBag.JsonBooks = catalog.book;
-                            else if (catalog.bookList != null) ViewBag.JsonBooks = catalog.bookList;
+                            if (catalog.product != null) ViewBag.JsonBooks = catalog.product;
+                            else if (catalog.productList != null) ViewBag.JsonBooks = catalog.productList;
                             else ViewBag.JsonBooks = catalog;
                         }
-                        else if (jsonResult.book != null) ViewBag.JsonBooks = jsonResult.book;
-                        else if (jsonResult.bookList != null) ViewBag.JsonBooks = jsonResult.bookList;
                     }
                     catch (Exception ex)
                     {

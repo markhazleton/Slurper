@@ -1,56 +1,120 @@
 @{
-    ViewData["Title"] = "CSV Extraction Demo";
+    ViewData["Title"] = "CSV Extraction — WebSpark.Slurper";
 }
 
-<div class="container">
-    <h1 class="mb-4">CSV Extraction Demo</h1>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Overview</a></li>
+        <li class="breadcrumb-item active">CSV Extraction</li>
+    </ol>
+</nav>
 
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h3>Slurper CSV Extraction</h3>
+<div class="d-flex align-items-center mb-3 gap-2">
+    <span class="badge bg-info text-dark fs-6">CSV</span>
+    <h1 class="h3 mb-0 fw-bold">CSV Extraction</h1>
+    <code class="ms-auto small text-muted">ICsvExtractor.ExtractFromFile()</code>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">How it works</h6>
+            </div>
+            <div class="card-body small">
+                <p class="mb-2">
+                    The CSV extractor uses the first row as column headers and maps each subsequent row
+                    to a dynamic object. Column names with spaces or special characters are sanitized
+                    to valid property names automatically.
+                </p>
+                <div class="bg-dark rounded p-2">
+                    <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#569CD6;">var</span> rows = _csvExtractor.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"products.csv"</span>);
+<span style="color:#6A9955;">// Each row is a dynamic object; headers → properties</span>
+<span style="color:#569CD6;">foreach</span> (<span style="color:#569CD6;">dynamic</span> row <span style="color:#569CD6;">in</span> rows)
+{
+    Console.<span style="color:#DCDCAA;">WriteLine</span>($<span style="color:#CE9178;">"{row.id}: {row.name} ${row.monthly_price}"</span>);
+}</code></pre>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <p class="lead">This demo demonstrates extracting book data from a CSV file using WebSpark.Slurper's CSV
-                extractor.</p>
-
-            @if (ViewBag.RawCsvContent != null)
-            {
-                <div class="mb-3">
-                    <h6>Raw CSV Content Being Processed:</h6>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">Source file <small class="text-muted fw-normal">wwwroot/data/products.csv</small></h6>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.RawCsvContent != null)
+                {
                     <details>
-                        <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw CSV</summary>
-                        <pre class="bg-light p-3 mt-2"
-                            style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawCsvContent</code></pre>
+                        <summary class="btn btn-link btn-sm m-2">Show / Hide Raw CSV</summary>
+                        <pre class="bg-dark text-light p-3 m-0 rounded-bottom"
+                             style="font-size:0.78em; max-height:280px; overflow-y:auto;"><code>@ViewBag.RawCsvContent</code></pre>
                     </details>
-                </div>
-            }
-
-            @if (ViewBag.Success)
-            {
-                <div class="alert alert-success">
-                    @ViewBag.Message
-                </div>
-
-                <h4 class="mt-4">Book List</h4>
-                <div class="row">
-                    @foreach (var book in ViewBag.BookList)
-                    {
-                        <div class="col-md-6">
-                            <partial name="_BookDisplay" model="book" />
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-danger">
-                    @ViewBag.Message
-                </div>
-            }
+                }
+                else
+                {
+                    <p class="text-muted small p-3 mb-0">Source file not available.</p>
+                }
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="text-center">
-        <a asp-action="Index" class="btn btn-primary">Back to Demo List</a>
+@if (ViewBag.Success == true)
+{
+    <div class="alert alert-success d-flex align-items-center gap-2 py-2">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@ViewBag.Message</span>
     </div>
+
+    <h2 class="h5 fw-semibold mb-3">Extracted Records</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle small">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>SKU</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Monthly</th>
+                    <th>Annual</th>
+                    <th>Released</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (dynamic row in ViewBag.BookList)
+                {
+                    <tr>
+                        <td>@try { @row.id } catch { <text>—</text> }</td>
+                        <td><code>@try { @row.sku } catch { <text>—</text> }</code></td>
+                        <td>@try { @row.name } catch { <text>—</text> }</td>
+                        <td>@try { @row.category } catch { <text>—</text> }</td>
+                        <td>
+                            @{
+                                string status = "";
+                                try { status = row.status?.ToString() ?? ""; } catch { }
+                            }
+                            <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
+                        </td>
+                        <td>@try { <text>$@row.monthly_price</text> } catch { <text>—</text> }</td>
+                        <td>@try { <text>$@row.annual_price</text> } catch { <text>—</text> }</td>
+                        <td>@try { @row.released } catch { <text>—</text> }</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Extraction error:</strong> @ViewBag.Message
+    </div>
+}
+
+<div class="mt-4 d-flex gap-2 flex-wrap">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Overview</a>
+    <a asp-action="HtmlDemo" class="btn btn-outline-warning btn-sm">Next: HTML Extraction</a>
 </div>

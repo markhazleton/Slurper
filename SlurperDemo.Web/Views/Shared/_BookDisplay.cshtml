@@ -1,102 +1,68 @@
 @model dynamic
 
-<div class="card mb-3">
-    <div class="card-header">
-        <h5 class="card-title">
-            @try
-            {
-                @Model.title
-            }
-            catch
-            {
+@{
+    string title = "—", id = "", sku = "", category = "", status = "", released = "", description = "";
+    string monthly = "", annual = "";
 
-                <text>Unknown Title</text>
-            }
-        </h5>
+    try { title = Model.name?.ToString() ?? Model.title?.ToString() ?? "—"; } catch { }
+    try { id = Model.id?.ToString() ?? ""; } catch { }
+    try { sku = Model.sku?.ToString() ?? ""; } catch { }
+    try { category = Model.category?.ToString() ?? ""; } catch { }
+    try { status = Model.status?.ToString() ?? ""; } catch { }
+    try { released = Model.released?.ToString() ?? Model.publish_date?.ToString() ?? ""; } catch { }
+    try { description = Model.description?.ToString() ?? ""; } catch { }
+    try { monthly = Model.pricing?.monthly?.ToString() ?? Model.monthly_price?.ToString() ?? ""; } catch {
+        try { monthly = Model.monthly_price?.ToString() ?? ""; } catch { }
+    }
+    try { annual = Model.pricing?.annual?.ToString() ?? Model.annual_price?.ToString() ?? ""; } catch {
+        try { annual = Model.annual_price?.ToString() ?? ""; } catch { }
+    }
+}
+
+<div class="card h-100 border-0 shadow-sm">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-semibold">@title</h6>
+        @if (!string.IsNullOrEmpty(status))
+        {
+            <span class="badge @(status == "active" ? "bg-success" : "bg-warning text-dark")">@status</span>
+        }
     </div>
-    <div class="card-body">
-        <p>
-            <strong>Author:</strong>
-            @try
+    <div class="card-body small">
+        <dl class="row mb-0">
+            @if (!string.IsNullOrEmpty(id))
             {
-                @Model.author
+                <dt class="col-5 text-muted fw-normal">ID</dt>
+                <dd class="col-7 mb-1"><code>@id</code></dd>
             }
-            catch
+            @if (!string.IsNullOrEmpty(sku))
             {
-
-                <text>Unknown Author</text>
+                <dt class="col-5 text-muted fw-normal">SKU</dt>
+                <dd class="col-7 mb-1"><code>@sku</code></dd>
             }
-        </p>
-
-        @try
+            @if (!string.IsNullOrEmpty(category))
+            {
+                <dt class="col-5 text-muted fw-normal">Category</dt>
+                <dd class="col-7 mb-1">@category</dd>
+            }
+            @if (!string.IsNullOrEmpty(monthly))
+            {
+                <dt class="col-5 text-muted fw-normal">Monthly</dt>
+                <dd class="col-7 mb-1">$@monthly</dd>
+            }
+            @if (!string.IsNullOrEmpty(annual))
+            {
+                <dt class="col-5 text-muted fw-normal">Annual</dt>
+                <dd class="col-7 mb-1">$@annual</dd>
+            }
+            @if (!string.IsNullOrEmpty(released))
+            {
+                <dt class="col-5 text-muted fw-normal">Released</dt>
+                <dd class="col-7 mb-1">@released</dd>
+            }
+        </dl>
+        @if (!string.IsNullOrEmpty(description))
         {
-            if (((object)Model.genre) != null)
-            {
-                <p><strong>Genre:</strong> @Model.genre</p>
-            }
+            <p class="text-muted mt-2 mb-0">@description</p>
         }
-        catch { }
-
-        @try
-        {
-            if (((object)Model.price) != null)
-            {
-                <p><strong>Price:</strong> $@Model.price</p>
-            }
-        }
-        catch { }
-
-        @try
-        {
-            // Try publish_date first (XML format)
-            if (((object)Model.publish_date) != null)
-            {
-                <p><strong>Published:</strong> @Model.publishdate</p>
-            }
-            // Try publishDate next (JSON format possibly)
-            else if (((object)Model.publishDate) != null)
-            {
-                <p><strong>Published:</strong> @Model.publishDate</p>
-            }
-            // Try published next (another possible format)
-            else if (((object)Model.published) != null)
-            {
-                <p><strong>Published:</strong> @Model.published</p>
-            }
-        }
-        catch { }
-
-        @try
-        {
-            if (((object)Model.description) != null)
-            {
-                <p><strong>Description:</strong> @Model.description</p>
-            }
-        }
-        catch { }
-    </div>
-    <div class="card-footer text-muted">
-        @try
-        {
-            if (((object)Model.id) != null)
-            {
-                <small>ID: @Model.id</small>
-            }
-        }
-        catch { }
     </div>
 </div>
-           
-               
-           
-           
-           
-
-               
-           
-           
-               
-           
-           
-           
-

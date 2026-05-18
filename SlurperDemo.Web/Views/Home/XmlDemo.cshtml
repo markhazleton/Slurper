@@ -1,56 +1,94 @@
 @{
-    ViewData["Title"] = "XML Extraction Demo";
+    ViewData["Title"] = "XML Extraction — WebSpark.Slurper";
 }
 
-<div class="container">
-    <h1 class="mb-4">XML Extraction Demo</h1>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Overview</a></li>
+        <li class="breadcrumb-item active">XML Extraction</li>
+    </ol>
+</nav>
 
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            <h3>Slurper XML Extraction</h3>
+<div class="d-flex align-items-center mb-3 gap-2">
+    <span class="badge bg-primary fs-6">XML</span>
+    <h1 class="h3 mb-0 fw-bold">XML Extraction</h1>
+    <code class="ms-auto small text-muted">IXmlExtractor.ExtractFromFile()</code>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">How it works</h6>
+            </div>
+            <div class="card-body small">
+                <p class="mb-2">
+                    Slurper parses the XML document and maps each element to a dynamic property.
+                    Repeated sibling elements become a <code>&lt;name&gt;List</code> collection.
+                    Attributes are accessible directly on the same dynamic object as child elements.
+                </p>
+                <div class="bg-dark rounded p-2">
+                    <pre class="mb-0 text-light" style="font-size:0.82em; line-height:1.6;"><code><span style="color:#569CD6;">var</span> results = _xmlExtractor.<span style="color:#DCDCAA;">ExtractFromFile</span>(<span style="color:#CE9178;">"catalog.xml"</span>);
+<span style="color:#569CD6;">dynamic</span> root = results.<span style="color:#DCDCAA;">First</span>();
+<span style="color:#6A9955;">// XML attributes surfaced as properties</span>
+<span style="color:#569CD6;">string</span> ver = root.version;
+<span style="color:#6A9955;">// Repeated &lt;product&gt; → productList</span>
+<span style="color:#569CD6;">foreach</span> (<span style="color:#569CD6;">var</span> p <span style="color:#569CD6;">in</span> root.productList)
+{
+    Console.<span style="color:#DCDCAA;">WriteLine</span>($<span style="color:#CE9178;">"{p.id} {p.name}"</span>);
+}</code></pre>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
-            <p class="lead">This demo demonstrates extracting book data from an XML file using WebSpark.Slurper's XML
-                extractor.</p>
-
-            @if (ViewBag.RawXmlContent != null)
-            {
-                <div class="mb-3">
-                    <h6>Raw XML Content Being Processed:</h6>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-semibold">Source file <small class="text-muted fw-normal">wwwroot/data/ProductCatalog.xml</small></h6>
+            </div>
+            <div class="card-body p-0">
+                @if (ViewBag.RawXmlContent != null)
+                {
                     <details>
-                        <summary class="btn btn-outline-secondary btn-sm">Show/Hide Raw XML</summary>
-                        <pre class="bg-light p-3 mt-2"
-                            style="font-size: 0.8em; max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;"><code>@ViewBag.RawXmlContent</code></pre>
+                        <summary class="btn btn-link btn-sm m-2">Show / Hide Raw XML</summary>
+                        <pre class="bg-dark text-light p-3 m-0 rounded-bottom"
+                             style="font-size:0.78em; max-height:280px; overflow-y:auto;"><code>@ViewBag.RawXmlContent</code></pre>
                     </details>
-                </div>
-            }
-
-            @if (ViewBag.Success)
-            {
-                <div class="alert alert-success">
-                    @ViewBag.Message
-                </div>
-
-                <h4 class="mt-4">Book List</h4>
-                <div class="row">
-                    @foreach (var book in ViewBag.BookList)
-                    {
-                        <div class="col-md-6">
-                            <partial name="_BookDisplay" model="book" />
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-danger">
-                    @ViewBag.Message
-                </div>
-            }
+                }
+                else
+                {
+                    <p class="text-muted small p-3 mb-0">Source file not available.</p>
+                }
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="text-center">
-        <a asp-action="Index" class="btn btn-primary">Back to Demo List</a>
+@if (ViewBag.Success == true)
+{
+    <div class="alert alert-success d-flex align-items-center gap-2 py-2">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>@ViewBag.Message</span>
     </div>
+
+    <h2 class="h5 fw-semibold mb-3">Extracted Records</h2>
+    <div class="row g-3">
+        @foreach (var book in ViewBag.BookList)
+        {
+            <div class="col-md-6 col-lg-4">
+                <partial name="_BookDisplay" model="book" />
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-danger">
+        <strong>Extraction error:</strong> @ViewBag.Message
+    </div>
+}
+
+<div class="mt-4 d-flex gap-2 flex-wrap">
+    <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Overview</a>
+    <a asp-controller="JSON" asp-action="Index" class="btn btn-outline-success btn-sm">Next: JSON Extraction</a>
 </div>
