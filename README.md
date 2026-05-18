@@ -2,8 +2,19 @@
 
 <img src="icon.png" alt="Slurper Logo" width="120" align="right" />
 
+**Live Site**: [https://slurper.makeboldspark.com](https://slurper.makeboldspark.com)
+
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/MarkHazleton/Slurper)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+## About
+
+SlurperSpark demonstrates zero-configuration data extraction from XML, JSON, CSV, and HTML into dynamic C# objects using the WebSpark.Slurper NuGet library. The live demo is hosted at [https://slurper.makeboldspark.com](https://slurper.makeboldspark.com).
+
+> Built by [Mark Hazleton](https://markhazleton.com) — Mark Hazleton, Solutions Architect
+> SlurperSpark is part of the [Make Bold Spark](https://makeboldspark.com) portfolio of technical demonstrations.
+
+---
 
 Transform complex XML, JSON, CSV, and HTML into friendly C# objects with zero configuration! Slurper is your Swiss Army knife for data extraction that makes working with structured data a breeze.
 
