@@ -114,9 +114,9 @@ namespace WebSpark.Slurper.Services
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             }
 
-            if (!_httpClient.DefaultRequestHeaders.UserAgent.Contains(new ProductInfoHeaderValue("Slurper", "3.3.0")))
+            if (!_httpClient.DefaultRequestHeaders.UserAgent.Contains(new ProductInfoHeaderValue("Slurper", "3.5.2")))
             {
-                _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Slurper", "3.3.0"));
+                _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Slurper", "3.5.2"));
             }
         }
 

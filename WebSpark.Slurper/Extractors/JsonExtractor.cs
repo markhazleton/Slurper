@@ -206,7 +206,7 @@ namespace WebSpark.Slurper.Extractors
             
             using var httpClient = new System.Net.Http.HttpClient();
             httpClient.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("Slurper", "3.3.0"));
+            httpClient.DefaultRequestHeaders.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("Slurper", "3.5.2"));
             
             return await httpClient.GetStringAsync(url, cancellationToken);
         }
