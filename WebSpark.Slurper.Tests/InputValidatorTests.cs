@@ -73,9 +73,14 @@ namespace WebSpark.Slurper.Tests
         [TestMethod]
         public void ValidateFilePath_SystemDirectory_ThrowsInvalidConfigurationException()
         {
-            string systemDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.System),
-                "test.xml");
+            // SpecialFolder.System returns empty string on Linux — skip there
+            string sysFolder = Environment.GetFolderPath(Environment.SpecialFolder.System);
+            if (string.IsNullOrEmpty(sysFolder))
+            {
+                Assert.Inconclusive("SpecialFolder.System not defined on this OS — Windows-only check.");
+                return;
+            }
+            string systemDir = Path.Combine(sysFolder, "test.xml");
             Assert.ThrowsExactly<InvalidConfigurationException>(() =>
                 InputValidator.ValidateFilePath(systemDir));
         }
