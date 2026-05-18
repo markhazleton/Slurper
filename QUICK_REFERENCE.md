@@ -15,7 +15,7 @@ git push
 
 ### Update Version Number
 **File**: `docs/index.html`
-**Find**: `Version 3.3.0`
+**Find**: `Version 3.5.2`
 **Replace**: `Version X.Y.Z`
 **Also update**: Timeline section with new version
 
@@ -187,4 +187,4 @@ Clipboard.js 2.0.11
 
 **Keep this card handy for quick reference!** 📌
 
-*Last Updated: November 2025*
+*Last Updated: May 2026 — v3.5.2*

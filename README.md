@@ -100,17 +100,18 @@ dotnet add package WebSpark.Slurper
 Install-Package WebSpark.Slurper
 
 # Using PackageReference in your project file
-<PackageReference Include="WebSpark.Slurper" Version="3.5.1" />
+<PackageReference Include="WebSpark.Slurper" Version="3.5.2" />
 ```
 
 ### Package Version History
 
-| Version | Release Date | Changes                                                                                              |
-|---------|--------------|------------------------------------------------------------------------------------------------------|
+| Version | Release Date | Changes |
+|---------|--------------|---------|
+| 3.5.2   | 2026-05-18   | Migrated tests from xUnit to MSTest; expanded test coverage from 32% to 76%; resolved all 24 Dependabot npm security alerts; upgraded copy-webpack-plugin 14, css-minimizer-webpack-plugin 8, webpack 5.106.2 |
 | 3.5.1   | 2026-01-12   | Security updates: Fixed multiple HIGH severity vulnerabilities in npm dependencies (qs, node-forge, glob) |
-| 3.5.0   | 2025-11-16   | Added .NET 10.0 support, multi-targeting for .NET 8.0, 9.0, and 10.0                               |
+| 3.5.0   | 2025-11-16   | Added .NET 10.0 support, multi-targeting for .NET 8.0, 9.0, and 10.0 |
 | 3.3.0   | 2025-10-01   | Enhanced features including plugin system, performance optimizations, and comprehensive error handling |
-| 3.1.1   | 2025-04-01   | Initial public release with support for XML, JSON, CSV, and HTML data extraction                    |
+| 3.1.1   | 2025-04-01   | Initial public release with support for XML, JSON, CSV, and HTML data extraction |
 
 ### Dependencies
 
@@ -145,7 +146,7 @@ The WebSpark.Slurper NuGet package is:
 - Scanned for vulnerabilities before each release
 - Regularly updated to address security vulnerabilities in dependencies
 - All dependencies are monitored via Dependabot for security alerts
-- npm audit reports 0 vulnerabilities for the demo web application (as of v3.5.1)
+- npm audit reports 0 vulnerabilities for the demo web application (as of v3.5.2)
 
 ### Package Compatibility
 
