@@ -46,5 +46,13 @@
     <Content Remove=".npmrc" />
     <None Include="node_modules\**" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ApiTestSpark" Version="1.1.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
+    <PackageReference Include="Microsoft.Extensions.ApiDescription.Server" Version="10.0.8">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
 
 </Project>
